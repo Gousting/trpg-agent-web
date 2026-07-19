@@ -20,10 +20,8 @@ from __future__ import annotations
 # which the system prompt already carries. So this only has to point the model at that scene and
 # hold it to the persona's voice. Phrased as an instruction to the GM, never read aloud.
 OPENING_DIRECTOR_MSG = (
-    "[Regie] Eröffne jetzt die Sitzung: Spiele die Auftrags-/Eröffnungsszene aus deiner "
-    "aktuellen Szene. Mach den Spielenden klar, wer sie sind und was ihr Auftrag ist, und "
-    "deute die ersten Spuren über ein Detail der Umgebung an — nicht als Aufzählung. Halte "
-    "dich an die Spielleitungs-Stimme (2–4 Sätze). Verlange keine Probe."
+    "[导演] 现在开启游戏：扮演你当前场景中的任务/开场场景。让玩家清楚他们是谁、任务是什么，"
+    "并通过环境的某个细节暗示最初的线索——不要罗列。保持主持人语调（2-4句话）。不要要求检定。"
 )
 
 
@@ -45,38 +43,33 @@ def build_opening_director_msg() -> str:
 # adventure summary already in the system prompt; the party roster is embedded here (it rides in the
 # turn's user message so the ADR-019 prompt order is untouched). GM-side instruction, never read aloud.
 _INTRO_DIRECTOR_HEAD = (
-    "[Regie] Eröffne jetzt die Sitzung mit einem zusammenhängenden Eröffnungs-Monolog "
-    "(mehrere Absätze, kein Aufzählen, keine Stichpunkte). Beginne sofort als Erzähler mitten "
-    "in der Szene — schreibe NICHT, dass du die Sitzung eröffnest oder was du als Spielleitung "
-    "gerade tust, und kündige den Monolog nicht an. Etabliere zuerst, wo die Gruppe ist und wie "
-    "sie hergekommen ist, dann die Lage und ihren Auftrag — stütze dich dabei auf deine aktuelle "
-    "Szene und die Abenteuer-Zusammenfassung."
+    "[导演] 现在以一个连贯的开场独白开启游戏（多段落，不要罗列，不要要点）。"
+    "立即以叙述者身份切入场景——不要写你正在开启游戏或你作为主持人在做什么，不要预告独白。"
+    "先确定队伍在哪里以及他们是如何到达的，然后确定局势和他们的任务——依据你的当前场景和冒险摘要。"
 )
 _INTRO_DIRECTOR_CHARS = (
-    "Beziehe danach jede der folgenden Figuren mit einem kurzen, persönlichen Moment ein "
-    "(sprich sie namentlich an und knüpfe an ihre Herkunft, ihr Wesen und ihre Beweggründe an) — "
-    "webe das ins Bild ein, lies nichts davon wörtlich vor und sprich geheime oder rein private "
-    "Ziele höchstens andeutend aus:\n\n{roster}"
+    "然后将以下每个角色用一个简短的个人时刻引入（用名字称呼他们，"
+    "联系他们的出身、性格和动机）——将其编织进画面中，不要逐字朗读，"
+    "秘密或纯私人目标最多只能暗示提及：\n\n{roster}"
 )
 _INTRO_DIRECTOR_TAIL = (
-    "Bleib durchgehend in der Spielleitungs-Stimme und nimm dir Raum — das ist der Auftakt, er "
-    "darf deutlich länger sein als ein normaler Zug. Schließe ihn stimmungsvoll ab und lade die "
-    "Gruppe in die Szene ein (etwa welche Spur sie zuerst verfolgt); brich nicht nach wenigen "
-    "Sätzen mit einer knappen „Was tut ihr?\"-Frage ab. Verlange keine Probe."
+    "全程保持主持人语调，给自己空间——这是开场，可以比普通回合长很多。"
+    "以氛围感收官，邀请队伍进入场景（比如他们要先追踪哪条线索）；"
+    "不要在几句之后就用一句简短的「你们怎么做？」收尾。不要要求检定。"
 )
 
 
-def build_intro_director_msg(roster_de: str = "") -> str:
+def build_intro_director_msg(roster_zh: str = "") -> str:
     """The GM-side director instruction for the ``!intro`` opening monologue (pure, unit-testable).
 
     Asks for one coherent opening monologue (place + how they arrived + mission) and weaves in each
-    player character via the embedded ``roster_de`` block (from ``CharacterStore.intro_roster_de``).
+    player character via the embedded ``roster_zh`` block (from ``CharacterStore.intro_roster_zh``).
     With an empty roster it degrades to the place/mission monologue alone. Kept as a function so the
     cog never inlines the prompt text and a test can assert its shape (one monologue, every figure
     involved, no dice)."""
     msg = _INTRO_DIRECTOR_HEAD
-    if roster_de.strip():
-        msg += " " + _INTRO_DIRECTOR_CHARS.format(roster=roster_de.strip())
+    if roster_zh.strip():
+        msg += " " + _INTRO_DIRECTOR_CHARS.format(roster=roster_zh.strip())
         msg += "\n\n" + _INTRO_DIRECTOR_TAIL
     else:
         msg += " " + _INTRO_DIRECTOR_TAIL

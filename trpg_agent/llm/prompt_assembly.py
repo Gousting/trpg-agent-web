@@ -29,7 +29,7 @@ def assemble_system_prompt(
 
     Each optional slice is included ONLY when truthy — both ``None`` and ``""`` are skipped,
     replicating the old ``if recap:`` chain in ``_build_request``. Slices are separated by exactly
-    one blank line (``"\\n\\n"``). ``recap`` is wrapped in the German "Was bisher geschah" header;
+    one blank line (``"\\n\\n"``). ``recap`` is wrapped in the Chinese "前情提要" header;
     every other slice is appended verbatim. ``npc_memory`` (ADR 044) sits right after the hard
     state it colours, before the retrieved rulebook text.
     """

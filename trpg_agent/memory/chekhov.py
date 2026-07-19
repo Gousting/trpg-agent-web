@@ -54,7 +54,7 @@ class ChekhovThread:
     ``!faden neu``), code stores/caps/serialises it, and no hard field is ever derived from it."""
 
     id: str                    # short sequential token ("t1", "t2", …) — what the commands take
-    detail: str                # one German sentence
+    detail: str                # one Chinese sentence
     origin_scene: str = ""     # scene id where the detail surfaced
     created_session: str = ""  # ISO date of the wrap-up that recorded it
     status: str = "open"       # "open" | "resolved"
@@ -143,7 +143,7 @@ class ChekhovList:
 
     def top_open(self, k: int = TOP_K) -> list[ChekhovThread]:
         """The callback offer for the prompt: highest weight first, then **older first** —
-        old threads are the best callbacks („die Münze aus Session 1")."""
+        old threads are the best callbacks （"第一场的那枚硬币"）."""
         order = {id(t): i for i, t in enumerate(self.threads)}  # list order = age
         return sorted(self.open_threads(), key=lambda t: (-t.weight, order[id(t)]))[: max(0, k)]
 
@@ -169,7 +169,7 @@ class ChekhovList:
             return None
         for existing in self.threads:
             if is_similar(detail, existing.detail):
-                log.info("chekhov: '%s' ähnelt [%s] — übersprungen", detail, existing.id)
+                log.info("chekhov: '%s' 与 [%s] 相似 — 跳过", detail, existing.id)
                 return None
         thread = ChekhovThread(
             id=self.next_id(),
@@ -205,7 +205,7 @@ class ChekhovList:
             lightest = min(t.weight for t in open_threads)
             victim = next(t for t in open_threads if t.weight == lightest)  # list order = oldest
             self.threads.remove(victim)
-            log.info("chekhov: Cap erreicht — ältester Faden mit Gewicht %d fliegt: [%s] %s",
+            log.info("chekhov: 达到上限 — 最旧权重 %d 的线索被移除：[%s] %s",
                      victim.weight, victim.id, victim.detail)
 
     def _trim_resolved(self) -> None:
@@ -273,23 +273,22 @@ def build_chekhov_section(
     for resolution detection and against re-recording) and the session history *before* the
     scene window — clearly labelled as threads-only context (the NPC-memory part of the call
     stays bound to the scene transcript above)."""
-    lines = ["", "Bisherige lose Fäden (offen):"]
+    lines = ["", "当前未解决线索（开放）："]
     if open_threads:
         for t in open_threads:
-            scene = f" (Szene: {t.origin_scene})" if t.origin_scene else ""
+            scene = f" （场景：{t.origin_scene}）" if t.origin_scene else ""
             lines.append(f"- [{t.id}] {t.detail}{scene}")
     else:
-        lines.append("- (keine)")
+        lines.append("-（无）")
     earlier = [
-        f"{'Spielleitung' if msg.get('role') == 'assistant' else 'Spieler'}: {content}"
+        f"{'主持人' if msg.get('role') == 'assistant' else '玩家'}: {content}"
         for msg in earlier_turns
         if (content := (msg.get("content") or "").strip())
     ]
     if earlier:
         lines.append("")
         lines.append(
-            "Früherer Verlauf dieser Sitzung (bereits fürs NSC-Gedächtnis ausgewertet — "
-            "hier NUR nach losen Fäden und deren Auflösung durchsuchen):"
+            "本场游戏早期记录（已处理过NPC记忆——此处仅搜索未解决线索及其解决情况）："
         )
         lines.extend(earlier)
     return "\n".join(lines)
@@ -309,7 +308,7 @@ def apply_chekhov(
     Returns ``(new_count, resolved_count)``."""
     if not isinstance(payload, dict):
         if payload is not None:
-            log.info("chekhov: unbrauchbare Extraktions-Sektion (%r) — übersprungen", type(payload))
+            log.info("chekhov: 无效的提取数据 (%r) — 跳过", type(payload))
         return (0, 0)
     resolved_count = 0
     for thread_id in payload.get("resolved", []) or []:
@@ -317,9 +316,9 @@ def apply_chekhov(
             continue
         if clist.resolve(thread_id) is not None:
             resolved_count += 1
-            log.info("chekhov: Faden [%s] als aufgelöst markiert", thread_id.strip().lower())
+            log.info("chekhov: 线索 [%s] 标记为已解决", thread_id.strip().lower())
         else:
-            log.info("chekhov: unbekannte/erledigte Faden-ID %r — übersprungen", thread_id)
+            log.info("chekhov: 未知/已完成的线索ID %r — 跳过", thread_id)
     new_count = 0
     raw_new = payload.get("new", []) or []
     if isinstance(raw_new, list):
@@ -338,7 +337,7 @@ def apply_chekhov(
             )
             if thread is not None:
                 new_count += 1
-                log.info("chekhov: neuer Faden [%s] (Gewicht %d): %s",
+                log.info("chekhov: 新线索 [%s]（权重 %d）：%s",
                          thread.id, thread.weight, thread.detail)
     return (new_count, resolved_count)
 
@@ -346,16 +345,16 @@ def apply_chekhov(
 # -- prompt injection ---------------------------------------------------------------------------
 
 
-def chekhov_block_de(threads: list[ChekhovThread]) -> str:
+def chekhov_block_zh(threads: list[ChekhovThread]) -> str:
     """The compact callback offer for the DM prompt (ADR 050 #6) — pass ``top_open()`` in.
     Nothing to offer → ''."""
     if not threads:
         return ""
     lines = [
-        "## Lose Fäden (unaufgelöste Details früherer Sitzungen — greife einen auf, "
-        "wenn er sich natürlich anbietet; nicht erzwingen, nicht alle auf einmal)"
+        "## 未解决线索（之前场次的未解决细节——当自然出现时拾起一个；"
+        "不要强求，不要一次性全部抛出）"
     ]
     for t in threads:
-        tag = "(wichtig) " if t.weight >= 3 else ""
+        tag = "（重要）" if t.weight >= 3 else ""
         lines.append(f"- {tag}{t.detail}")
     return "\n".join(lines)

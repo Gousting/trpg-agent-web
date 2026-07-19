@@ -5,7 +5,7 @@ key quotes for promises/lies/threats), injected into the DM prompt while the NPC
 scene. The split follows golden rule #3 exactly like the dice flow: the **LLM extracts and
 proposes** (memories are a narrative layer, like the recap), **code validates and applies**
 everything hard — the attitude proposal is clamped to ±1 step per scene
-(:func:`~dmbot.memory.state.step_attitude`), revealed lies are flipped by code, and gossip is
+(:func:`~trpg_agent.memory.state.step_attitude`), revealed lies are flipped by code, and gossip is
 deterministic propagation, not another LLM call.
 
 Pure functions + one LLM-call wrapper with an injected OllamaClient (testable like
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-_PROMPT_PATH = Path(__file__).resolve().parent.parent.parent / "prompts" / "npc_memory_extract_de.md"
+_PROMPT_PATH = Path(__file__).resolve().parent.parent.parent / "prompts" / "npc_memory_extract_zh.md"
 
 # Hard render cap per gist (chars) — requested from the extractor, enforced again at apply AND
 # render time so the prompt block stays bounded no matter what the model returned.
@@ -45,13 +45,13 @@ GOSSIP_MIN_IMPORTANCE = 4
 AGENDA_INPUT_STEPS = 2
 AGENDA_RENDER_STEPS = 3
 
-# German labels for the prompt block (play language); stored tokens stay English (code).
-_ATTITUDE_DE = {
-    "hostile": "feindselig",
-    "wary": "misstrauisch",
-    "neutral": "neutral",
-    "friendly": "freundlich",
-    "loyal": "loyal",
+# Chinese labels for the prompt block; stored tokens stay English (code).
+_ATTITUDE_ZH = {
+    "hostile": "敌对",
+    "wary": "警惕",
+    "neutral": "中立",
+    "friendly": "友善",
+    "loyal": "忠诚",
 }
 
 # Ollama structured-output schema (like the roll router, ADR 014): forces valid JSON so the
@@ -95,13 +95,13 @@ EXTRACT_SCHEMA_CHEKHOV: dict = copy.deepcopy(EXTRACT_SCHEMA)
 EXTRACT_SCHEMA_CHEKHOV["properties"]["chekhov"] = CHEKHOV_SCHEMA
 EXTRACT_SCHEMA_CHEKHOV["required"] = ["npcs", "chekhov"]
 
-_CHEKHOV_PROMPT_PATH = _PROMPT_PATH.parent / "chekhov_extract_de.md"
+_CHEKHOV_PROMPT_PATH = _PROMPT_PATH.parent / "chekhov_extract_zh.md"
 
 
-def attitude_de(attitude: str) -> str:
+def attitude_zh(attitude: str) -> str:
     """German label for a stored attitude token; an off-scale/legacy value renders verbatim."""
     key = (attitude or "").strip().lower()
-    return _ATTITUDE_DE.get(key, attitude or "unbekannt")
+    return _ATTITUDE_ZH.get(key, attitude or "未知")
 
 
 # -- parsing (tolerant) ---------------------------------------------------------------------
@@ -140,28 +140,28 @@ def build_extract_user(
     the elapsed time."""
     lines: list[str] = []
     if scene_id:
-        lines.append(f"Szene: {scene_id}")
+        lines.append(f"场景：{scene_id}")
     if now_ingame:
-        lines.append(f"Aktuelle Ingame-Zeit: {now_ingame}")
-    lines.append("Anwesende NSCs:")
+        lines.append(f"当前游戏时间：{now_ingame}")
+    lines.append("在场 NPC：")
     for npc in npcs:
-        lines.append(f"- {npc.name} (Haltung: {attitude_de(npc.attitude)})")
+        lines.append(f"- {npc.name} （态度：{attitude_zh(npc.attitude)}）")
         if npc.goal:
-            lines.append(f"  Ziel: {npc.goal}")
+            lines.append(f"  目标：{npc.goal}")
             for step in npc.agenda_log[-AGENDA_INPUT_STEPS:]:
                 ts = f" ({step.ts_ingame})" if step.ts_ingame else ""
-                lines.append(f"  Bisheriger Schritt{ts}: {step.text}")
+                lines.append(f"  先前步骤{ts}：{step.text}")
         for i, m in enumerate(npc.memories):
             quote = f" Zitat: „{m.quote}“" if m.quote else ""
-            lie = " [als Lüge aufgeflogen]" if not m.believed else ""
+            lie = " [谎言已揭露]" if not m.believed else ""
             lines.append(f"  [{i}] {m.gist}{quote}{lie}")
     lines.append("")
-    lines.append("Gesprächsverlauf der Szene:")
+    lines.append("场景对话记录：")
     for msg in turns:
         content = (msg.get("content") or "").strip()
         if not content:
             continue
-        speaker = "Spielleitung" if msg.get("role") == "assistant" else "Spieler"
+        speaker = "主持人" if msg.get("role") == "assistant" else "玩家"
         lines.append(f"{speaker}: {content}")
     return "\n".join(lines)
 
@@ -185,13 +185,13 @@ def _npc_only_find(state: WorldState, name: str) -> Combatant | None:
     return next((n for n in state.npcs if n.name.lower() == key), None)
 
 
-def _liar_de(about: list[str]) -> str:
-    """Who lied, for the flip entry's gist: the first ``pc:``-scoped name, else 'der Gruppe'."""
+def _liar_zh(about: list[str]) -> str:
+    """Who lied, for the flip entry's gist: the first ``pc:``-scoped name, else '队伍'."""
     for a in about:
         a = a.strip()
         if a.lower().startswith("pc:"):
             return a[3:].strip()
-    return "der Gruppe"
+    return "队伍"
 
 
 def apply_extraction(
@@ -271,7 +271,7 @@ def apply_extraction(
                 NpcMemory(
                     about=list(lied.about),
                     gist=_truncate_gist(
-                        f"Wurde von {_liar_de(lied.about)} belogen — „{lied.gist}“ war gelogen."
+                        f"被{_liar_zh(lied.about)}欺骗 — „{lied.gist}“ 是谎言。"
                     ),
                     importance=5,
                     scene=scene_id,
@@ -281,7 +281,7 @@ def apply_extraction(
             cur = npc.attitude.strip().lower()
             cur_idx = ATTITUDE_SCALE.index(cur) if cur in ATTITUDE_SCALE else ATTITUDE_SCALE.index("neutral")
             step_attitude(npc, ATTITUDE_SCALE[max(0, cur_idx - 1)])
-            log.info("NPC-memory: '%s' — Lüge aufgeflogen (Haltung jetzt %s)", npc.name, npc.attitude)
+            log.info("NPC-memory: '%s' — 谎言揭露（当前态度 %s）", npc.name, npc.attitude)
 
         # 2) New memories, deduped on gist.
         seen_gists = {m.gist.strip().casefold() for m in npc.memories}
@@ -314,7 +314,7 @@ def apply_extraction(
             before = npc.attitude
             after = step_attitude(npc, proposal)
             if after != before:
-                log.info("NPC-memory: '%s' Haltung %s → %s (Vorschlag: %s)",
+                log.info("NPC-memory: '%s' 态度 %s → %s（提议：%s）",
                          npc.name, before or "—", after, proposal)
 
         # 4) Agenda step (ADR 049) — narrative log entry only, max one per NPC per extraction;
@@ -330,7 +330,7 @@ def apply_extraction(
             else:
                 npc.add_agenda_step(AgendaStep(ts_ingame=now_ingame, text=step_text))
                 agenda_stepped.add(id(npc))
-                log.info("NPC-memory: '%s' Agenda-Schritt: %s", npc.name, step_text)
+                log.info("NPC-memory: '%s' 议程步骤：%s", npc.name, step_text)
     return new_entries
 
 
@@ -366,7 +366,7 @@ def propagate_gossip(
             )
             planted += 1
     if planted:
-        log.info("NPC-memory: %d Gossip-Einträge verteilt", planted)
+        log.info("NPC-memory: 传播 %d 条传闻", planted)
     return planted
 
 
@@ -383,29 +383,29 @@ def select_top_memories(npc: Combatant, top_k: int) -> list[NpcMemory]:
     return flipped + rest[: max(0, top_k - len(flipped))]
 
 
-def npc_memory_block_de(npcs: list[Combatant], *, top_k: int = 6) -> str:
-    """The compact German prompt block: one ``[NPC-Gedächtnis: …]`` header per scene NPC with
-    its top-K entries. Gossip renders as „Hörensagen“ (the DM keeps it vague), flipped lies as
-    „als Lüge aufgeflogen“. An agenda NPC (ADR 049) additionally carries its goal + the last
-    few offscreen steps (and renders even without memories). Gists are hard-truncated; NPCs
+def npc_memory_block_zh(npcs: list[Combatant], *, top_k: int = 6) -> str:
+    """The compact Chinese prompt block: one ``[NPC 记忆：…]`` header per scene NPC with
+    its top-K entries. Gossip renders as "传闻" (the DM keeps it vague), flipped lies as
+    "谎言已揭露". An agenda NPC (ADR 049) additionally carries its goal + the last
+    few 幕后 steps (and renders even without memories). Gists are hard-truncated; NPCs
     without memories or a goal are skipped; nothing to render → ''."""
     blocks: list[str] = []
     for npc in npcs:
         if not npc.memories and not npc.goal:
             continue
-        lines = [f"[NPC-Gedächtnis: {npc.name} — Haltung: {attitude_de(npc.attitude)}]"]
+        lines = [f"[NPC 记忆：{npc.name} — 态度：{attitude_zh(npc.attitude)}]"]
         if npc.goal:
-            lines.append(f"Ziel: {npc.goal}")
+            lines.append(f"目标：{npc.goal}")
             for step in npc.agenda_log[-AGENDA_RENDER_STEPS:]:
                 ts = f", {step.ts_ingame}" if step.ts_ingame else ""
-                lines.append(f"- (offscreen{ts}) {_truncate_gist(step.text)}")
+                lines.append(f"-（幕后{ts}）{_truncate_gist(step.text)}")
         for m in select_top_memories(npc, top_k):
             if not m.believed:
-                tag = "(als Lüge aufgeflogen) "
+                tag = "（谎言已揭露）"
             elif m.source == "gossip":
-                tag = "(Hörensagen) "
+                tag = "（传闻）"
             elif m.importance >= 4:
-                tag = "(wichtig) "
+                tag = "（重要）"
             else:
                 tag = ""
             quote = f" Zitat: „{m.quote}“" if m.quote and m.source != "gossip" else ""
@@ -414,9 +414,9 @@ def npc_memory_block_de(npcs: list[Combatant], *, top_k: int = 6) -> str:
     if not blocks:
         return ""
     return (
-        "## NPC-Gedächtnis (was diese NSCs aus früheren Gesprächen wissen — nutze es im "
-        "Dialog; Hörensagen nur vage und aus zweiter Hand wiedergeben; offscreen-Schritte "
-        "sind, was der NSC zwischen den Szenen für sein Ziel getan hat)\n" + "\n".join(blocks)
+        "## NPC 记忆（这些 NPC 在之前对话中了解的信息——在对话中使用；"
+        "传闻仅模糊地二手转述；幕后步骤是 NPC 在场景之间为实现目标所做的事情）\n"
+        + "\n".join(blocks)
     )
 
 

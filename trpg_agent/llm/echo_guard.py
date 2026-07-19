@@ -17,22 +17,20 @@ from difflib import SequenceMatcher
 
 # Appended to the retry prompt when the model parroted a player line instead of narrating.
 _ECHO_NUDGE = (
-    "Antworte als Spielleitung: Beschreibe, was daraufhin in der Szene geschieht, "
-    "und wiederhole nicht die Worte der Spielenden."
+    "以主持人身份回答：描述场景中接下来发生的事情，不要重复玩家的话。"
 )
 
 # Appended when the model re-narrated its own previous answer (W4: players asked "warum hat er
 # das zweimal gesagt?" — seen live as a near-verbatim scene re-description on a direct question).
 _REPEAT_NUDGE = (
-    "Beantworte die konkrete Frage der Spielenden direkt und knapp; "
-    "wiederhole nicht deine letzte Beschreibung."
+    "直接简洁地回答玩家的具体问题；不要重复你上一次的描述。"
 )
 
 # Explicit directive on a results-only (post-roll) turn — without it the model sees a bare
 # "[Würfel] …" line and tends to predict the *next player line* instead of narrating (seen live
 # 2026-06-12: three identical echo turns poisoned the history).
 _ROLL_DIRECTIVE = (
-    "Beschreibe als Spielleitung kurz die Folgen dieses Würfelergebnisses in der Szene."
+    "以主持人身份简要描述此掷骰结果在场景中的后果。"
 )
 
 

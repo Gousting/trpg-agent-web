@@ -193,7 +193,7 @@ def describe_result_de(
     if result.critical:
         verdict = f"kritischer Erfolg, {result.degrees} EG"
     elif result.fumble:
-        verdict = f"Patzer, {abs(result.degrees)} EG Fehlschlag"
+        verdict = f"大失败，{abs(result.degrees)} 成功等级失败"
     elif result.success:
         verdict = f"Erfolg, {result.degrees} EG"
     else:
@@ -238,7 +238,7 @@ def describe_damage_de(
     """A German one-line damage summary that feeds back so the DM narrates the consequence:
     "💥 Vask trifft Kultist mit Kettenschwert: 8 + 2 EG − 3 Soak = 7 Wunden → Kultist 3/10."
     """
-    who = attacker or "Angreifer"
+    who = attacker or "攻击方"
     weap = f" mit {weapon}" if weapon else ""
     sl = f" + {dmg.success_level} EG" if dmg.success_level else ""
     soak = f" − {dmg.soak} Soak" if dmg.soak else ""
@@ -404,7 +404,7 @@ def describe_manifest_de(result: ManifestResult, *, character: str | None = None
     if t.critical:
         verdict = f"kritischer Erfolg, {t.degrees} EG"
     elif t.fumble:
-        verdict = f"Patzer, {abs(t.degrees)} EG Fehlschlag"
+        verdict = f"大失败，{abs(t.degrees)} 成功等级失败"
     elif t.success:
         verdict = f"Erfolg, {t.degrees} EG"
     else:
@@ -414,16 +414,16 @@ def describe_manifest_de(result: ManifestResult, *, character: str | None = None
     warp = f"Warp {result.warp_charge}/{result.threshold}"
     tail = ""
     if result.immediate_perils:
-        tail = " — Push-Patzer: Perils of the Warp sofort!"
+        tail = " — 推挤大失败：立即触发亚空间危机！"
     elif result.over_threshold:
-        tail = " — über der Schwelle: Perils-Probe am Zugende!"
+        tail = " — 超过阈值：回合结束时进行危机检定！"
     return f"{head} — {verdict} · {warp}{tail}."
 
 
 def describe_perils_de(outcome: TableOutcome, *, character: str | None = None) -> str:
     """German one-line consequence summary for a Perils/Phenomena roll, fed back to the DM."""
     who = character or "Der Psioniker"
-    label = "Perils of the Warp" if outcome.table == "perils" else "Psychische Phänomene"
+    label = "亚空间危机" if outcome.table == "perils" else "灵能现象"
     corr = f" · +{outcome.corruption} Verderbnis" if outcome.corruption else ""
     name = f" {outcome.name}" if outcome.name else ""
     return f"🜏 {label} für {who} ({_face_str(min(outcome.roll, 100))}+{outcome.bonus}={outcome.total}):{name}{corr}."
