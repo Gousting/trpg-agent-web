@@ -42,7 +42,9 @@
 
 | 文件 | 状态 | 说明 |
 |------|------|------|
-| `memory/history.py` | ✅ | 对话历史持久化，直接可用 |
+| `memory/history.py` | ✅ | 对话历史持久化 (Phase 2 重写为 HistoryStore) |
+| `memory/game_state.py` | ✅ | COC 游戏状态 (Phase 2 新增: Investigator/Npc/Quest) |
+| `session.py` | ✅ | Session 管理器 (Phase 2 新增: 角色加载/历史/上下文/prompt) |
 | `memory/state.py` | 🔧 | WorldState 数据层，德语标签→中文标签 |
 | `memory/chekhov.py` | 🔧 | Chekhov 清单，德语→中文 |
 | `memory/npc_memory.py` | 🔧 | NPC 记忆，德语→中文 |
