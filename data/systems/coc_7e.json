@@ -1,0 +1,92 @@
+{
+  "name": "coc_7e",
+  "display_name": "克苏鲁的呼唤 第七版",
+  "dice": "1d100",
+  "resolution": "coc_basic",
+  "target_source": "skill_value",
+  "degrees": "fractional",
+  "default_difficulty": "常规",
+  "difficulty_ladder": {
+    "常规": {"modifier": 0, "description": "骰值 ≤ 技能值即成功"},
+    "困难": {"modifier": 0.5, "description": "骰值 ≤ 技能值的一半即成功"},
+    "极难": {"modifier": 0.2, "description": "骰值 ≤ 技能值的五分之一即成功"}
+  },
+  "difficulty_aliases": {
+    "regular": "常规",
+    "normal": "常规",
+    "普通": "常规",
+    "一般": "常规",
+    "hard": "困难",
+    "困难": "困难",
+    "extreme": "极难",
+    "极难": "极难",
+    "极限": "极难"
+  },
+  "crit_success": 1,
+  "fumble": {
+    "low_skill_threshold": 50,
+    "low_fumble_min": 96,
+    "high_fumble": 100
+  },
+  "character_schema": {
+    "characteristics": [
+      "力量", "体质", "体型", "敏捷",
+      "外貌", "智力", "意志", "教育"
+    ],
+    "characteristics_en": [
+      "STR", "CON", "SIZ", "DEX",
+      "APP", "INT", "POW", "EDU"
+    ],
+    "resources": ["生命值", "理智值", "幸运值", "魔法值"],
+    "skills": "list",
+    "derived": {
+      "生命值": "（体质 + 体型）/ 10 向下取整",
+      "理智值": "意志",
+      "幸运值": "3d6 × 5",
+      "魔法值": "意志的五分之一",
+      "移动速度": "基于力量/体型/敏捷查表",
+      "伤害加值": "基于力量+体型查表",
+      "体格": "基于力量+体型查表"
+    }
+  },
+  "combat": {
+    "attack_skills": ["格斗", "射击", "投掷"],
+    "dodge_skill": "闪避",
+    "damage": "武器伤害值",
+    "_note": "Phase 1 仅实现基本伤害骰。战斗轮、反击、擒抱等完整规则待后续。"
+  },
+  "sanity": {
+    "test_skill": null,
+    "_note": "理智检定不由技能驱动——由 KP 根据情景决定何时需要 SAN check。",
+    "loss_table": {
+      "轻微": "0/1d3",
+      "中度": "1/1d6",
+      "严重": "1d3/1d10",
+      "极度": "1d6/1d20"
+    },
+    "bout_of_madness": {
+      "real_time": "1d10 小时",
+      "summary": "临时疯狂：调查员在 1d10 小时内失去控制"
+    },
+    "indefinite_insanity": {
+      "trigger": "单日损失 ≥ 五分之一的当前理智值",
+      "duration": "1d6 个月游戏时间"
+    }
+  },
+  "luck": {
+    "spend": "可以消耗幸运值来降低检定骰值（1:1）",
+    "recovery": "每个模组结束后可进行幸运恢复检定"
+  },
+  "pushing": {
+    "enabled": true,
+    "description": "调查员可以孤注一掷，重新尝试失败的检定——但失败后果更严重",
+    "_note": "Phase 1 暂不实现孤注一掷的自动判定，由 KP 手动处理。"
+  },
+  "bonus_penalty_dice": {
+    "enabled": true,
+    "bonus": "掷两个十位骰，取较好值",
+    "penalty": "掷两个十位骰，取较差值",
+    "_note": "Phase 1 暂不实现奖励骰/惩罚骰，由难度调整替代。"
+  },
+  "_source": "《克苏鲁的呼唤 第七版 快速开始规则》（Chaosium）"
+}
