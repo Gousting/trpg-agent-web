@@ -53,6 +53,9 @@
 | `tests/test_phase4.py` | ✅ | 20 项规则测试 |
 | `tests/test_integration.py` | ✅ | 6 轮全链路集成测试 |
 | `memory/gs_parser.py` | ✅ | GS 标记解析 — KP 回复中 `<!--GS-->` 块自动写入 GameState (11 种指令) |
+| `memory/database.py` | ✅ | SQLite 持久层 — 6 表 WAL 模式，跨 session 调查员复用，声纹绑定，快照存档 |
+| `tests/test_multiplayer.py` | ✅ | 7 项多人联机 + 存档测试 |
+| `tests/test_database.py` | ✅ | 6 项数据库集成测试 |
 
 ## 未处理 — DMbot 遗留文件
 

@@ -2,7 +2,7 @@
 
 本地 AI 主持人，跑《克苏鲁的呼唤》。你说，它听，然后以守秘人的身份回答——全部本地运行，零 API 成本。
 
-> **状态：Phase 4 完成** — SAN/战斗/幸运/孤注一掷/recap 压缩/NPC 记忆全部就绪。6 轮全链路集成测试通过。
+> **状态：Phase 4.5 完成** — 动态剧情事件、多人联机、SQLite 持久层、86 项测试全绿。
 
 ## 怎么跑
 
@@ -17,7 +17,7 @@ uv run python tests/test_integration.py   # Phase 4 全链路测试 (6 轮)
 前提：Ollama 运行中，已 pull 模型（默认 gemma4:12b）。
 
 ```bash
-uv run pytest tests/ -v   # 73 项单元测试
+uv run pytest tests/ -v   # 86 项单元测试
 ```
 
 ## 架构
@@ -25,11 +25,11 @@ uv run pytest tests/ -v   # 73 项单元测试
 借鉴 [DMbot](https://github.com/Pr0degie/dungeonmaster) 的架构范式——"LLM 提议叙事，代码拥有硬状态"。
 
 ```
-玩家输入 → 检定分类器 → 掷骰引擎 → [Ollama] → sanitize 清洗 → KP 回答
-                ↓                        ↑
-         SAN/战斗/幸运/孤注一掷    system prompt（人格 + 状态 + NPC记忆 + 前情提要）
-                ↓                        ↑
-         Session 管理器（角色卡 + 对话历史 + 上下文窗口 + recap压缩）
+玩家输入 → 检定分类器 → 掷骰引擎 → [Ollama] → sanitize 清洗 → GS 解析 → KP 回答
+                ↓                        ↑                    ↓
+         SAN/战斗/幸运/孤注一掷    system prompt          SQLite DB
+                ↓                        ↑              (调查员/NPC/任务/历史)
+         Session 管理器（多人联机 + 存档/读档 + 上下文窗口 + recap压缩）
 ```
 
 ## 已完成模块
@@ -59,6 +59,12 @@ uv run pytest tests/ -v   # 73 项单元测试
 | `rules/luck.py` | 幸运值消耗与恢复 |
 | `rules/pushing.py` | 孤注一掷重试 |
 | `memory/gs_parser.py` | 动态剧情事件 — KP 回复中 `<!--GS-->` 标记块自动写入游戏状态 |
+| `memory/database.py` | SQLite 持久层 — 调查员跨 session 复用、声纹绑定、快照存档 |
+
+**多人联机**
+| 模块 | 说明 |
+|------|------|
+| `session.py` | speaker 参数支持多人说话、命名存档/读档/删档 |
 
 **测试**
 | 文件 | 说明 |
@@ -66,11 +72,13 @@ uv run pytest tests/ -v   # 73 项单元测试
 | `tests/test_unit.py` | 39 项单元测试 |
 | `tests/test_phase4.py` | 20 项规则测试 |
 | `tests/test_integration.py` | 6 轮全链路集成测试 |
+| `tests/test_multiplayer.py` | 7 项多人联机 + 存档测试 |
+| `tests/test_database.py` | 6 项数据库集成测试 |
 
 ## 迭代路线
 
 详见 [ROADMAP.md](ROADMAP.md)。
-Phase 1 纯文字闭环 ✅ · Phase 2 状态与记忆 ✅ · Phase 3 掷骰路由 ✅ · Phase 4 完整游戏系统 ✅ · Phase 5 语音链路 → Phase 6 平板客户端。
+Phase 1 纯文字闭环 ✅ · Phase 2 状态与记忆 ✅ · Phase 3 掷骰路由 ✅ · Phase 4 完整游戏系统 ✅ · Phase 4.5 动态剧情+多人联机+SQLite ✅ · Phase 5 语音链路 → Phase 6 平板客户端。
 
 ## 许可
 
