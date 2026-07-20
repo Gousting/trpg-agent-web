@@ -181,10 +181,11 @@ class RunSeed:
             nv.pick(self.rng)
             self.npc_choices[nv.npc_name] = nv.chosen
 
-    def pick_moods(self, variants: list[MoodVariant], count_per_scene: int = 2) -> None:
-        """为每个场景随机选择氛围细节。"""
-        for mv in variants:
-            result = mv.pick(count=count_per_scene, rng=self.rng)
+    def pick_moods(self, variants: list[MoodVariant] | dict[str, MoodVariant], count_per_scene: int = 2) -> None:
+        """为每个场景随机选择氛围细节。接受 list 或 {scene_id: MoodVariant} dict。"""
+        items = variants.values() if isinstance(variants, dict) else variants
+        for mv in items:
+            mv.pick(count=count_per_scene, rng=self.rng)
             # 重建完整描述
             self.mood_choices[mv.scene_id] = mv.chosen_details
 
