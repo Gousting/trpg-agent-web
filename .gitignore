@@ -7,3 +7,4 @@ uv.lock
 data/sessions/*/state.json
 data/sessions/*/history.jsonl
 !data/sessions/default/characters.json
+data/saves/
