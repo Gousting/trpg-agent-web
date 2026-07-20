@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from .memory.game_state import GameState, Investigator, Npc, Quest
+from .memory.game_state import GameState, Investigator, Npc, Quest, ATTITUDE_LABELS
 from .memory.history import HistoryStore
 from .llm.persona import load_system_prompt
 from .llm.prompt_assembly import assemble_system_prompt
@@ -318,7 +318,6 @@ class Session:
         if not present:
             return None
 
-        from .memory.game_state import ATTITUDE_LABELS
         lines = ["## 在场 NPC（角色扮演参考）"]
         for npc in present:
             att = ATTITUDE_LABELS.get(npc.attitude, npc.attitude)
@@ -856,21 +855,47 @@ class Session:
         return self._save_loaded_from
 
     def loaded_state_summary(self) -> str:
-        """加载后的人性化摘要——一眼看到有哪些人、在哪里、第几轮。"""
-        inv_names = [i.name for i in self.state.investigators]
-        inv_details = []
-        for i in self.state.investigators:
-            inv_details.append(
-                f"  {i.name} HP:{i.hp}/{i.max_hp} SAN:{i.san}/{i.max_san} LUCK:{i.luck}"
-            )
-        mode = "多人" if self.is_multiplayer else "单人"
+        """加载后的人性化摘要——一眼看到有哪些人、在哪里、第几轮、谁带了什么。"""
         lines = [
             f"📂 存档: {self.loaded_from or '(新游戏)'}",
-            f"🎭 模式: {mode} ({len(inv_names)} 位调查员)",
+            f"🎭 模式: {'多人' if self.is_multiplayer else '单人'} ({len(self.state.investigators)} 位调查员)",
             f"📍 地点: {self.state.location or '未设定'}",
             f"🔄 回合: 第 {self.state.turn_count} 轮",
-            f"👤 调查员:",
-        ] + inv_details
+        ]
+
+        # 已解决线索
+        if self.state.resolved_elements:
+            clues = ', '.join(sorted(self.state.resolved_elements))
+            lines.append(f"🔍 已收集线索: {clues}")
+
+        # 进行中任务
+        open_quests = [q for q in self.state.quests if q.status == 'open']
+        if open_quests:
+            lines.append(f"📋 进行中任务: {' / '.join(q.title for q in open_quests)}")
+        completed_quests = [q for q in self.state.quests if q.status == 'resolved']
+        if completed_quests:
+            lines.append(f"✅ 已完成任务: {' / '.join(q.title for q in completed_quests)}")
+
+        # 调查员详情
+        lines.append("👤 调查员:")
+        for i in self.state.investigators:
+            status_parts = [f"HP:{i.hp}/{i.max_hp}", f"SAN:{i.san}/{i.max_san}", f"LUCK:{i.luck}"]
+            if i.conditions:
+                status_parts.append(f"[{' '.join(i.conditions)}]")
+            lines.append(f"  {i.name} {' '.join(status_parts)}")
+            if i.inventory:
+                items = ', '.join(i.inventory)
+                lines.append(f"    🎒 {items}")
+
+        # 当前场景 NPC
+        present_npcs = [n for n in self.state.npcs if n.location == self.state.location]
+        if present_npcs:
+            lines.append("🧑 在场 NPC:")
+            for n in present_npcs:
+                att = ATTITUDE_LABELS.get(n.attitude, n.attitude)
+                desc = f" — {n.description}" if n.description else ""
+                lines.append(f"  {n.name} ({att}){desc}")
+
         return "\n".join(lines)
 
     # ── 便捷方法 ────────────────────────────────────

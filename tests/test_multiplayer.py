@@ -360,28 +360,45 @@ def test_is_multiplayer():
 
 
 def test_loaded_state_summary():
-    """loaded_state_summary 人性化摘要。"""
+    """loaded_state_summary 人性化摘要——含物品、状态、线索、任务。"""
     tmpdir = Path(tempfile.mkdtemp())
     try:
         session = Session("summary_test", data_dir=tmpdir)
-        session.state.investigators = [
-            Investigator(name="陈明", hp=8, max_hp=12, san=50, max_san=60, luck=30),
-            Investigator(name="林晓", hp=10, max_hp=10, san=70, max_san=70, luck=45),
-        ]
+        inv_chen = Investigator(name="陈明", hp=8, max_hp=12, san=50, max_san=60, luck=30)
+        inv_chen.inventory = ["旧钥匙", ".38左轮手枪"]
+        inv_chen.conditions = ["重伤"]
+        inv_lin = Investigator(name="林晓", hp=10, max_hp=10, san=70, max_san=70, luck=45)
+        inv_lin.inventory = ["手电筒"]
+        session.state.investigators = [inv_chen, inv_lin]
         session.state.location = "废弃医院大厅"
+        session.state.resolved_elements = {"clue_diary", "door_unlocked"}
+        session.state.quests = [
+            Quest(title="找到失踪的病人", status="open"),
+            Quest(title="调查护士办公室", status="resolved"),
+        ]
+        session.state.npcs.append(
+            Npc(name="值班护士", attitude="wary", description="瘦削的中年女人", location="废弃医院大厅")
+        )
         session.record_turn("环顾四周", "空无一人。", speaker="陈明")
-        session.save_game("测试存档")
+        session.save_game("完整存档")
 
-        loaded = Session.load_game("summary_test", "测试存档", data_dir=tmpdir)
+        loaded = Session.load_game("summary_test", "完整存档", data_dir=tmpdir)
         assert loaded is not None
 
         summary = loaded.loaded_state_summary()
-        assert "📂 存档: 测试存档" in summary
+        assert "📂 存档: 完整存档" in summary
         assert "🎭 模式: 多人" in summary
         assert "📍 地点: 废弃医院大厅" in summary
         assert "🔄 回合: 第 1 轮" in summary
-        assert "陈明 HP:8/12" in summary
-        assert "林晓 HP:10/10" in summary
+        assert "🔍 已收集线索: clue_diary, door_unlocked" in summary
+        assert "📋 进行中任务: 找到失踪的病人" in summary
+        assert "✅ 已完成任务: 调查护士办公室" in summary
+        assert "陈明 HP:8/12 SAN:50/60 LUCK:30 [重伤]" in summary
+        assert "🎒 旧钥匙, .38左轮手枪" in summary
+        assert "林晓 HP:10/10 SAN:70/70 LUCK:45" in summary
+        assert "🎒 手电筒" in summary
+        assert "🧑 在场 NPC:" in summary
+        assert "值班护士 (警惕)" in summary
 
         print("✓ loaded_state_summary")
     finally:
