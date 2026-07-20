@@ -332,10 +332,19 @@ class Session:
     # ── 回合管理 ────────────────────────────────────
 
     def record_turn(self, player_input: str, kp_answer: str) -> None:
-        """记录一轮对话。空回答自动填入兜底文本。"""
+        """记录一轮对话。空回答自动填入兜底文本。
+
+        KP 回复中的 <!--GS ... --> 块会被解析为游戏状态变更，
+        并在存入历史前从回复中移除（玩家不可见）。
+        """
         if not kp_answer.strip():
             kp_answer = "（KP 沉思片刻，等待着调查员的下一步行动。）"
             log.warning("第 %d 轮 KP 回答为空，使用兜底文本", self.state.turn_count + 1)
+
+        # 解析 GS 标记块，更新 GameState，返回清洗后的回复
+        from .memory.gs_parser import parse_and_apply
+        kp_answer = parse_and_apply(self.state, kp_answer)
+
         self.history.append("user", player_input)
         self.history.append("assistant", kp_answer)
         self.state.turn_count += 1
