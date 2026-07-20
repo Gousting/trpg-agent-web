@@ -37,11 +37,11 @@ class HistoryStore:
                 content = rec.get("content")
                 if role and content:
                     entry = {"role": role, "content": content}
-                    # speaker 可选字段（v2 新增，旧存档无此字段）
                     if rec.get("speaker"):
                         entry["speaker"] = rec["speaker"]
                     self._entries.append(entry)
-            except (ValueError, KeyError):
+            except (ValueError, KeyError) as e:
+                log.warning("历史行解析失败 (行 %.32s...): %s", line, e)
                 continue
         log.debug("从 %s 加载了 %d 条历史", self._path, len(self._entries))
 

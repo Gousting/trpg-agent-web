@@ -107,14 +107,16 @@ class Session:
         *,
         max_context: int = DEFAULT_MAX_CONTEXT,
         data_dir: Path | None = None,
-        db = None,  # Database | None — SQLite 后端（可选）
+        db = None,
+        skip_characters: bool = False,  # load_game 等场景跳过角色加载
     ):
         self.session_id = session_id
         self.max_context = max_context
         self._dir = data_dir or SESSIONS_DIR
         self._state_path = self._dir / session_id / "state.json"
         self._history_path = self._dir / session_id / "history.jsonl"
-        self._db = db  # None → JSON 兼容模式
+        self._db = db
+        self._adapter_cache: _HistoryListAdapter | None = None
 
         # 加载或创建状态
         if self._db is not None:
@@ -137,16 +139,19 @@ class Session:
         # 加载 KP 人格
         self._persona = load_system_prompt()
 
-        # 自动加载角色卡
-        self.load_characters()
+        # 自动加载角色卡（load_game 等场景可跳过，避免 DB 污染）
+        if not skip_characters:
+            self.load_characters()
 
     # ── 历史访问统一接口 ──────────────────────────
 
     @property
     def history(self):
-        """兼容旧代码：db 模式返回列表适配器，JSON 模式返回 HistoryStore。"""
+        """兼容旧代码：db 模式返回列表适配器（缓存实例），JSON 模式返回 HistoryStore。"""
         if self._db is not None:
-            return _HistoryListAdapter(self._history_list)
+            if self._adapter_cache is None:
+                self._adapter_cache = _HistoryListAdapter(self._history_list)
+            return self._adapter_cache
         return self._history_store
 
     # ── 角色管理 ────────────────────────────────────
@@ -369,24 +374,23 @@ class Session:
             log.warning("角色卡中没有技能，检定路由跳过")
             return "", None
 
-        if skills:
-            try:
-                schema = classifier_schema(skills, ["常规", "困难", "极难"])
-                prompt = classifier_prompt(skills, ["常规", "困难", "极难"])
-                raw = await client.chat(
-                    prompt,
-                    [{"role": "user", "content": player_input}],
-                    format=schema,
-                    options={"temperature": 0.2},
-                )
-                data = _json.loads(raw)
-                request = parse_router_response(data)
-            except _json.JSONDecodeError as e:
-                log.info("分类器 JSON 解析失败（模型输出格式错误）: %s", e)
-                request = None
-            except Exception:
-                log.exception("分类器调用异常")
-                request = None
+        try:
+            schema = classifier_schema(skills, ["常规", "困难", "极难"])
+            prompt = classifier_prompt(skills, ["常规", "困难", "极难"])
+            raw = await client.chat(
+                prompt,
+                [{"role": "user", "content": player_input}],
+                format=schema,
+                options={"temperature": 0.2},
+            )
+            data = _json.loads(raw)
+            request = parse_router_response(data)
+        except _json.JSONDecodeError as e:
+            log.info("分类器 JSON 解析失败（模型输出格式错误）: %s", e)
+            request = None
+        except Exception:
+            log.exception("分类器调用异常")
+            request = None
 
         if request is None:
             return "", None
@@ -726,7 +730,8 @@ class Session:
             if result is None:
                 return None
             state, history_list = result
-            session = cls(session_id, data_dir=data_dir or SESSIONS_DIR, db=db)
+            session = cls(session_id, data_dir=data_dir or SESSIONS_DIR, db=db,
+                         skip_characters=True)
             session.state = state
             session._history_list = history_list
             log.info("读档: %s/%s (第 %d 轮)", session_id, save_name, state.turn_count)

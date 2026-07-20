@@ -69,6 +69,10 @@ CREATE TABLE IF NOT EXISTS npcs (
 );
 CREATE INDEX IF NOT EXISTS idx_npcs_session ON npcs(session_id);
 
+CREATE INDEX IF NOT EXISTS idx_investigators_voice ON investigators(voice_id);
+CREATE INDEX IF NOT EXISTS idx_si_session ON session_investigators(session_id);
+CREATE INDEX IF NOT EXISTS idx_si_inv ON session_investigators(investigator_name);
+
 CREATE TABLE IF NOT EXISTS quests (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id  TEXT NOT NULL,
@@ -568,7 +572,7 @@ def _json_list(raw) -> list:
             val = json.loads(raw)
             return val if isinstance(val, list) else []
         except (json.JSONDecodeError, TypeError):
-            pass
+            log.warning("JSON 列表解析失败: %.32s...", raw)
     return []
 
 
@@ -581,7 +585,7 @@ def _json_dict(raw) -> dict:
             val = json.loads(raw)
             return val if isinstance(val, dict) else {}
         except (json.JSONDecodeError, TypeError):
-            pass
+            log.warning("JSON 字典解析失败: %.32s...", raw)
     return {}
 
 
