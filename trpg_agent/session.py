@@ -205,6 +205,14 @@ class Session:
 
         log.info("加载了 %d 个调查员", len(self.state.investigators))
 
+        # DB 模式：同步调查员到数据库
+        if self._db is not None:
+            for inv in self.state.investigators:
+                self._db.save_investigator(inv)
+                self._db.add_investigator_to_session(self.session_id, inv.name)
+            self._db.save_session_npcs(self.session_id, self.state.npcs)
+            self._db.save_session_quests(self.session_id, self.state.quests)
+
     # ── 上下文管理 ──────────────────────────────────
 
     def _system_token_budget(self) -> int:
@@ -435,9 +443,18 @@ class Session:
             )
 
         # 限制历史长度
-        if self.history.count() > HISTORY_MAX_TURNS * 2:
-            self.history.trim(keep_last=HISTORY_MAX_TURNS * 2)
-            log.debug("对话历史已裁剪至 %d 条", HISTORY_MAX_TURNS * 2)
+        max_entries = HISTORY_MAX_TURNS * 2
+        if self.history.count() > max_entries:
+            self.history.trim(keep_last=max_entries)
+            if self._db is not None:
+                self._db.clear_history(self.session_id)
+                for i, entry in enumerate(self.history.entries()):
+                    self._db.append_history(
+                        self.session_id, i + 1,
+                        entry["role"], entry["content"],
+                        entry.get("speaker"),
+                    )
+            log.debug("对话历史已裁剪至 %d 条", max_entries)
 
     def persist(self) -> None:
         """持久化状态和历史。"""

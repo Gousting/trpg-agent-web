@@ -1,0 +1,33 @@
+{
+  "system": "coc_7e",
+  "session_id": "save_test",
+  "location": "废弃医院大厅",
+  "scene_id": "",
+  "adventure_id": "",
+  "resolved_elements": [],
+  "investigators": [
+    {
+      "name": "陈明",
+      "hp": 8,
+      "max_hp": 12,
+      "san": 50,
+      "max_san": 60,
+      "luck": 30
+    }
+  ],
+  "npcs": [
+    {
+      "name": "值班护士",
+      "attitude": "wary",
+      "location": "废弃医院大厅"
+    }
+  ],
+  "quests": [
+    {
+      "title": "寻找失踪的病人",
+      "status": "open"
+    }
+  ],
+  "recap": "",
+  "turn_count": 2
+}

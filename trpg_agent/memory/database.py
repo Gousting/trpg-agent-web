@@ -99,10 +99,11 @@ class Database:
     def __init__(self, db_path: Path | None = None):
         self._path = db_path or _DB_PATH
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(str(self._path))
+        self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA foreign_keys=ON")
+        self._conn.execute("PRAGMA busy_timeout=5000")  # 5s BUSY 等待
         self._conn.executescript(SCHEMA_SQL)
         self._conn.commit()
         log.debug("数据库已打开: %s", self._path)
@@ -205,17 +206,22 @@ class Database:
         self._conn.commit()
 
     def save_session_state(self, state) -> None:
-        """将 GameState 写入 session 行。"""
+        """将 GameState 写入 session 行（UPSERT）。"""
         from .game_state import GameState
         assert isinstance(state, GameState)
-        self.create_session(state.session_id, state.adventure_id)
         self._conn.execute(
-            """UPDATE sessions SET
-               location=?, scene_id=?, recap=?, turn_count=?, resolved_elts=?
-               WHERE session_id=?""",
-            (state.location, state.scene_id, state.recap, state.turn_count,
+            """INSERT INTO sessions
+               (session_id, adventure_id, location, scene_id, recap, turn_count, resolved_elts, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(session_id) DO UPDATE SET
+               adventure_id=excluded.adventure_id,
+               location=excluded.location, scene_id=excluded.scene_id,
+               recap=excluded.recap, turn_count=excluded.turn_count,
+               resolved_elts=excluded.resolved_elts""",
+            (state.session_id, state.adventure_id,
+             state.location, state.scene_id, state.recap, state.turn_count,
              json.dumps(sorted(state.resolved_elements), ensure_ascii=False),
-             state.session_id),
+             _now()),
         )
         self._conn.commit()
 
@@ -347,7 +353,7 @@ class Database:
 
     def list_saves(self, session_id: str) -> list[str]:
         """列出一个 session 的所有命名存档。"""
-        prefix = f"save_{session_id.replace('-', '_')}_"
+        prefix = f"save_{_safe_table_name(session_id)}_"
         rows = self._conn.execute(
             """SELECT name FROM sqlite_master
                WHERE type='table' AND name LIKE ?""",
@@ -357,7 +363,6 @@ class Database:
         saves: set[str] = set()
         for r in rows:
             suffix = r[0][len(prefix):]
-            # 去掉表类型后缀（_investigators, _session, _history, _npcs, _quests）
             for table_type in ("_investigators", "_session", "_history", "_npcs", "_quests"):
                 if suffix.endswith(table_type):
                     saves.add(suffix[:-len(table_type)])
@@ -365,49 +370,49 @@ class Database:
         return sorted(saves)
 
     def save_snapshot(self, session_id: str, name: str) -> None:
-        """创建命名存档快照——将当前 session 所有数据复制到独立表。"""
-        safe_name = name.replace("-", "_").replace(" ", "_")
-        table_prefix = f"save_{session_id.replace('-', '_')}_{safe_name}"
+        """创建命名存档快照——将当前 session 所有数据复制到独立表。
 
-        # 复制 investigators snapshot（只复制参与此 session 的调查员）
-        self._conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS {table_prefix}_investigators AS
+        同名快照会先删除旧数据再创建（覆盖语义）。
+        """
+        safe_sid = _safe_table_name(session_id)
+        safe_name = _safe_table_name(name)
+        pfx = f"save_{safe_sid}_{safe_name}"
+
+        # 先删旧快照（覆盖语义）
+        for suffix in ("_investigators", "_session", "_history", "_npcs", "_quests"):
+            self._conn.execute(f"DROP TABLE IF EXISTS {pfx}{suffix}")
+
+        self._conn.execute(
+            f"""CREATE TABLE {pfx}_investigators AS
             SELECT i.* FROM investigators i
             JOIN session_investigators si ON si.investigator_name = i.name
-            WHERE si.session_id = ?
-        """, (session_id,))
-
-        # 复制 session state
-        self._conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS {table_prefix}_session AS
-            SELECT * FROM sessions WHERE session_id = ?
-        """, (session_id,))
-
-        # 复制 history
-        self._conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS {table_prefix}_history AS
-            SELECT * FROM history WHERE session_id = ?
-        """, (session_id,))
-
-        # 复制 npcs
-        self._conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS {table_prefix}_npcs AS
-            SELECT * FROM npcs WHERE session_id = ?
-        """, (session_id,))
-
-        # 复制 quests
-        self._conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS {table_prefix}_quests AS
-            SELECT * FROM quests WHERE session_id = ?
-        """, (session_id,))
-
+            WHERE si.session_id = ?""",
+            (session_id,),
+        )
+        self._conn.execute(
+            f"CREATE TABLE {pfx}_session AS SELECT * FROM sessions WHERE session_id = ?",
+            (session_id,),
+        )
+        self._conn.execute(
+            f"CREATE TABLE {pfx}_history AS SELECT * FROM history WHERE session_id = ?",
+            (session_id,),
+        )
+        self._conn.execute(
+            f"CREATE TABLE {pfx}_npcs AS SELECT * FROM npcs WHERE session_id = ?",
+            (session_id,),
+        )
+        self._conn.execute(
+            f"CREATE TABLE {pfx}_quests AS SELECT * FROM quests WHERE session_id = ?",
+            (session_id,),
+        )
         self._conn.commit()
         log.info("快照存档: %s/%s", session_id, name)
 
     def load_snapshot(self, session_id: str, name: str):
         """从快照恢复 session 状态，返回 GameState + history list。"""
-        safe_name = name.replace("-", "_").replace(" ", "_")
-        pfx = f"save_{session_id.replace('-', '_')}_{safe_name}"
+        safe_sid = _safe_table_name(session_id)
+        safe_name = _safe_table_name(name)
+        pfx = f"save_{safe_sid}_{safe_name}"
 
         # 检查快照是否存在
         row = self._conn.execute(
@@ -473,8 +478,9 @@ class Database:
 
     def delete_snapshot(self, session_id: str, name: str) -> bool:
         """删除命名快照。"""
-        safe_name = name.replace("-", "_").replace(" ", "_")
-        pfx = f"save_{session_id.replace('-', '_')}_{safe_name}"
+        safe_sid = _safe_table_name(session_id)
+        safe_name = _safe_table_name(name)
+        pfx = f"save_{safe_sid}_{safe_name}"
         tables = ["_investigators", "_session", "_history", "_npcs", "_quests"]
         for suffix in tables:
             self._conn.execute(f"DROP TABLE IF EXISTS {pfx}{suffix}")
@@ -535,6 +541,14 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _safe_table_name(name: str) -> str:
+    """校验并返回安全的表名后缀（仅允许字母数字下划线）。"""
+    sanitized = name.replace("-", "_").replace(" ", "_")
+    if not sanitized or not sanitized.replace("_", "").isalnum():
+        raise ValueError(f"非法表名: {name!r}")
+    return sanitized
+
+
 def _json_field(raw) -> list | dict:
     """安全解析 JSON 字段。"""
     if isinstance(raw, (list, dict)):
@@ -571,12 +585,17 @@ def _json_dict(raw) -> dict:
     return {}
 
 
-# 全局单例（惰性初始化）
+# 全局单例（惰性初始化，线程安全）
+import threading
+
 _db: Database | None = None
+_db_lock = threading.Lock()
 
 
 def get_db(db_path: Path | None = None) -> Database:
     global _db
     if _db is None:
-        _db = Database(db_path)
+        with _db_lock:
+            if _db is None:  # double-check
+                _db = Database(db_path)
     return _db
