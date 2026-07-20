@@ -5,9 +5,11 @@ description = "中文 TRPG AI 主持人 — 本地化的 COC 跑团 KP Agent"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "colorama>=0.4.6",
+    "fastapi>=0.139.2",
     "httpx>=0.28.1",
     "python-dotenv>=1.2.2",
     "rich>=15.0.0",
+    "uvicorn>=0.51.0",
 ]
 
 [project.scripts]
