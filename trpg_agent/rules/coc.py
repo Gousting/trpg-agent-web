@@ -115,21 +115,12 @@ def resolve_coc(
 
 
 def describe_result(result: CocTestResult, skill_name: str = "") -> str:
-    """将检定结果转换为中文描述文本，供 KP 叙述使用。
-
-    Args:
-        result: resolve_coc 的返回值
-        skill_name: 技能名（可选，如"侦查"）
-
-    Returns:
-        中文描述，如 "侦查 大成功（骰值 1 ≤ 50，目标 50）"
-    """
+    """将检定结果转换为中文描述文本，供 KP 叙述使用。"""
     prefix = f"{skill_name} " if skill_name else ""
-    detail = f"（骰值 {result.roll}"
+    op = "≤" if result.success else ">"
+    detail = f"（骰值 {result.roll} {op} 目标 {result.target}"
     if result.difficulty != "常规":
-        detail += f"，{result.difficulty}难度目标 {result.target}"
-    else:
-        detail += f"，目标 {result.target}"
+        detail += f"，{result.difficulty}难度"
     detail += "）"
 
     if result.is_critical:

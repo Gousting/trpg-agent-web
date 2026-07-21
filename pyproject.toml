@@ -1,16 +1,26 @@
 [project]
 name = "trpg-agent"
 version = "0.1.0"
-description = "中文 TRPG AI 主持人 — 本地化的 COC 跑团 KP Agent"
+description = "中文 TRPG AI 主持人基础库 — COC 跑团核心引擎"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "colorama>=0.4.6",
-    "fastapi>=0.139.2",
-    "httpx>=0.28.1",
+    "dungeongen>=0.1.14",
+    "Pillow>=11.0",
     "python-dotenv>=1.2.2",
     "rich>=15.0.0",
+]
+
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.139.2",
+    "httpx>=0.28.1",
     "uvicorn>=0.51.0",
 ]
+voice = [
+    "faster-whisper>=1.0",
+]
+miniapp = []
 
 [project.scripts]
 trpg = "trpg_agent.__main__:main"
