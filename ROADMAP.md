@@ -1,133 +1,51 @@
-# 后续迭代方案
+# TRPG Agent 路线图
 
-## Phase 1 ✅ — 纯文字闭环
+## 核心理念
 
-**目标：** 跑通"玩家说 → KP 回"的最小闭环，验证 LLM 能做 DM。
+不做通用 TRPG 框架。聚焦一件事：**AI 全自动跑 COC 模组，并能在直播中呈现好**。所有功能围绕"观众能看到什么"和"故事好不好看"来排优先级。
 
-**已完成：**
-- 中文 KP 人格 prompt（`kp_core_zh.md`）
-- KP 回答清洗管道（`sanitize.py`）
-- COC 7 版检定引擎（`rules/coc.py`）
-- Ollama 异步客户端（`llm/client.py`）
-- 39 项单元测试 + 全链路集成测试
+## Phase 1：直播可播（当前 → 2 周）
 
-**验证标准：** 三轮对话无崩，KP 正确融入检定结果，氛围叙述达标。✓
+**目标：能开播，有人看。**
 
----
+- [ ] **TTS 旁白朗读** — KP 叙述转语音，edge-tts 或 Piper 本地 TTS。KP 说出来的比显示在屏幕上的文字更有沉浸感。
+- [ ] **氛围 BGM 自动切换** — 房间类型 → BGM 映射（病房=阴森、走廊=悬疑、Boss=战斗）。氛围是跑团直播 70% 的观看体验。
+- [ ] **OBS 场景适配** — 确保 Web UI 在 1920×1080 画布下布局美观，地图+角色卡+聊天三区域不重叠。
+- [ ] **首场试播** — 内测录 10 分钟 demo，验证画质和布局。
 
-## Phase 2 ✅ — 游戏状态与多轮记忆
+## Phase 2：提升观感（1 月）
 
-**目标：** 让 KP 记住之前发生的事，维护角色状态。
+**目标：直播看起来像成品，不是 demo。**
 
-**已完成：**
-- `memory/game_state.py` — COC 游戏状态（Investigator/Npc/Quest/GameState），态度量表，原子持久化
-- `memory/history.py` — 重写为 HistoryStore 类，JSONL 格式，支持查询/裁剪/清空
-- `session.py` — Session 管理器，角色卡加载、对话历史管理、上下文窗口监控、完整 prompt 组装
-- `data/sessions/default/characters.json` — 示例角色卡（3 名调查员 + 2 NPC + 任务）
-- 空回答兜底处理
-- `tests/test_session.py` — 5 轮集成测试
+- [ ] **场景转场特效** — 房间切换时 0.5s 过渡（黑屏/闪白），消除"跳变"感。
+- [ ] **骰子动画** — 检定时有视觉化骰子滚动效果。COC 观众对骰子有执念。
+- [ ] **角色立绘生成** — ComfyUI 按性格 prompt 出图，每个调查员有头像。视觉差异化。
+- [ ] **弹幕互动桥接** — B站开放平台 WebSocket → 关键词过滤 → LLM 二次审核 → prompt 注入。形态B（弹幕共演）的核心。
+- [ ] **多模组支持** — 至少 5 个模组轮换，避免重复跑同一个让观众腻。
 
-**验证标准：** 五轮对话不丢失关键信息，KP 能引用之前提到过的发现。✓
+## Phase 3：深度互动（2 月）
 
-**待优化：** 上下文超限时的 LLM recap 压缩（当前仅做窗口监控，未接入 LLM 生成摘要）。
+**目标：观众能影响剧情走向。**
 
----
+- [ ] **观众投票系统** — 每 3 轮开放一次投票窗口，弹幕 A/B/C 计数决定调查员下一步。
+- [ ] **模组投票** — 下期跑哪个模组由观众投。
+- [ ] **多结局回放** — 展示"如果当时选了另一个选项"的平行世界。
+- [ ] **嘉宾模式** — 1 个真人 + 2 个 AI 调查员，真人通过语音接入（faster-whisper STT）。
 
-## Phase 3 ✅ — 掷骰路由
+## Phase 4：自动化运营（3 月+）
 
-**目标：** KP 叙述中需要检定时，自动判断并调引擎。
+**目标：最小人力维持频道运转。**
 
-**已完成：**
-- `llm/roll_router.py` — 中文化检定分类器，constrained JSON 输出
-- `session.py:classify_and_resolve()` — 自动调用分类器→查角色卡→执行检定→结果注入 prompt
-- 标记解析 `<<检定 技能 难度 对 角色>>` 备用方案
-- 分类器失败时静默降级，不阻塞游戏
+- [ ] **自动切片** — 高能片段（大成功/大失败/战斗高潮）自动剪辑 60s 竖屏，投 B站动态 + 抖音。
+- [ ] **24/7 轮播** — 过往精彩场次自动排播，深夜档挂机。
+- [ ] **原创模组编辑器** — 可视化编辑场景卡 JSON，降低模组创作门槛。
+- [ ] **多语言支持** — 英文 COC 模组自动汉化跑。
 
-**验证标准：** 5 轮实测，分类器正确区分检定/非检定行动，技能和角色识别准确。✓
+## 技术债 & 基础设施
 
----
+随时穿插、不排期的持续改进：
 
-## Phase 4 ✅ — 完整游戏系统
-
-**目标：** 支持完整的 COC 跑团 session。
-
-**已完成：**
-
-1. **SAN 值系统** — `rules/sanity.py`：理智检定（d100 ≤ SAN）、7 级损失量表、临时疯狂（≥5）、不定疯狂（归零）、10 条临时/不定疯狂症状表
-2. **战斗轮** — `rules/combat.py`：格斗/射击/闪避/反击，成功等级判定，贯穿伤害，自动应用 HP 伤害
-3. **幸运值** — `rules/luck.py`：1:1 消耗幸运降低骰值，幸运恢复检定
-4. **孤注一掷** — `rules/pushing.py`：失败检定重试，需不同尝试方式，失败后果更严重
-5. **Session 集成** — `session.py`：
-   - `perform_san_check()` — SAN 检定 + 自动记录疯狂状态
-   - `perform_attack()` — 战斗结算 + 自动扣 HP
-   - `spend_luck_for_roll()` — 幸运调整
-   - `try_push_roll()` — 孤注一掷
-   - `maybe_compress()` — 上下文超限时 LLM 生成前情提要
-   - `_build_npc_memory_block()` — 在场 NPC 态度/描述注入 prompt
-6. **中文化** — `memory/npc_memory.py`、`memory/chekhov.py`、`llm/echo_guard.py`、`llm/director_msgs.py`、`memory/recap.py`、`rules/summary.py` 全部翻译为中文（上一轮已完成）
-7. **测试** — 20 项新单元测试（`tests/test_phase4.py`），总计 59 项全通过
-
-**待后续：** NPC 记忆 LLM 提取（需 orchestrator 配合）、Chekhov 清单 LLM 提取、完整模组实战测试
-
-**验证标准：** 跑完一个完整的 COC 快速开始模组（如《古屋疑云》）。
-
-### Phase 4.5：动态剧情事件（GS 标记）
-
-**目标：** KP 叙述中即兴添加的新线索、NPC、物品自动写入 GameState，不额外增加 LLM 调用。
-
-**完成：**
-- `memory/gs_parser.py` — 纯正则解析 `<!--GS ... -->` 块，11 种指令，中英文态度自动翻译
-- `session.py` — `record_turn` 中集成解析，标记块从回复中移除（玩家不可见），解析失败静默跳过
-- `prompts/kp_core_zh.md` — 末尾追加 GS 标记格式说明
-
-**验证标准：** 零延迟（微秒级正则），零额外 LLM 调用，73 项已有测试全绿。
-
----
-
-## Phase 5 — 语音链路
-
-**目标：** 用语音交互替代打字。
-
-**任务：**
-
-1. **STT（语音转文字）** — FunASR + CAM++，中文多人识别
-2. **TTS（文字转语音）** — Edge TTS 或 XTTS 中文语音
-3. **VAD（语音活动检测）** — silero-vad，自动切句
-
-**验证标准：** 说→听→说的延迟可控，多人说话不混淆。
-
----
-
-## Phase 6 — 平板客户端
-
-**目标：** HTML 页面，录音 + 显示。平板浏览器打开即可，零安装。
-
-**任务：**
-
-1. Web Audio API 录音 → WebSocket 发送
-2. KP 回答实时显示
-3. 角色卡/检定结果显示
-
----
-
-## 中文化待办清单
-
-以下文件搬运自 DMbot，代码逻辑可用但德语文本需翻译：
-
-| 优先级 | 文件 | 当前状态 |
-|--------|------|----------|
-| P1 | `llm/consistency.py` | 一致性守卫，德语动词判断→中文方案 |
-| P1 | `memory/state.py` | 已被 game_state.py 替代，可废弃 |
-| P1 | `memory/recap.py` | Recap 生成，待 Phase 4 |
-| P2 | `memory/npc_memory.py` | NPC 记忆，待 Phase 4 |
-| P2 | `memory/chekhov.py` | Chekhov 清单，待 Phase 4 |
-| P2 | `memory/gametime.py` | 游戏内时间 |
-| P2 | `llm/echo_guard.py` | 回声守卫 |
-| P2 | `llm/intro_guard.py` | 开场守卫 |
-| P2 | `llm/director_msgs.py` | DM 开场引导 |
-| P2 | `rules/summary.py` | 规则摘要展示 |
-| P2 | `rules/marker.py` | 标记解析 |
-| P2 | `prompts/chekhov_extract_de.md` | Chekhov 提取 prompt |
-| P2 | `prompts/npc_memory_extract_de.md` | NPC 记忆提取 prompt |
-| P3 | `orchestrator.py` | DM 大脑，需 Discord 解耦 |
-| P3 | `llm/stream_assembler.py` | 流式组装器 |
+- [ ] **模型热切换** — Ollama 健康检查 + 自动回退硅基流动 API，防止直播中掉线。
+- [ ] **叙事质量监控** — 3 轮无进展自动触发场景推动事件，防止 AI 逻辑断裂。
+- [ ] **测试覆盖** — 规则引擎单元测试、模组回放测试。
+- [ ] **性能优化** — LLM 推理延迟优化、地图渲染缓存。

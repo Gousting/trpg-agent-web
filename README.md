@@ -1,86 +1,69 @@
-# TRPG Agent — 中文 COC 跑团 KP
+# TRPG Agent
 
-本地 AI 主持人，跑《克苏鲁的呼唤》。你说，它听，然后以守秘人的身份回答——全部本地运行，零 API 成本。
+中文 COC 跑团 AI 主持人基础库。本地 LLM 驱动的克苏鲁的呼唤（Call of Cthulhu 7e）游戏引擎——不是辅助工具，是全自动叙事剧场。
 
-> **状态：Phase 4.5 完成** — 动态剧情事件、RPG 风格存档（自动存档+NL触发+多人加载）、SQLite 持久层、97 项测试全绿。
+## 是什么
 
-## 怎么跑
+一个用 Python 写的 TRPG 主持人引擎。接上 Ollama，它能自己当 KP（守秘人）、自己控制多个调查员、自己掷骰子判规则、自己生成地图，跑完一整局 COC。你只需要看。
 
-```bash
-git clone https://github.com/Gousting/trpg-agent.git
-cd trpg-agent
-uv sync
-cp .env.example .env   # 编辑 OLLAMA_HOST 指向你的 Ollama
-uv run python tests/test_integration.py   # Phase 4 全链路测试 (6 轮)
-```
-
-前提：Ollama 运行中，已 pull 模型（默认 gemma4:12b）。
-
-```bash
-uv run pytest tests/ -v   # 97 项单元测试
-```
+核心设计理念：**自动化叙事剧场**。区别于真人 KP 的"手艺活"路线——AI 主持人驱动多角色自动演绎，观众看故事展开而非看人玩。
 
 ## 架构
 
-借鉴 [DMbot](https://github.com/Pr0degie/dungeonmaster) 的架构范式——"LLM 提议叙事，代码拥有硬状态"。
-
 ```
-玩家输入 → 检定分类器 → 掷骰引擎 → [Ollama] → sanitize 清洗 → GS 解析 → KP 回答
-                ↓                        ↑                    ↓
-         SAN/战斗/幸运/孤注一掷    system prompt          SQLite DB
-                ↓                        ↑              (调查员/NPC/任务/历史)
-         Session 管理器（多人联机 + 存档/读档 + 上下文窗口 + recap压缩）
+trpg_agent/
+├── llm/           # Ollama 客户端、角色人设、prompt 组装、检定路由、输出清洗
+├── memory/        # 游戏状态、对话历史、NPC 记忆、上下文压缩、契诃夫之枪追踪
+├── rules/         # COC 7e 规则引擎：检定、战斗、理智、孤注一掷、幸运
+├── mapgen.py      # 程序化地城地图（dungeongen OPD 交叉阴影线风格）
+├── adventure/     # 冒险模组系统、场景变异
+├── session.py     # 会话管理器：状态加载/持久化、token 预算、自动存档
+└── orchestrator.py # DM 大脑：连接 STT buffer → prompt → LLM → 输出
 ```
 
-## 已完成模块
+## 安装
 
-**Phase 1-2：核心管线**
-| 模块 | 说明 |
-|------|------|
-| `llm/sanitize.py` | 中文 KP 回答清洗 (12 项正则) |
-| `llm/client.py` | Ollama 异步客户端 |
-| `prompts/kp_core_zh.md` | 守秘人核心人格 (2587 字) |
-| `rules/coc.py` | COC 7 版检定引擎 |
-| `rules/engine.py` | 通用掷骰引擎 |
-| `session.py` | Session 管理器 |
-| `memory/game_state.py` | COC 游戏状态 |
-| `memory/history.py` | 对话历史 |
+```bash
+pip install trpg-agent
+```
 
-**Phase 3：掷骰路由**
-| 模块 | 说明 |
-|------|------|
-| `llm/roll_router.py` | 检定分类器 (constrained JSON) |
+需要本地 Ollama（默认 `localhost:11434`）。
 
-**Phase 4：完整游戏系统**
-| 模块 | 说明 |
-|------|------|
-| `rules/sanity.py` | SAN 检定、临时/不定疯狂 |
-| `rules/combat.py` | 格斗/射击/闪避/反击 |
-| `rules/luck.py` | 幸运值消耗与恢复 |
-| `rules/pushing.py` | 孤注一掷重试 |
-| `memory/gs_parser.py` | 动态剧情事件 — KP 回复中 `<!--GS-->` 标记块自动写入游戏状态 |
-| `memory/database.py` | SQLite 持久层 — 调查员跨 session 复用、声纹绑定、快照存档 |
+## 快速开始
 
-**多人联机 + RPG 存档**
-| 模块 | 说明 |
-|------|------|
-| `session.py` | speaker 参数支持多人说话、自动存档(每5轮)、NL保存/加载意图检测、多人加载摘要 |
-| `session.py` | `is_multiplayer` / `loaded_from` / `loaded_state_summary()` 辅助属性 |
+```bash
+# CLI 模式——终端交互式跑团
+trpg
 
-**测试**
-| 文件 | 说明 |
-|------|------|
-| `tests/test_unit.py` | 39 项单元测试 |
-| `tests/test_phase4.py` | 20 项规则测试 |
-| `tests/test_integration.py` | 6 轮全链路集成测试 |
-| `tests/test_multiplayer.py` | 17 项多人联机 + RPG 存档测试 |
-| `tests/test_database.py` | 6 项数据库集成测试 |
+# 或指定模组
+trpg --adventure 鬼屋
+```
 
-## 迭代路线
+CLI 模式下你会看到一个 KP 和三个调查员在终端里自动跑团，逐轮推进剧情。你随时可以插话接管某个调查员的决策。
 
-详见 [ROADMAP.md](ROADMAP.md)。
-Phase 1 纯文字闭环 ✅ · Phase 2 状态与记忆 ✅ · Phase 3 掷骰路由 ✅ · Phase 4 完整游戏系统 ✅ · Phase 4.5 动态剧情+多人联机+SQLite ✅ · Phase 5 语音链路 → Phase 6 平板客户端。
+## 可选依赖
 
-## 许可
+```bash
+# Web 界面（FastAPI + SSE + 地图渲染）
+pip install trpg-agent[web]
+
+# 语音识别（faster-whisper）
+pip install trpg-agent[voice]
+```
+
+## 当前状态
+
+**可用的：** COC 规则引擎完整覆盖 7e 核心机制（检定/战斗/理智/孤注一掷/幸运）、Ollama 本地推理、SQLite 持久化（调查员跨 session 复用）、程序化地城地图、多智能体协作（KP + 3 玩家自动跑）、上下文窗口管理（token 预算 + recap 压缩）、场景卡模组系统。
+
+**开发中：** TTS 旁白朗读、BGM 自动切换、弹幕互动桥接。
+
+## 依赖
+
+- Python ≥ 3.11
+- [Ollama](https://ollama.com)（本地 LLM 推理）
+- dungeongen（地图渲染）
+- Rich（终端美化）
+
+## 许可证
 
 MIT
