@@ -16,6 +16,7 @@ trpg_agent/
 ├── memory/        # 游戏状态、对话历史、NPC 记忆、上下文压缩、契诃夫之枪追踪
 ├── rules/         # COC 7e 规则引擎：检定、战斗、理智、孤注一掷、幸运
 ├── mapgen.py      # 程序化地城地图（dungeongen OPD 交叉阴影线风格）
+├── overlay_server.py # OBS 浏览器覆盖层 WebSocket 服务
 ├── adventure/     # 冒险模组系统、场景变异
 ├── session.py     # 会话管理器：状态加载/持久化、token 预算、自动存档
 └── orchestrator.py # DM 大脑：连接 STT buffer → prompt → LLM → 输出
@@ -49,11 +50,27 @@ pip install trpg-agent[web]
 
 # 语音识别（faster-whisper）
 pip install trpg-agent[voice]
+
+# OBS 浏览器覆盖层（aiohttp + WebSocket）
+pip install trpg-agent[overlay]
 ```
+
+### OBS 直播覆盖层
+
+哥特恐怖风浏览器覆盖层，通过 WebSocket 实时推送游戏状态到 OBS：
+
+```bash
+cd trpg_agent && python3 -m trpg_agent.overlay_server
+# 端口 8766，OBS 浏览器源 URL: http://localhost:8766/
+```
+
+REST API 控制：`POST /api/scene`（切换场景卡）、`/api/roll`（掷骰动画）、`/api/characters`（角色卡）、`/api/push_line`（旁白推送）、`/api/danmaku`（弹幕）、`/api/vote`（观众投票）。
+
+场景卡使用 ComfyUI Z-Image Turbo + Ink Frenzy 风格批量预生成，16:9 宽幅、暗黑克苏鲁氛围。参见 `skills/coc-scene-card-generator`。
 
 ## 当前状态
 
-**可用的：** COC 规则引擎完整覆盖 7e 核心机制（检定/战斗/理智/孤注一掷/幸运）、Ollama 本地推理、SQLite 持久化（调查员跨 session 复用）、程序化地城地图、多智能体协作（KP + 3 玩家自动跑）、上下文窗口管理（token 预算 + recap 压缩）、场景卡模组系统。
+**可用的：** COC 规则引擎完整覆盖 7e 核心机制（检定/战斗/理智/孤注一掷/幸运）、Ollama 本地推理、SQLite 持久化（调查员跨 session 复用）、程序化地城地图、多智能体协作（KP + 3 玩家自动跑）、上下文窗口管理（token 预算 + recap 压缩）、场景卡模组系统、**OBS 浏览器覆盖层（WebSocket 实时推送 + REST API + 哥特恐怖风 UI）**、**ComfyUI Z-Image 场景卡批量预生成**。
 
 **开发中：** TTS 旁白朗读、BGM 自动切换、弹幕互动桥接。
 
