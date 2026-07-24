@@ -1,334 +1,1128 @@
 {
-  "version": "1.0",
-  "description": "COC TRPG 场景卡标签映射，VLM (Qwen3-VL-8B) 自动标注",
+  "version": "2.0",
+  "description": "COC TRPG 场景卡标签映射，Qwen3.7 Plus (OpenCode Zen) 标注，15维结构化标签",
   "total": 38,
   "images": {
-    "082015506056eb11e399f59e7726f201.jpg": [
-      "雨夜小巷",
-      "石板路",
-      "黄色路灯",
-      "暗黑神秘",
-      "砖墙建筑",
-      "近现代",
-      "雨天",
-      "高对比度暖冷色调"
-    ],
-    "0ae28fab90c0ec36154dbb766842d50b.jpg": [
-      "地下密室",
-      "烛光",
-      "阴森",
-      "哥特式",
-      "暗黑奇幻",
-      "紫橙对比色",
-      "石质建筑",
-      "夜间"
-    ],
-    "0c254cc79704fe4916b55a83103150db.png": [
-      "废弃教堂",
-      "混合涂鸦",
-      "阴郁",
-      "哥特式",
-      "黑白为主",
-      "点缀亮色",
-      "木结构",
-      "破败感"
-    ],
-    "1153477415fd99d8bcf5080b3f8e7285.jpg": [
-      "码头",
-      "夜景",
-      "落日余晖",
-      "阴郁",
-      "水彩笔触",
-      "现代插画",
-      "雾气弥漫",
-      "暗紫橙色调"
-    ],
-    "370e896f17f9642b8df322cfd771cffc.jpg": [
-      "水下废墟",
-      "绿光",
-      "阴森",
-      "生物机械风格",
-      "末世",
-      "雾天",
-      "绿黑主色调",
-      "古老石塔"
-    ],
-    "37d541238313c07bcaddb95198c51445.png": [
-      "博物馆",
-      "骷髅骨架",
-      "破碎展柜",
-      "红色警报灯",
-      "恐怖氛围",
-      "新古典主义建筑",
-      "1927年",
-      "暗红与黑白调",
-      "暗黑艺术风格"
-    ],
-    "3898d8ff52b41280ce501397e25db5d1.png": [
-      "雨夜小巷",
-      "石板路",
-      "路灯照明",
-      "悲凉孤寂",
-      "砖砌建筑",
-      "近现代都市",
-      "雨天",
-      "黑紫红泼墨色调"
-    ],
-    "3a5adf445dbec28b90221fc22612a9ce.jpg": [
-      "爵士酒吧",
-      "红砖拱顶",
-      "暖黄吊灯",
-      "摇滚氛围",
-      "水墨涂鸦风",
-      "复古年代感",
-      "雨夜窗外",
-      "暖棕紫调"
-    ],
-    "3d258de8a421d53c48f6f57d17d2693c.jpg": [
-      "教室",
-      "古典木制",
-      "阳光斜射",
-      "阴森",
-      "哥特式窗户",
-      "旧式黑板",
-      "灰白棕色调",
-      "老式学堂"
-    ],
-    "3fcb4e6359a742c8b6bb29a60a2f03fb.jpg": [
-      "书房",
-      "古典书架",
-      "油灯照明",
-      "阴森神秘",
-      "古典木结构",
-      "维多利亚时代",
-      "雨夜",
-      "暗红棕与黑白调"
-    ],
-    "4ac5e95bf0a6988edff3fa6a083742ae.jpg": [
-      "博物馆",
-      "展柜",
-      "恐龙骨架",
-      "血迹",
-      "红色警示灯",
-      "恐怖",
-      "暗色调",
-      "现代建筑风格"
-    ],
-    "4bf666688de7b718113c3d29577beef0.jpg": [
-      "医院病房",
-      "异常光线",
-      "阴森恐怖",
-      "末世风格",
-      "暗黑色调",
-      "现代医疗设备",
-      "窗外怪物",
-      "血迹斑斑"
-    ],
-    "5f90727207a5a30100c77aec804438ed.png": [
-      "灯塔",
-      "海洋",
-      "风暴",
-      "黑白黄调",
-      "惊悚",
-      "超现实",
-      "现代插画",
-      "巨型海怪"
-    ],
-    "62a3a4d43374944be8c9d25997478dc2.jpg": [
-      "地下隧道",
-      "潮湿积水",
-      "手电筒光束",
-      "阴森恐怖",
-      "工业管道",
-      "砖石拱顶",
-      "暗沉蓝灰调",
-      "被遗弃"
-    ],
-    "6565c3aa868857194ecd86dfe90673d1.jpg": [
-      "新闻编辑室",
-      "警察局",
-      "红色灯光",
-      "阴森",
-      "工业风",
-      "20世纪中期",
-      "暗调",
-      "血迹斑斑"
-    ],
-    "7095c9e0632d2ece59f17bc5a9cfa38e.jpg": [
-      "复古餐厅",
-      "夜间",
-      "暖光",
-      "独立式建筑",
-      "50年代风格",
-      "雨后湿滑",
-      "红色调",
-      "暗黑氛围"
-    ],
-    "76d2ccceb6c2aa781c5172355d1849c9.jpg": [
-      "办公室",
-      "侦探室",
-      "绿色台灯",
-      "热咖啡",
-      "档案柜",
-      "墙上通缉令",
-      "灰调",
-      "旧式木制家具",
-      "侦探小说风格"
-    ],
-    "78da9611ea316803a16a43e4e217366d.jpg": [
-      "沼泽小屋",
-      "萤火虫",
-      "雾气弥漫",
-      "黑白水墨",
-      "木制码头",
-      "乡村风格",
-      "夜间",
-      "静谧神秘"
-    ],
-    "7974cbc2763eddbbf368ae802fe7cce3.png": [
-      "酒店走廊",
-      "门牌号",
-      "热食推车",
-      "吊灯",
-      "紫色调",
-      "老式壁纸",
-      "暗黑氛围",
-      "诡异"
-    ],
-    "81e52489d19eeca097543ae70bea7b11.jpg": [
-      "酒吧",
-      "夜生活",
-      "暖光",
-      "摇滚氛围",
-      "砖墙拱门",
-      "1970年代",
-      "紫红调",
-      "水彩风格"
-    ],
-    "847fb371ed04e1f6ace96ecd9b6df48a.png": [
-      "室内，楼梯，哥特式，恐怖，昏暗，复古，血迹，手绘风格"
-    ],
-    "8f94c58f300d6e0616dd5bc5be90df4a.jpg": [
-      "森林",
-      "小木屋",
-      "夜晚",
-      "暖光",
-      "阴森",
-      "奇幻",
-      "手绘风格",
-      "暗色调"
-    ],
-    "9ebd362ea2e625c400bef9fa2e7c3a78.jpg": [
-      "复古店铺",
-      "墨水店",
-      "暗调灯光",
-      "怪诞氛围",
-      "老式木结构",
-      "19世纪风格",
-      "室内场景",
-      "紫色神秘光"
-    ],
-    "a8b49d30e36a6499898d818cdf7f583b.jpg": [
-      "恐怖房间",
-      "魔法仪式",
-      "黑白素描",
-      "阴森氛围",
-      "哥特式建筑",
-      "古老时代",
-      "蜡烛照明",
-      "暗色调"
-    ],
-    "aa819ef1dbd82bd5bd1376a8459f20d2.jpg": [
-      "侦探办公室",
-      "写实素描",
-      "黑白画风",
-      "沉重氛围",
-      "现代都市",
-      "阳光斜射",
-      "门上标“调查”",
-      "时代感复古"
-    ],
-    "cb0f2217162d5de5edb654b3f50e57b7.jpg": [
-      "教堂，废弃，哥特式，昏暗，超现实，黑白为主，彩色点缀，神秘氛围"
-    ],
-    "d4691e810b0c5ad05e298705b8505ac2.png": [
-      "医院病房，恐怖氛围，黑白素描，彩色泼墨，窗户阴影人形，病床，轮椅，医疗设备，阴森光线"
-    ],
-    "da970a2e304c5c90d4bb591afc8f9b16.jpg": [
-      "码头",
-      "水面",
-      "雾气",
-      "紫色调",
-      "恐怖氛围",
-      "夜间",
-      "老式街灯",
-      "船只",
-      "城市背景"
-    ],
-    "df5df6ac2b4ce90365d1c32f23015818.jpg": [
-      "海景",
-      "灯塔",
-      "暴风雨",
-      "黑白插画",
-      "色彩泼洒",
-      "浪花",
-      "船舵",
-      "奇幻氛围"
-    ],
-    "e10edbf67a0b5f7eea3827d5223863eb.jpg": [
-      "雨夜街道",
-      "城市巷道",
-      "路灯照明",
-      "暗黑氛围",
-      "哥特建筑",
-      "暗黑时代",
-      "雨天",
-      "高饱和色调"
-    ],
-    "e546bbd0ecd3bfb3207caa26e20a4d2e.png": [
-      "废弃走廊，医院，昏暗光线，恐怖氛围，复古建筑，现代废墟，阴郁色调，血迹斑斑"
-    ],
-    "e74a754bf3d4253598dffd8103d20f18.png": [
-      "恐怖场景",
-      "内部空间",
-      "楼梯间",
-      "暗调光线",
-      "哥特式建筑",
-      "古典时代",
-      "阴森氛围",
-      "黑白红色调"
-    ],
-    "f3d52fc2dad042587958befd92ed4ddd.jpg": [
-      "废弃房间，医院候诊室，昏暗荧光灯，阴森恐怖，复古木墙，老式轮椅，黄绿色调，破败斑驳"
-    ],
-    "f8d276b686361265ac5977ce1df917ac.jpg": [
-      "书房，室内，暖光，神秘，古典，复古，夜晚，暗色调"
-    ],
-    "f9ba057c1692eddfcb391526083c9d34.jpg": [
-      "废弃工厂",
-      "蜘蛛网",
-      "月夜",
-      "阴森",
-      "工业机械",
-      "老式建筑",
-      "黑白素描",
-      "衰败氛围"
-    ],
-    "fa300366dca457decbedbb0e67ce64f0.png": [
-      "办公室",
-      "写字台",
-      "灯光",
-      "破旧",
-      "木质家具",
-      "20世纪末",
-      "黑白灰调",
-      "暗沉氛围"
-    ],
-    "fd71c54dac8314d522df13e03e08f58f.jpg": [
-      "侦探办公室，室内，暖光，悬疑，复古，20世纪中期，阴天，暗色调"
-    ],
-    "fd7ee18e7f86424a028321ad1f14aef9.png": [
-      "沼泽地，木屋，萤火虫，黄昏，梦幻，蒸汽，彩色泼墨，复古风格"
-    ]
+    "082015506056eb11e399f59e7726f201.jpg": {
+      "scene_type": "城市暗巷",
+      "location": "雨夜鹅卵石暗巷",
+      "lighting": "昏黄路灯与强烈阴影",
+      "mood": [
+        "悬疑",
+        "压抑",
+        "神秘"
+      ],
+      "architecture": "维多利亚式红砖建筑",
+      "era": "20世纪20年代",
+      "weather": "潮湿微雨",
+      "color_palette": "黄、红、黑",
+      "art_style": "粗犷美漫插画风",
+      "key_objects": [
+        "煤气路灯",
+        "神秘海报",
+        "窗台白猫",
+        "风衣行人"
+      ],
+      "narrative_hook": "跟踪前方的神秘风衣人或是解读墙上的邪教海报",
+      "coc_themes": [
+        "都市传说",
+        "邪教崇拜"
+      ],
+      "composition": "一点透视，视线向巷道深处延伸",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "0ae28fab90c0ec36154dbb766842d50b.jpg": {
+      "scene_type": "邪教仪式现场",
+      "location": "涂鸦覆盖的废弃地下室",
+      "lighting": "烛光与紫色魔法幽光交织",
+      "mood": [
+        "诡异",
+        "邪恶",
+        "紧张"
+      ],
+      "architecture": "哥特拱门混合街头涂鸦",
+      "era": "现代",
+      "weather": "无（室内）",
+      "color_palette": "紫、黑、灰、黄",
+      "art_style": "美漫插画风格",
+      "key_objects": [
+        "魔法召唤阵",
+        "喷发魔液的高脚杯",
+        "带血匕首",
+        "黑袍邪教徒"
+      ],
+      "narrative_hook": "调查员撞见正在进行的召唤仪式",
+      "coc_themes": [
+        "邪教徒",
+        "召唤仪式"
+      ],
+      "composition": "中心聚焦，低视角",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "0c254cc79704fe4916b55a83103150db.png": {
+      "scene_type": "室内宗教场所",
+      "location": "异变废弃的教堂大厅",
+      "lighting": "阴暗压抑，局部有幽蓝与亮黄的高光点缀",
+      "mood": [
+        "诡异",
+        "破败",
+        "亵渎"
+      ],
+      "architecture": "传统西式教堂（带管风琴与长廊）",
+      "era": "1920年代或现代",
+      "weather": "室内（暗示外部阴沉）",
+      "color_palette": "黑白灰为主，点缀蓝、黄、红",
+      "art_style": "粗犷美漫素描风，带有大量墨迹飞溅与涂鸦",
+      "key_objects": [
+        "发蓝光的圣水盆",
+        "巨型管风琴",
+        "木质长椅",
+        "破损的彩色玻璃窗"
+      ],
+      "narrative_hook": "圣水盆泛起幽蓝光芒，空气中回荡着诡异音符",
+      "coc_themes": [
+        "宗教亵渎",
+        "理智丧失"
+      ],
+      "composition": "一点透视，视线由前景圣水盆引向后方讲坛",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "1153477415fd99d8bcf5080b3f8e7285.jpg": {
+      "scene_type": "港口/码头",
+      "location": "迷雾中的破旧渔港",
+      "lighting": "路灯昏黄，天光暗红压抑",
+      "mood": [
+        "阴郁",
+        "神秘",
+        "危险"
+      ],
+      "architecture": "木质栈桥结构",
+      "era": "1920年代",
+      "weather": "浓雾弥漫",
+      "color_palette": "暗红、黑、昏黄",
+      "art_style": "粗犷手绘/涂鸦风格",
+      "key_objects": [
+        "昏黄路灯",
+        "破旧渔船",
+        "木质码头",
+        "神秘机械浮标"
+      ],
+      "narrative_hook": "浓雾中缓缓驶来的诡异渔船",
+      "coc_themes": [
+        "印斯茅斯阴影",
+        "深海恐惧"
+      ],
+      "composition": "低角度透视，前景物体引导视线向中心延伸",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "370e896f17f9642b8df322cfd771cffc.jpg": {
+      "scene_type": "深海遗迹",
+      "location": "发光的深海废墟",
+      "lighting": "幽暗环境中的强烈绿色荧光",
+      "mood": [
+        "诡异",
+        "压抑",
+        "神秘"
+      ],
+      "architecture": "非欧几何巨石建筑",
+      "era": "史前超古代文明",
+      "weather": "水下/浓雾",
+      "color_palette": "黑灰与荧光绿",
+      "art_style": "美漫水墨风",
+      "key_objects": [
+        "发光眼球",
+        "悬浮鱼群",
+        "触手状植物",
+        "巨石柱"
+      ],
+      "narrative_hook": "遗迹中心的绿光似乎正在苏醒",
+      "coc_themes": [
+        "深海恐惧",
+        "远古文明",
+        "不可名状"
+      ],
+      "composition": "中心聚焦式构图",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "37d541238313c07bcaddb95198c51445.png": {
+      "scene_type": "博物馆展厅",
+      "location": "印斯茅斯探险展厅",
+      "lighting": "展柜红光与冷灰环境光对比",
+      "mood": [
+        "诡异",
+        "崩坏",
+        "压抑"
+      ],
+      "architecture": "古典室内建筑",
+      "era": "现代",
+      "weather": "室内",
+      "color_palette": "灰白、血红、焦黑",
+      "art_style": "概念插画、水墨涂鸦风",
+      "key_objects": [
+        "恐龙骨架",
+        "破碎展柜",
+        "神秘陶器",
+        "黑色墨迹"
+      ],
+      "narrative_hook": "展品离奇复苏，现实开始崩坏",
+      "coc_themes": [
+        "远古遗物",
+        "理智丧失"
+      ],
+      "composition": "中心透视，骨架居中",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "3898d8ff52b41280ce501397e25db5d1.png": {
+      "scene_type": "城市巷道",
+      "location": "昏暗的鹅卵石小巷",
+      "lighting": "强烈的路灯逆光与深邃阴影",
+      "mood": [
+        "压抑",
+        "诡异",
+        "悬疑",
+        "疯狂"
+      ],
+      "architecture": "维多利亚式砖砌建筑",
+      "era": "20世纪20年代",
+      "weather": "雨夜",
+      "color_palette": "黑白灰与紫红色",
+      "art_style": "美漫图像小说风格，粗犷墨线与泼墨",
+      "key_objects": [
+        "孤独人影",
+        "路灯",
+        "乱码报纸",
+        "鹅卵石路面"
+      ],
+      "narrative_hook": "墙上的乱码报纸暗示着理智的丧失",
+      "coc_themes": [
+        "都市恐怖",
+        "理智丧失",
+        "隐秘邪教"
+      ],
+      "composition": "一点透视，中心聚焦于孤独人影",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "3a5adf445dbec28b90221fc22612a9ce.jpg": {
+      "scene_type": "地下酒吧",
+      "location": "红砖拱门结构的复古吧台",
+      "lighting": "暖黄色吊灯与壁灯营造的昏暗光线",
+      "mood": [
+        "神秘",
+        "复古",
+        "颓废"
+      ],
+      "architecture": "红砖拱门与木质结构的地下酒吧风格",
+      "era": "20世纪20-30年代或复古架空",
+      "weather": "室内夜晚",
+      "color_palette": "红棕色、暖黄色、黑色与白色",
+      "art_style": "美漫线条与墨水涂鸦风格",
+      "key_objects": [
+        "木质吧台",
+        "老式留声机",
+        "黑胶唱片涂鸦",
+        "高脚凳"
+      ],
+      "narrative_hook": "墙上的诡异涂鸦暗示着地下结社的活动",
+      "coc_themes": [
+        "地下结社",
+        "都市传说"
+      ],
+      "composition": "透视构图，引导视线至吧台与角落",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "3d258de8a421d53c48f6f57d17d2693c.jpg": {
+      "scene_type": "阶梯教室",
+      "location": "古老大学的阶梯教室",
+      "lighting": "窗户透入的强烈光束，室内阴暗",
+      "mood": [
+        "诡异",
+        "孤独",
+        "神秘",
+        "压抑"
+      ],
+      "architecture": "哥特式尖拱窗，木质内饰",
+      "era": "20世纪早期",
+      "weather": "晴朗",
+      "color_palette": "棕褐色、木色、灰黑色",
+      "art_style": "漫画风格，硬线条，墨迹飞溅效果",
+      "key_objects": [
+        "骷髅教具",
+        "写满公式的黑板",
+        "神秘符号黑板",
+        "散落的图纸",
+        "棕色公文包"
+      ],
+      "narrative_hook": "独自面对骷髅讲师的诡异课堂",
+      "coc_themes": [
+        "禁忌知识",
+        "古老学院",
+        "疯狂学者"
+      ],
+      "composition": "纵深透视，人物位于视觉中心偏右，左右黑板形成框架",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "3fcb4e6359a742c8b6bb29a60a2f03fb.jpg": {
+      "scene_type": "室内书房",
+      "location": "神秘学者的私人书房",
+      "lighting": "油灯暖光与窗外冷暗光交织",
+      "mood": [
+        "诡异",
+        "神秘",
+        "压抑"
+      ],
+      "architecture": "维多利亚式室内装潢",
+      "era": "1920年代",
+      "weather": "黑夜",
+      "color_palette": "暗红、木棕、暖黄、墨黑",
+      "art_style": "美漫手绘插画风",
+      "key_objects": [
+        "油灯",
+        "书架",
+        "地板魔法阵",
+        "诡异画作"
+      ],
+      "narrative_hook": "地板上的法阵暗示了禁忌仪式",
+      "coc_themes": [
+        "神秘学",
+        "禁忌知识"
+      ],
+      "composition": "一点透视，视觉中心落于地板法阵",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "4ac5e95bf0a6988edff3fa6a083742ae.jpg": {
+      "scene_type": "博物馆展厅",
+      "location": "印斯茅斯探险展区",
+      "lighting": "昏暗红光与展柜冷光",
+      "mood": [
+        "恐怖",
+        "诡异",
+        "混乱"
+      ],
+      "architecture": "现代工业风博物馆",
+      "era": "现代",
+      "weather": "室内",
+      "color_palette": "灰黑白与血红",
+      "art_style": "漫画渲染风格",
+      "key_objects": [
+        "巨型骨架展柜",
+        "地面黑色骨架残骸",
+        "印斯茅斯陶罐",
+        "红色吊灯"
+      ],
+      "narrative_hook": "展柜异变，地面残留黑色骨架与血迹",
+      "coc_themes": [
+        "印斯茅斯阴影",
+        "生物变异"
+      ],
+      "composition": "中心透视构图",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "4bf666688de7b718113c3d29577beef0.jpg": {
+      "scene_type": "医院病房",
+      "location": "破败的多人病房",
+      "lighting": "顶部冷白灯光，窗外幽暗",
+      "mood": [
+        "恐怖",
+        "压抑",
+        "诡异"
+      ],
+      "architecture": "近代医院内部",
+      "era": "20世纪中后期",
+      "weather": "阴暗",
+      "color_palette": "苍白, 幽蓝, 墨黑",
+      "art_style": "恐怖漫画风格, 粗犷线条, 墨迹渲染",
+      "key_objects": [
+        "全身绷带的病人",
+        "护士",
+        "窗外的黑影怪物",
+        "病床与轮椅"
+      ],
+      "narrative_hook": "不可名状的黑影正在窗外窥视病房内的伤者。",
+      "coc_themes": [
+        "医疗恐怖",
+        "怪物窥视",
+        "理智丧失"
+      ],
+      "composition": "室内透视构图，前景病人与背景黑影形成视觉张力",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "5f90727207a5a30100c77aec804438ed.png": {
+      "scene_type": "风暴灯塔",
+      "location": "暴风雨中的海边灯塔",
+      "lighting": "强烈的黄色探照灯光束穿透黑暗",
+      "mood": [
+        "恐怖",
+        "混乱",
+        "绝望"
+      ],
+      "architecture": "维多利亚式圆柱灯塔",
+      "era": "1920年代",
+      "weather": "狂风暴雨",
+      "color_palette": "黑白灰与亮黄",
+      "art_style": "粗犷素描/水墨风格",
+      "key_objects": [
+        "灯塔",
+        "巨大触手",
+        "倾覆的船只",
+        "汹涌海浪"
+      ],
+      "narrative_hook": "灯塔光束照亮了海中的不可名状之物",
+      "coc_themes": [
+        "深海恐惧",
+        "旧日支配者眷族"
+      ],
+      "composition": "左侧灯塔为锚点，光束横贯，右侧触手平衡",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "62a3a4d43374944be8c9d25997478dc2.jpg": {
+      "scene_type": "地下隧道",
+      "location": "废弃的地下砖砌隧道",
+      "lighting": "聚光灯强光与幽暗环境对比",
+      "mood": [
+        "压抑",
+        "诡异",
+        "危险"
+      ],
+      "architecture": "砖砌拱顶",
+      "era": "20世纪初",
+      "weather": "潮湿积水",
+      "color_palette": "砖红、铁锈褐、幽蓝",
+      "art_style": "美漫素描水彩风",
+      "key_objects": [
+        "生锈管道",
+        "聚光灯",
+        "骷髅头",
+        "积水"
+      ],
+      "narrative_hook": "隧道深处的诡异蓝光与失踪者线索",
+      "coc_themes": [
+        "城市地下恐怖",
+        "未知生物巢穴"
+      ],
+      "composition": "单点透视",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "6565c3aa868857194ecd86dfe90673d1.jpg": {
+      "scene_type": "地下新闻编辑室",
+      "location": "布满管道的混凝土办公室",
+      "lighting": "顶部冷白荧光灯与门内诡异红光对比",
+      "mood": [
+        "压抑",
+        "悬疑",
+        "惊悚"
+      ],
+      "architecture": "工业粗野主义",
+      "era": "1920年代",
+      "weather": "室内人工照明",
+      "color_palette": "灰黑主调点缀警示红",
+      "art_style": "美漫 Noir 风格",
+      "key_objects": [
+        "老式打字机",
+        "剪报板",
+        "金属通风管",
+        "透出红光的门"
+      ],
+      "narrative_hook": "无脸尸体报道与门后的神秘摄影师",
+      "coc_themes": [
+        "调查新闻",
+        "未知恐怖",
+        "都市传说"
+      ],
+      "composition": "中心透视构图，视觉焦点汇聚于红门",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "7095c9e0632d2ece59f17bc5a9cfa38e.jpg": {
+      "scene_type": "室内场景",
+      "location": "阿卡姆深夜餐厅",
+      "lighting": "室内明亮荧光灯与室外黑夜对比",
+      "mood": [
+        "孤独",
+        "悬疑",
+        "复古"
+      ],
+      "architecture": "美式复古快餐店",
+      "era": "20世纪中后期",
+      "weather": "晴朗夜晚",
+      "color_palette": "红黑白",
+      "art_style": "美漫插画风",
+      "key_objects": [
+        "红色卡座",
+        "点唱机",
+        "食物展示柜",
+        "霓虹灯招牌"
+      ],
+      "narrative_hook": "深夜独自用餐的神秘顾客",
+      "coc_themes": [
+        "阿卡姆日常",
+        "都市怪谈"
+      ],
+      "composition": "中心透视，人物居中",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "76d2ccceb6c2aa781c5172355d1849c9.jpg": {
+      "scene_type": "调查办公室",
+      "location": "凌乱的个人调查办公室",
+      "lighting": "绿色台灯局部照明，整体偏暗",
+      "mood": [
+        "悬疑",
+        "压抑",
+        "专注"
+      ],
+      "architecture": "室内普通办公空间",
+      "era": "现代/近现代",
+      "weather": "室内",
+      "color_palette": "棕褐色、暗灰色、墨绿色",
+      "art_style": "粗犷手绘漫画风",
+      "key_objects": [
+        "线索地图",
+        "绿色台灯",
+        "文件堆",
+        "半开的暗门"
+      ],
+      "narrative_hook": "门外的黑暗中似乎有什么在窥视。",
+      "coc_themes": [
+        "调查",
+        "未知恐惧"
+      ],
+      "composition": "室内一点透视，办公桌居中",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "78da9611ea316803a16a43e4e217366d.jpg": {
+      "scene_type": "沼泽木屋",
+      "location": "迷雾沼泽深处的孤立木屋",
+      "lighting": "幽暗微光，黄色发光点漂浮",
+      "mood": [
+        "阴森",
+        "神秘",
+        "孤寂"
+      ],
+      "architecture": "美国南方沼泽高脚木屋",
+      "era": "20世纪20年代",
+      "weather": "浓雾弥漫",
+      "color_palette": "黑白水墨点缀幽黄",
+      "art_style": "水墨插画风格",
+      "key_objects": [
+        "沼泽木屋",
+        "木制码头",
+        "小木船",
+        "发光浮游物"
+      ],
+      "narrative_hook": "乘船穿过迷雾，前往沼泽深处的隐秘居所",
+      "coc_themes": [
+        "孤立无援",
+        "未知生物",
+        "隐秘教团"
+      ],
+      "composition": "中心透视，水面引导视线至木屋",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "7974cbc2763eddbbf368ae802fe7cce3.png": {
+      "scene_type": "室内走廊",
+      "location": "复古酒店客房走廊",
+      "lighting": "顶部吊灯局部照明，远处昏暗",
+      "mood": [
+        "诡异",
+        "悬疑",
+        "压抑"
+      ],
+      "architecture": "维多利亚式复古室内",
+      "era": "20世纪早期",
+      "weather": "无",
+      "color_palette": "紫灰与暗木色调",
+      "art_style": "钢笔淡彩速写",
+      "key_objects": [
+        "编号木门",
+        "送餐车",
+        "复古吊灯",
+        "繁复壁纸"
+      ],
+      "narrative_hook": "走廊里为何停着冒热气的送餐车？",
+      "coc_themes": [
+        "封闭空间恐惧",
+        "日常中的异常"
+      ],
+      "composition": "一点透视",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "81e52489d19eeca097543ae70bea7b11.jpg": {
+      "scene_type": "室内场景 - 酒吧/夜总会",
+      "location": "复古酒吧与留声机区",
+      "lighting": "暖黄色壁灯与吊灯，局部阴影",
+      "mood": [
+        "复古",
+        "喧嚣",
+        "神秘",
+        "纸醉金迷"
+      ],
+      "architecture": "砖墙拱门，木质吧台",
+      "era": "1920年代（爵士时代）",
+      "weather": "室内",
+      "color_palette": "紫红色，暖黄色，深棕色",
+      "art_style": "美式漫画插画，粗犷线条",
+      "key_objects": [
+        "老式留声机",
+        "黑胶唱片",
+        "木质吧台",
+        "砖墙拱门"
+      ],
+      "narrative_hook": "留声机里突然传出诡异的爵士乐",
+      "coc_themes": [
+        "爵士时代",
+        "秘密结社",
+        "疯狂前兆"
+      ],
+      "composition": "左右分割构图，前景留声机引导视线",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "847fb371ed04e1f6ace96ecd9b6df48a.png": {
+      "scene_type": "室内场景",
+      "location": "破败宅邸的楼梯间",
+      "lighting": "昏暗，吊灯微光与门内幽光交织",
+      "mood": [
+        "阴森",
+        "诡异",
+        "压抑"
+      ],
+      "architecture": "维多利亚式古典风格",
+      "era": "19世纪末至20世纪初",
+      "weather": "阴冷（门内涌出浓雾）",
+      "color_palette": "灰白、暗红、黑色",
+      "art_style": "美漫插画风，带有粗犷墨迹与素描线条",
+      "key_objects": [
+        "双分木制楼梯",
+        "半开的木门",
+        "墙上肖像画",
+        "左侧落地钟"
+      ],
+      "narrative_hook": "半开的门后涌出浓雾，隐藏着未知的恐怖",
+      "coc_themes": [
+        "闹鬼宅邸",
+        "家族诅咒"
+      ],
+      "composition": "对称式构图，楼梯形成视觉引导线",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "8f94c58f300d6e0616dd5bc5be90df4a.jpg": {
+      "scene_type": "森林小屋/超自然遭遇",
+      "location": "幽暗森林中的木屋",
+      "lighting": "窗户透出的暖黄光束与阴暗环境形成强烈对比",
+      "mood": [
+        "神秘",
+        "压抑",
+        "诡异"
+      ],
+      "architecture": "简易木质结构",
+      "era": "20世纪20年代或现代",
+      "weather": "阴郁雾夜",
+      "color_palette": "黑、深绿、橙黄",
+      "art_style": "暗黑插画/粗犷笔触",
+      "key_objects": [
+        "木屋",
+        "巨鹿黑影",
+        "枯树",
+        "窗户灯光"
+      ],
+      "narrative_hook": "林中小屋透出灯光，背后巨大的黑鹿凝视。",
+      "coc_themes": [
+        "古老存在",
+        "自然异变",
+        "孤立无援"
+      ],
+      "composition": "前景枯树框景，光束引导视线至巨鹿",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "9ebd362ea2e625c400bef9fa2e7c3a78.jpg": {
+      "scene_type": "室内场景",
+      "location": "摆满杂物的古董店",
+      "lighting": "顶灯照明与后方诡异紫光",
+      "mood": [
+        "诡异",
+        "荒诞",
+        "神秘"
+      ],
+      "architecture": "老式木质店铺",
+      "era": "20世纪早期",
+      "weather": "无",
+      "color_palette": "灰暗色调与紫色点缀",
+      "art_style": "美漫硬派线条风",
+      "key_objects": [
+        "玻璃展示柜",
+        "牛头标本",
+        "织毛衣的老人",
+        "紫色珠帘"
+      ],
+      "narrative_hook": "两个一模一样的老人在紫光前织毛衣",
+      "coc_themes": [
+        "现实扭曲",
+        "神秘古董"
+      ],
+      "composition": "对称式构图，视线引向后方紫光门廊",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "a8b49d30e36a6499898d818cdf7f583b.jpg": {
+      "scene_type": "邪教祭坛",
+      "location": "废弃宅邸的地下室",
+      "lighting": "摇曳的烛光，阴暗压抑",
+      "mood": [
+        "恐怖",
+        "诡异",
+        "压抑"
+      ],
+      "architecture": "破败的维多利亚式室内",
+      "era": "1920年代",
+      "weather": "室内",
+      "color_palette": "黑白灰",
+      "art_style": "黑暗素描",
+      "key_objects": [
+        "石制祭坛",
+        "蜡烛法阵",
+        "怪物涂鸦",
+        "骷髅头"
+      ],
+      "narrative_hook": "调查员发现了邪教徒的仪式现场",
+      "coc_themes": [
+        "邪教仪式",
+        "理智丧失"
+      ],
+      "composition": "广角透视，中心聚焦祭坛与法阵",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "aa819ef1dbd82bd5bd1376a8459f20d2.jpg": {
+      "scene_type": "侦探办公室",
+      "location": "私人调查事务所",
+      "lighting": "百叶窗投射的条纹强光，高对比度阴影",
+      "mood": [
+        "悬疑",
+        "冷硬派",
+        "不安"
+      ],
+      "architecture": "普通现代办公室",
+      "era": "现代（新黑色电影风格）",
+      "weather": "白天强光",
+      "color_palette": "黑白灰素描风，局部红色（酒瓶）",
+      "art_style": "美漫素描/黑色电影插画",
+      "key_objects": [
+        "INVESTIGATIONS门牌",
+        "神秘剪影人影",
+        "悬挂的风衣礼帽",
+        "DO NOT PURSUE文件"
+      ],
+      "narrative_hook": "桌上的禁止追查令与门口的神秘黑影",
+      "coc_themes": [
+        "调查受阻",
+        "未知威胁"
+      ],
+      "composition": "一点透视，中心门框聚焦",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "cb0f2217162d5de5edb654b3f50e57b7.jpg": {
+      "scene_type": "室内宗教场所",
+      "location": "废弃教堂内部",
+      "lighting": "斑驳的自然光，高对比度阴影",
+      "mood": [
+        "诡异",
+        "破败",
+        "疯狂"
+      ],
+      "architecture": "哥特式教堂",
+      "era": "近现代",
+      "weather": "室内",
+      "color_palette": "黑白为主，点缀蓝、黄、红",
+      "art_style": "漫画风格，墨水涂鸦，线条粗犷",
+      "key_objects": [
+        "管风琴",
+        "洗礼盆",
+        "教堂长椅",
+        "破损彩窗"
+      ],
+      "narrative_hook": "圣水盆中泛起诡异的蓝光，耳边似有幻听。",
+      "coc_themes": [
+        "理智丧失",
+        "被遗弃的圣地"
+      ],
+      "composition": "广角透视，中心聚焦于洗礼盆",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "d4691e810b0c5ad05e298705b8505ac2.png": {
+      "scene_type": "医院病房",
+      "location": "废弃医院病房",
+      "lighting": "顶灯冷光，窗外阴暗",
+      "mood": [
+        "恐怖",
+        "压抑",
+        "诡异"
+      ],
+      "architecture": "现代医疗设施（破败）",
+      "era": "现代",
+      "weather": "黑夜",
+      "color_palette": "黑白灰为主，点缀红蓝黄",
+      "art_style": "黑白素描/漫画风格",
+      "key_objects": [
+        "全身绷带的病人",
+        "窗外黑影",
+        "轮椅",
+        "异形病床"
+      ],
+      "narrative_hook": "窗外的黑影正注视着病房内的病人。",
+      "coc_themes": [
+        "医疗恐怖",
+        "未知生物",
+        "疯狂"
+      ],
+      "composition": "广角透视，病床呈对角线排列",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "da970a2e304c5c90d4bb591afc8f9b16.jpg": {
+      "scene_type": "港口码头",
+      "location": "紫雾弥漫的渔港栈桥",
+      "lighting": "路灯暖光与天空紫光的强烈对比",
+      "mood": [
+        "恐怖",
+        "迷幻",
+        "压抑"
+      ],
+      "architecture": "老旧木质码头结构",
+      "era": "1920年代",
+      "weather": "浓雾",
+      "color_palette": "品红/紫色调",
+      "art_style": "美漫粗犷线条与墨迹",
+      "key_objects": [
+        "路灯",
+        "渔船",
+        "木栈道",
+        "水中人脸"
+      ],
+      "narrative_hook": "水中浮现的苍白面容暗示着水下恐怖",
+      "coc_themes": [
+        "深潜者",
+        "疯狂",
+        "海滨恐怖"
+      ],
+      "composition": "双栈道引导视线，前景水面特写",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "df5df6ac2b4ce90365d1c32f23015818.jpg": {
+      "scene_type": "海岸灯塔与超自然风暴",
+      "location": "暴风雨中的孤岛灯塔",
+      "lighting": "灯塔强光与诡异彩色天光交织",
+      "mood": [
+        "惊悚",
+        "混乱",
+        "神秘",
+        "压抑"
+      ],
+      "architecture": "古典圆柱形石砌灯塔",
+      "era": "1920年代",
+      "weather": "狂风暴雨",
+      "color_palette": "黑白为主，点缀橙黄粉高饱和色",
+      "art_style": "美漫插画，水墨线条结合彩色渲染",
+      "key_objects": [
+        "发光灯塔",
+        "深海触手",
+        "巨大悬浮船舵",
+        "汹涌海浪"
+      ],
+      "narrative_hook": "灯塔光束唤醒了深海中的古老存在",
+      "coc_themes": [
+        "深海恐怖",
+        "宇宙异象",
+        "理智丧失"
+      ],
+      "composition": "左右对峙构图，对角线光束切割画面",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "e10edbf67a0b5f7eea3827d5223863eb.jpg": {
+      "scene_type": "城市暗巷",
+      "location": "雨夜鹅卵石小巷",
+      "lighting": "路灯黄光与霓虹粉光交织，高对比度",
+      "mood": [
+        "悬疑",
+        "压抑",
+        "诡异"
+      ],
+      "architecture": "维多利亚式砖石建筑",
+      "era": "近现代",
+      "weather": "雨夜",
+      "color_palette": "霓虹粉、黄、暗紫、黑",
+      "art_style": "美漫图像小说风格",
+      "key_objects": [
+        "孤独人影",
+        "复古路灯",
+        "巨型报纸海报",
+        "湿滑鹅卵石路面"
+      ],
+      "narrative_hook": "墙上的诡异报纸头条暗示着连环失踪案",
+      "coc_themes": [
+        "都市传说",
+        "隐秘教团"
+      ],
+      "composition": "单点透视，人物位于左侧三分线",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "e546bbd0ecd3bfb3207caa26e20a4d2e.png": {
+      "scene_type": "废弃医院走廊",
+      "location": "破败的精神病院走廊",
+      "lighting": "左侧强光与尽头诡异绿光交织",
+      "mood": [
+        "压抑",
+        "诡异",
+        "破败"
+      ],
+      "architecture": "20世纪早期机构建筑",
+      "era": "20世纪中叶",
+      "weather": "室内场景",
+      "color_palette": "暗红、惨白、荧光绿",
+      "art_style": "美漫速写与墨水飞溅风格",
+      "key_objects": [
+        "生锈的病床推车",
+        "溅满污渍的墙壁",
+        "尽头发绿光的门",
+        "破裂的瓷砖地板"
+      ],
+      "narrative_hook": "尽头绿光房间传出诡异声响",
+      "coc_themes": [
+        "疯狂蔓延",
+        "禁忌实验"
+      ],
+      "composition": "单点透视引导视线",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "e74a754bf3d4253598dffd8103d20f18.png": {
+      "scene_type": "室内场景",
+      "location": "染血的宅邸楼梯间",
+      "lighting": "昏暗，吊灯微光，阴影浓重",
+      "mood": [
+        "恐怖",
+        "压抑",
+        "诡异"
+      ],
+      "architecture": "维多利亚式宅邸",
+      "era": "1920年代",
+      "weather": "阴冷",
+      "color_palette": "黑白灰与暗红",
+      "art_style": "墨水素描，美漫恐怖风格",
+      "key_objects": [
+        "双分叉楼梯",
+        "滴液的肖像画",
+        "复古吊灯",
+        "落地钟"
+      ],
+      "narrative_hook": "楼梯上的血迹通向二楼的何处？",
+      "coc_themes": [
+        "宅邸恐怖",
+        "家族诅咒",
+        "理智丧失"
+      ],
+      "composition": "中心对称，楼梯引导视线向上",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "f3d52fc2dad042587958befd92ed4ddd.jpg": {
+      "scene_type": "废弃疗养院活动室",
+      "location": "废弃疗养院活动室",
+      "lighting": "窗外射入的刺眼黄绿光与室内阴暗形成强烈对比",
+      "mood": [
+        "诡异",
+        "破败",
+        "压抑"
+      ],
+      "architecture": "破败的维多利亚式室内",
+      "era": "20世纪早中期",
+      "weather": "晴朗",
+      "color_palette": "病态黄绿色与暗黑色",
+      "art_style": "美漫恐怖插画风",
+      "key_objects": [
+        "轮椅",
+        "摇椅",
+        "留声机",
+        "诡异儿童画"
+      ],
+      "narrative_hook": "墙上的画作似乎在记录某种仪式",
+      "coc_themes": [
+        "疯狂蔓延",
+        "禁忌仪式"
+      ],
+      "composition": "广角透视，视线引向墙角",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "f8d276b686361265ac5977ce1df917ac.jpg": {
+      "scene_type": "室内书房",
+      "location": "充满古籍的私人书房",
+      "lighting": "油灯暖光与窗外夜色形成强烈对比",
+      "mood": [
+        "神秘",
+        "悬疑",
+        "不安"
+      ],
+      "architecture": "维多利亚式室内装潢",
+      "era": "1920年代",
+      "weather": "深夜",
+      "color_palette": "暖黄、深红、暗褐",
+      "art_style": "美漫手绘插画风",
+      "key_objects": [
+        "顶天立地书架",
+        "木质书桌",
+        "煤油灯",
+        "地面神秘几何图形"
+      ],
+      "narrative_hook": "地上法阵与裂痕窗户暗示禁忌仪式发生。",
+      "coc_themes": [
+        "禁忌知识",
+        "神秘仪式"
+      ],
+      "composition": "中心透视，窗户为视觉焦点",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "f9ba057c1692eddfcb391526083c9d34.jpg": {
+      "scene_type": "废弃工厂车间",
+      "location": "布满蛛网的废弃车间",
+      "lighting": "昏暗的自然光与浓重阴影",
+      "mood": [
+        "破败",
+        "诡异",
+        "压抑"
+      ],
+      "architecture": "工业废墟",
+      "era": "现代与旧工业时代交错",
+      "weather": "阴沉",
+      "color_palette": "黑白灰与锈迹橙褐",
+      "art_style": "美漫素描风格",
+      "key_objects": [
+        "带神秘符号的巨型机器",
+        "笔记本电脑",
+        "巨大蜘蛛网",
+        "控制室中的人"
+      ],
+      "narrative_hook": "废弃工厂中运转的神秘机器",
+      "coc_themes": [
+        "禁忌知识",
+        "工业恐怖"
+      ],
+      "composition": "中心主体突出，前景点缀",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "fa300366dca457decbedbb0e67ce64f0.png": {
+      "scene_type": "调查办公室",
+      "location": "堆满卷宗的侦探办公室",
+      "lighting": "绿色台灯局部照明与门外深邃黑暗形成强烈对比",
+      "mood": [
+        "悬疑",
+        "压抑",
+        "神秘"
+      ],
+      "architecture": "简易室内装修，墙面斑驳",
+      "era": "现代",
+      "weather": "未知",
+      "color_palette": "棕褐色、墨黑色、荧光绿",
+      "art_style": "硬汉派美漫素描风格",
+      "key_objects": [
+        "线索地图",
+        "绿色台灯",
+        "半开的暗门",
+        "老式电脑"
+      ],
+      "narrative_hook": "半开的门后传来不可名状的异响",
+      "coc_themes": [
+        "调查与线索",
+        "未知的恐惧"
+      ],
+      "composition": "一点透视，视线引向中央黑暗的门洞",
+      "density": "moderate",
+      "reusability": "high"
+    },
+    "fd71c54dac8314d522df13e03e08f58f.jpg": {
+      "scene_type": "侦探办公室",
+      "location": "凌乱的个人调查事务所",
+      "lighting": "百叶窗透入的强烈斜射光与室内暗部形成高对比度",
+      "mood": [
+        "悬疑",
+        "压抑",
+        "危险",
+        "黑色电影"
+      ],
+      "architecture": "现代简陋室内装修",
+      "era": "现代或近现代（20世纪末至今）",
+      "weather": "晴朗（强光透入）",
+      "color_palette": "暗红、棕褐、黑色与亮白色",
+      "art_style": "美漫硬汉派插画风格（带喷溅与墨迹效果）",
+      "key_objects": [
+        "神秘人剪影",
+        "写着DO NOT PURSUE的文件",
+        "RYE威士忌酒瓶",
+        "屏幕碎裂的笔记本电脑"
+      ],
+      "narrative_hook": "不速之客推门而入，桌上警告信墨迹未干",
+      "coc_themes": [
+        "阴谋调查",
+        "未知威胁",
+        "理智边缘"
+      ],
+      "composition": "中心对称构图，门框与剪影为视觉焦点",
+      "density": "dense",
+      "reusability": "high"
+    },
+    "fd7ee18e7f86424a028321ad1f14aef9.png": {
+      "scene_type": "沼泽秘境",
+      "location": "迷雾沼泽中的水上木屋",
+      "lighting": "黄昏逆光与萤火虫微光交织",
+      "mood": [
+        "神秘",
+        "幽闭",
+        "诡异"
+      ],
+      "architecture": "南方高脚木屋",
+      "era": "20世纪早期",
+      "weather": "沼泽雾气",
+      "color_palette": "紫红与橙黄对比色调",
+      "art_style": "美漫线条与泼墨风格",
+      "key_objects": [
+        "水上木屋",
+        "木栈道",
+        "平底小船",
+        "萤火虫"
+      ],
+      "narrative_hook": "调查员需乘船前往沼泽深处的孤立木屋",
+      "coc_themes": [
+        "偏远地区的异教崇拜",
+        "与世隔绝的变异家族"
+      ],
+      "composition": "栈道引导的纵深透视构图",
+      "density": "moderate",
+      "reusability": "high"
+    }
   }
 }
