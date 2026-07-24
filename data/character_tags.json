@@ -1,0 +1,329 @@
+{
+  "version": "1.0",
+  "total": 11,
+  "characters": {
+    "2070d3c1c05d62c222bfef9ed790b2db.jpg": {
+      "role": "机械师/修车工",
+      "gender": "男",
+      "age_range": "40-50",
+      "appearance": "络腮胡，戴鸭舌帽，面容粗犷，眼神凶狠",
+      "clothing": "油污工装背带裤+鸭舌帽",
+      "era": "20世纪70-80年代（冷战/苏式风格）",
+      "personality": [
+        "粗犷",
+        "务实",
+        "警惕"
+      ],
+      "expression": "怒目圆睁，严肃警惕",
+      "art_style": "美漫插画风格，泼墨背景",
+      "color_palette": "棕灰色调为主，辅以橙黄蓝泼墨",
+      "props": [
+        "大扳手",
+        "手持工具",
+        "旧式汽车（背景）"
+      ],
+      "narrative_hook": "修车时发现了车辆暗格中的恐怖秘密",
+      "coc_themes": [
+        "工业废墟",
+        "载具追逐",
+        "底层生存"
+      ],
+      "sanity_hint": "stable",
+      "combat_readiness": "capable"
+    },
+    "251ec4d025d9c2422d58a39a6052e34c.jpg": {
+      "role": "护士/战地医护",
+      "gender": "女",
+      "age_range": "20-30",
+      "appearance": "黑发马尾，面颊带伤，嘴角血迹，眼神锐利",
+      "clothing": "白色护士服+护士帽（红十字标志）",
+      "era": "1980s",
+      "personality": [
+        "坚韧",
+        "冷静",
+        "略带疯狂"
+      ],
+      "expression": "严肃警惕，嘴角带血，目光如炬",
+      "art_style": "美漫风格，涂鸦艺术，复古羊皮纸背景",
+      "color_palette": "白色为主，红/黑/紫/黄泼墨点缀",
+      "props": [
+        "病历夹/写字板",
+        "护士帽",
+        "背景中的骷髅电视/怪物涂鸦"
+      ],
+      "narrative_hook": "在混乱病院中见证恐怖真相的幸存者",
+      "coc_themes": [
+        "医疗恐怖",
+        "机构阴谋",
+        "疯狂蔓延"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "capable"
+    },
+    "637dded371adbf972a022bbe25b9433c.jpg": {
+      "role": "医生/外科医生",
+      "gender": "男",
+      "age_range": "40-50",
+      "appearance": "面容憔悴，黑眼圈深重，头发凌乱",
+      "clothing": "沾污白大褂+绿色手术服+听诊器",
+      "era": "现代",
+      "personality": [
+        "疲惫",
+        "神经质",
+        "执着"
+      ],
+      "expression": "阴郁、疲惫且带有警惕",
+      "art_style": "美漫风格，色彩飞溅与墨迹效果",
+      "color_palette": "灰白、暗绿、亮色涂鸦点缀",
+      "props": [
+        "听诊器",
+        "腕表",
+        "胸前口袋的笔"
+      ],
+      "narrative_hook": "在破败医院中见证不可名状恐怖的医生",
+      "coc_themes": [
+        "医疗恐怖",
+        "理智丧失",
+        "都市衰败"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "cautious"
+    },
+    "7e1353e1dc4b58f3b6b8114c86ccdd15.jpg": {
+      "role": "教授/神秘学家",
+      "gender": "男",
+      "age_range": "50+",
+      "appearance": "白发白须，戴圆框眼镜，面容沧桑",
+      "clothing": "紫红西装+暗金马甲+领结",
+      "era": "1920s",
+      "personality": [
+        "严谨",
+        "博学",
+        "多疑"
+      ],
+      "expression": "严肃审视，略带警惕",
+      "art_style": "美漫硬派风格/复古漫画风",
+      "color_palette": "暗红/棕褐/暗金",
+      "props": [
+        "圆框眼镜",
+        "古籍文献",
+        "墨水瓶与钢笔"
+      ],
+      "narrative_hook": "掌握禁忌知识的守书人",
+      "coc_themes": [
+        "禁忌知识",
+        "古老文献",
+        "学术探究"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "passive"
+    },
+    "8b5796c411514318c603b3426a5dec7a.jpg": {
+      "role": "神父/驱魔人",
+      "gender": "男",
+      "age_range": "50+",
+      "appearance": "面容憔悴，眼窝深陷，神情严峻",
+      "clothing": "黑色教士袍+罗马领+十字架项链",
+      "era": "20世纪中叶",
+      "personality": [
+        "虔诚",
+        "坚毅",
+        "多疑"
+      ],
+      "expression": "严肃、警惕、略带疲惫",
+      "art_style": "美漫图像小说风格，硬派线条",
+      "color_palette": "黑色、暗红色、复古米色、亮粉色点缀",
+      "props": [
+        "厚重宗教典籍",
+        "银色十字架项链",
+        "紧握的拳头"
+      ],
+      "narrative_hook": "坚守信仰却直面深渊的驱魔神父",
+      "coc_themes": [
+        "宗教与狂热",
+        "对抗邪教",
+        "理智边缘"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "cautious"
+    },
+    "9d59ba23099081438aa19e157cf096b4.jpg": {
+      "role": "古董商/调查员",
+      "gender": "男",
+      "age_range": "30-40",
+      "appearance": "戴黑框眼镜，面容清瘦，神情严肃",
+      "clothing": "黑色西装+白衬衫+黑色领结",
+      "era": "1920年代",
+      "personality": [
+        "严谨",
+        "神经质",
+        "求知欲强"
+      ],
+      "expression": "严肃且略带紧张",
+      "art_style": "美漫风格，带有做旧和墨迹/血迹飞溅效果",
+      "color_palette": "棕褐色、黑色、白色，点缀红色",
+      "props": [
+        "黑色领结",
+        "古董瓶罐",
+        "标有INNMOUTH 1927的木箱"
+      ],
+      "narrative_hook": "刚从印斯茅斯带回神秘古董的调查员",
+      "coc_themes": [
+        "印斯茅斯的阴影",
+        "禁忌知识",
+        "古老遗物"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "cautious"
+    },
+    "a23d09217aea7606a1e21ba59e302543.jpg": {
+      "role": "私家侦探",
+      "gender": "男",
+      "age_range": "30-40",
+      "appearance": "黑发凌乱，面容冷峻，眼神锐利，留有胡茬",
+      "clothing": "风衣+西装马甲+领带",
+      "era": "1920s-1940s",
+      "personality": [
+        "冷峻",
+        "敏锐",
+        "坚韧",
+        "愤世嫉俗"
+      ],
+      "expression": "眉头紧锁，目光警惕，嘴里叼着香烟",
+      "art_style": "硬派美漫风格，结合色彩飞溅与黑白素描",
+      "color_palette": "黑白灰为主，点缀黄、粉、蓝等鲜艳色彩",
+      "props": [
+        "香烟",
+        "风衣",
+        "阿卡姆街道背景"
+      ],
+      "narrative_hook": "在阿卡姆街头调查离奇案件的硬汉侦探",
+      "coc_themes": [
+        "都市悬疑",
+        "调查",
+        "阿卡姆",
+        "黑色电影"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "capable"
+    },
+    "a50f3cf955f2450fd7605fa2e7a58dad.jpg": {
+      "role": "调查员/法医",
+      "gender": "男",
+      "age_range": "30-40",
+      "appearance": "面容阴鸷，左眼淤青，神情凶狠",
+      "clothing": "深色西装三件套",
+      "era": "1920s-1930s",
+      "personality": [
+        "暴躁",
+        "冷酷",
+        "执着"
+      ],
+      "expression": "愤怒，咬牙切齿，眼神疯狂",
+      "art_style": "美漫粗犷风格，黑色电影质感，做旧纸张背景",
+      "color_palette": "深灰、黑、紫红喷溅",
+      "props": [
+        "医疗手提箱",
+        "手电筒",
+        "报纸",
+        "医疗档案夹"
+      ],
+      "narrative_hook": "追查神秘传染源或连环杀人的硬汉法医",
+      "coc_themes": [
+        "疯狂",
+        "疾病",
+        "暴力",
+        "禁忌知识"
+      ],
+      "sanity_hint": "unstable",
+      "combat_readiness": "aggressive"
+    },
+    "ba60ae0b2c814d1fc7291f97baf0e57a.jpg": {
+      "role": "画家/插画师",
+      "gender": "女",
+      "age_range": "20-30",
+      "appearance": "黑发盘起，面容清瘦，神情专注",
+      "clothing": "沾满颜料的吊带围裙",
+      "era": "现代/近现代",
+      "personality": [
+        "专注",
+        "神经质",
+        "敏感"
+      ],
+      "expression": "眉头微蹙，专注且略带焦虑",
+      "art_style": "黑白素描结合彩色墨水飞溅",
+      "color_palette": "黑白灰为主，点缀红、黄、紫墨迹",
+      "props": [
+        "素描本",
+        "画笔",
+        "漂浮的诡异画框"
+      ],
+      "narrative_hook": "她的画作似乎能预见或召唤不可名状的恐怖",
+      "coc_themes": [
+        "梦境预兆",
+        "疯狂的艺术",
+        "视觉污染"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "passive"
+    },
+    "dd8d57a9fc15b7b1e9675d9215e11916.jpg": {
+      "role": "图书管理员/档案守护者",
+      "gender": "女",
+      "age_range": "30-40",
+      "appearance": "盘发圆镜，高领毛衣，神情冷峻",
+      "clothing": "高领毛衣+深色下装+钥匙腰带",
+      "era": "20世纪中后期",
+      "personality": [
+        "严谨",
+        "警惕",
+        "守护欲强"
+      ],
+      "expression": "严肃警惕，目光锐利",
+      "art_style": "黑白美漫素描，墨迹喷溅风格",
+      "color_palette": "黑白灰为主，红色点缀",
+      "props": [
+        "钥匙串",
+        "木门",
+        "书架"
+      ],
+      "narrative_hook": "守护禁忌知识的图书管理员，门后即是疯狂",
+      "coc_themes": [
+        "禁忌知识",
+        "理智侵蚀",
+        "守密人"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "cautious"
+    },
+    "f9c158d8dd94506a897ea1bc5f4f401d.jpg": {
+      "role": "私家侦探/黑市中间人",
+      "gender": "男",
+      "age_range": "30-40",
+      "appearance": "黑发凌乱，眼神锐利阴郁",
+      "clothing": "西装三件套+领带",
+      "era": "1920s",
+      "personality": [
+        "冷酷",
+        "精明",
+        "愤世嫉俗"
+      ],
+      "expression": "严肃警惕",
+      "art_style": "复古美漫/墨水风",
+      "color_palette": "棕褐/黑/暗红",
+      "props": [
+        "威士忌酒杯",
+        "神秘账本",
+        "美元钞票"
+      ],
+      "narrative_hook": "掌握黑市秘密的冷酷中间人",
+      "coc_themes": [
+        "禁忌知识",
+        "金钱交易",
+        "都市犯罪"
+      ],
+      "sanity_hint": "shaken",
+      "combat_readiness": "cautious"
+    }
+  }
+}
