@@ -57,6 +57,18 @@
 | `tests/test_multiplayer.py` | ✅ | 7 项多人联机 + 存档测试 |
 | `tests/test_database.py` | ✅ | 6 项数据库集成测试 |
 
+## OBS 覆盖层 + 直播素材
+
+| 文件 | 状态 | 说明 |
+|------|------|------|
+| `trpg_agent/overlay_server.py` | ✅ | WebSocket 推送服务，REST API 控制场景/骰子/角色/弹幕/投票 |
+| `docs/overlay_b.html` | ✅ | 哥特恐怖风 OBS 浏览器覆盖层，1920×1080，3:1 列比 |
+| `docs/scene_bg.png` | ✅ | 密大禁书区场景卡（ComfyUI Z-Image + Ink Frenzy 生成） |
+| `docs/layout-mockup.html` | ✅ | 布局原型 A（已废弃，迭代到 overlay_b） |
+| `docs/layout-mockup-b.html` | ✅ | 布局原型 B（迭代到 overlay_b） |
+| `docs/layout-mockup-c.html` | ✅ | 布局原型 C（迭代到 overlay_b） |
+| `docs/bilibili-draft.md` | ✅ | B站直播文案草稿 |
+
 ## 未处理 — DMbot 遗留文件
 
 ### LLM 模块
