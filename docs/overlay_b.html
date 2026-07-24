@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+<title>AI 跑团直播 — 哥特恐怖风</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;600;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0A0A0C; --surface: #121114; --surface-alt: #1A1518;
+    --blood: #8B1A1A; --blood-glow: rgba(139,26,26,0.3);
+    --gold: #C9A84C; --gold-dim: rgba(201,168,76,0.15);
+    --parchment: #D4C5A9; --parchment-dim: rgba(212,197,169,0.08);
+    --text-main: #D4C5A9; --text-dim: #7A7265; --text-faint: #4A4340;
+    --radius: 2px;
+    --font-display: 'Noto Serif SC', 'Crimson Text', serif;
+    --font-body: 'Crimson Text', 'Noto Serif SC', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    width:1920px; height:1080px; background:var(--void);
+    color:var(--text-main); font-family:var(--font-body);
+    font-size:15px; line-height:1.5; overflow:hidden;
+    display:grid;
+    grid-template-columns:3fr 1fr;
+    grid-template-rows:1fr auto;
+    position:relative;
+  }
+  /* vignette removed per user request */
+  body::after {
+    content:''; position:fixed; inset:0; opacity:0.03; z-index:101;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events:none;
+  }
+
+  /* ═══ 合并面板：场景背景 + 浮动叙事 + 骰子祭坛 ═══ */
+  .stage {
+    grid-row:1; grid-column:1;
+    position:relative; overflow:hidden;
+    border-right:1px solid rgba(201,168,76,0.08);
+  }
+  .stage-bg {
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse at 40% 50%, #1a1015 0%, #0A0A0C 80%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stage-bg img {
+    position:absolute; inset:0;
+    width:100%; height:100%; object-fit:cover;
+    opacity:0; transition:opacity 1.2s ease-out;
+  }
+  .stage-bg img.active { opacity:1; }
+
+  /* 场景角落装饰 */
+  .stage-frame {
+    position:absolute; inset:12px;
+    border:1px solid rgba(201,168,76,0.12); pointer-events:none;
+  }
+  .stage-corners {
+    position:absolute; inset:8px; pointer-events:none;
+  }
+  .stage-corners::before, .stage-corners::after {
+    content:''; position:absolute; width:32px; height:32px;
+    border-color:var(--gold); border-style:solid; opacity:0.25;
+  }
+  .stage-corners::before { top:0; left:0; border-width:2px 0 0 2px; }
+  .stage-corners::after { bottom:0; right:0; border-width:0 2px 2px 0; }
+
+  .stage-placeholder {
+    position:absolute; inset:0; display:flex;
+    flex-direction:column; align-items:center; justify-content:center;
+    opacity:0.12; z-index:1;
+  }
+  .stage-placeholder .ornament {
+    font-size:72px; font-family:var(--font-display); font-weight:900;
+    color:var(--blood); letter-spacing:0.2em; margin-bottom:16px;
+  }
+  .stage-placeholder .label {
+    font-size:11px; color:var(--text-dim);
+    font-family:var(--font-mono); letter-spacing:0.12em;
+  }
+
+  /* 底部渐变 + 地点标签 */
+  .stage-info {
+    position:absolute; bottom:0; left:0; right:0;
+    padding:14px 24px; display:flex; align-items:flex-end; justify-content:space-between;
+    z-index:5; pointer-events:none;
+  }
+  .stage-location {
+    font-family:var(--font-display); font-size:15px; font-weight:600;
+    color:var(--parchment); letter-spacing:0.04em;
+  }
+  .stage-mood {
+    font-size:11px; color:var(--blood);
+    font-family:var(--font-mono); letter-spacing:0.1em;
+  }
+
+  /* ── 浮动旁白气泡 (绿框) ── */
+  .narrative-overlay {
+    position:absolute; left:40px; right:40px; bottom:100px;
+    z-index:10; pointer-events:none;
+    display:flex; flex-direction:column; gap:10px;
+    align-items:stretch;
+  }
+  .narrative-line {
+    font-family:var(--font-display);
+    font-size:20px; font-weight:600;
+    color:var(--parchment);
+    line-height:1.7; letter-spacing:0.02em;
+    opacity:0; transition:opacity 0.8s ease-out;
+  }
+  .narrative-line.show { opacity:1; }
+  .narrative-line.current {
+    background:rgba(18,17,20,0.88);
+    border:1px solid rgba(201,168,76,0.15);
+    border-left:3px solid var(--blood);
+    border-radius:4px;
+    padding:14px 20px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.5);
+    position:relative;
+    max-width:100%;
+  }
+  .narrative-line.current::before {
+    content:''; position:absolute; top:-10px; left:28px;
+    width:0; height:0;
+    border-left:8px solid transparent;
+    border-right:8px solid transparent;
+    border-bottom:10px solid rgba(18,17,20,0.88);
+  }
+  .narrative-line.old {
+    opacity:0.35; font-size:16px; color:var(--text-dim);
+  }
+
+  /* ── 浮动骰子祭坛 (白色框·叠加在场景上) ── */
+  /* 骰子蒙版 — 激活时压暗背景，聚焦骰子 */
+  .dice-mask {
+    position:absolute; inset:0; z-index:14;
+    background:rgba(0,0,0,0.65);
+    opacity:0; transition:opacity 0.5s ease;
+    pointer-events:none;
+  }
+  .dice-mask.active { opacity:1; }
+  .dice-altar {
+    position:absolute; inset:0; z-index:15;
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:none;
+    opacity:0; transition:opacity 0.4s ease;
+  }
+  .dice-altar.active { opacity:1; }
+  .dice-ring {
+    width:180px; height:180px;
+    border:2px solid var(--blood); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    box-shadow:0 0 80px var(--blood-glow), inset 0 0 60px rgba(139,26,26,0.08);
+    animation:dicePulse 3s ease-in-out infinite;
+  }
+  @keyframes dicePulse {
+    0%,100% { box-shadow:0 0 80px var(--blood-glow), inset 0 0 60px rgba(139,26,26,0.08); }
+    50% { box-shadow:0 0 120px rgba(139,26,26,0.4), inset 0 0 80px rgba(139,26,26,0.12); }
+  }
+  .dice-ring::before {
+    content:''; position:absolute; inset:-4px;
+    border:1px solid rgba(201,168,76,0.1); border-radius:50%;
+  }
+  .dice-value {
+    font-family:var(--font-display);
+    font-size:56px; font-weight:900;
+    color:var(--blood);
+    text-shadow:0 0 30px var(--blood-glow);
+  }
+  .dice-info {
+    position:absolute; top:calc(50% + 108px); text-align:center;
+  }
+  .dice-action {
+    font-family:var(--font-display);
+    font-size:15px; font-weight:600;
+    color:var(--parchment); letter-spacing:0.04em;
+  }
+  .dice-result {
+    font-family:var(--font-mono);
+    font-size:11px; color:var(--blood);
+    letter-spacing:0.1em; margin-top:6px;
+  }
+  .dice-result.success { color:#30A46C; }
+
+  /* ═══ 右侧列：角色面板 + 骰子展示 ═══ */
+  .right-column {
+    grid-row:1 / 3; grid-column:2;
+    display:flex; flex-direction:column;
+    border-left:1px solid rgba(201,168,76,0.1);
+    background:var(--void);
+    padding:18px 0 10px 0; gap:0;
+  }
+  .status-panel {
+    flex:1; padding:0 18px 10px 18px;
+    display:flex; flex-direction:column; gap:10px;
+    overflow-y:auto;
+  }
+  .status-title {
+    font-family:var(--font-display);
+    font-size:13px; font-weight:600;
+    color:var(--gold); letter-spacing:0.08em;
+    padding-bottom:10px;
+    border-bottom:1px solid rgba(201,168,76,0.12);
+    margin-bottom:4px;
+  }
+  .dossier {
+    background:var(--surface-alt);
+    border:1px solid rgba(201,168,76,0.08);
+    border-radius:var(--radius); padding:14px 16px;
+    transition:border-color 0.5s, box-shadow 0.5s;
+  }
+  .dossier.active {
+    border-color:rgba(201,168,76,0.25);
+    box-shadow:0 0 16px rgba(201,168,76,0.06);
+  }
+  .dossier-header {
+    font-family:var(--font-display);
+    font-size:15px; font-weight:600; color:var(--parchment);
+    margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .dossier-header .mark {
+    width:6px; height:6px; background:var(--blood); border-radius:50%;
+  }
+  .stat-line {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;
+  }
+  .stat-name {
+    font-family:var(--font-mono); font-size:10px;
+    color:var(--text-dim); letter-spacing:0.06em; width:36px;
+  }
+  .stat-track {
+    flex:1; height:3px; background:rgba(255,255,255,0.04);
+    margin:0 10px; position:relative;
+  }
+  .stat-fill {
+    height:100%; position:absolute; left:0; top:0;
+    transition:width 0.6s ease-out;
+  }
+  .stat-fill.vitality { background:var(--blood); }
+  .stat-fill.sanity { background:var(--text-faint); }
+  .stat-fill.fortune { background:var(--gold); }
+  .stat-num {
+    font-family:var(--font-mono); font-size:10px;
+    color:var(--parchment); min-width:40px; text-align:right;
+  }
+  .dossier-note {
+    margin-top:8px; font-size:12px; font-style:italic;
+    color:var(--text-dim); padding:6px 8px;
+    border-left:2px solid var(--blood);
+  }
+
+  /* ═══ 剧情摘要 (角色面板下方) ═══ */
+  .recap-panel {
+    flex-shrink:0;
+    border-top:1px solid rgba(201,168,76,0.1);
+    padding:10px 18px 10px 18px;
+    max-height:108px; overflow-y:auto;
+  }
+  .recap-panel .recap-title {
+    font-family:var(--font-mono); font-size:9px;
+    color:var(--text-faint); letter-spacing:0.08em;
+    margin-bottom:6px; text-transform:uppercase;
+  }
+  .recap-panel .recap-entry {
+    font-family:var(--font-display);
+    font-size:11px; color:var(--text-dim);
+    line-height:1.6; padding:3px 0;
+    border-bottom:1px solid rgba(255,255,255,0.03);
+    animation:fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateX(6px)} to{opacity:1;transform:translateX(0)} }
+  .recap-panel .recap-entry .recap-char {
+    color:var(--gold); font-weight:600; font-size:10px;
+  }
+  .recap-panel .recap-empty {
+    text-align:center; color:var(--text-faint);
+    font-style:italic; font-size:10px; padding:8px 0;
+  }
+
+  /* ═══ 底部栏 ═══ */
+  .bottom-bar {
+    grid-row:2; grid-column:1/-1;
+    border-top:1px solid rgba(201,168,76,0.12);
+    display:flex; flex-direction:row;
+    background:var(--surface);
+  }
+  .bottom-left {
+    flex:1; display:flex; flex-direction:column; min-width:0;
+  }
+  .danmaku-strip {
+    height:30px; display:flex; align-items:center;
+    padding:0 20px; gap:20px;
+    border-bottom:1px solid rgba(201,168,76,0.06); overflow:hidden;
+  }
+  .danmaku-msg {
+    font-size:12px; white-space:nowrap;
+    color:var(--text-dim); font-family:var(--font-body);
+    animation:scroll 18s linear infinite;
+  }
+  .danmaku-msg.gift { color:var(--gold); font-weight:600; }
+  @keyframes scroll {
+    0% { transform:translateX(1920px); }
+    100% { transform:translateX(-100%); }
+  }
+  .voting-strip {
+    flex:1; display:flex; align-items:center;
+    padding:0 20px; gap:14px;
+  }
+  .vote-label {
+    font-family:var(--font-mono); font-size:10px;
+    color:var(--text-dim); letter-spacing:0.08em;
+  }
+  .vote-btn {
+    padding:4px 14px; border:1px solid rgba(201,168,76,0.12);
+    font-family:var(--font-display); font-size:13px;
+    color:var(--text-dim); border-radius:var(--radius);
+    display:flex; align-items:center; gap:8px;
+  }
+  .vote-btn.favored {
+    border-color:var(--gold); color:var(--parchment);
+    background:var(--gold-dim);
+  }
+  .vote-num { font-family:var(--font-mono); font-size:11px; color:var(--gold); }
+  .vote-gauge {
+    flex:1; height:3px; background:rgba(255,255,255,0.04);
+    display:flex; gap:2px;
+  }
+  .gauge-seg.a { background:var(--blood); }
+  .gauge-seg.b { background:var(--text-dim); }
+  .gauge-seg.c { background:rgba(255,255,255,0.04); }
+
+  /* ═══ 骰子图形展示 (蓝框·角色面板下方) ═══ */
+  .dice-display {
+    flex-shrink:0;
+    border-top:1px solid rgba(201,168,76,0.1);
+    padding:8px 18px 0 18px;
+    display:flex; align-items:center; gap:10px;
+    min-height:52px;
+  }
+  .dice-display .log-empty {
+    width:100%; text-align:center; color:var(--text-faint);
+    font-style:italic; font-size:10px;
+  }
+  /* 骰子面 SVG 容器 */
+  .dice-face {
+    width:40px; height:40px; flex-shrink:0;
+    position:relative;
+  }
+  .dice-face svg {
+    width:100%; height:100%;
+  }
+  .dice-face .die-bg {
+    fill:var(--surface-alt);
+    stroke:rgba(201,168,76,0.2);
+    stroke-width:1;
+  }
+  .dice-face .die-pip {
+    fill:var(--parchment);
+  }
+  /* 骰子结果信息 */
+  .dice-result-info {
+    flex:1; min-width:0;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .dice-result-info .result-char {
+    font-family:var(--font-display); font-size:12px;
+    color:var(--gold); font-weight:600;
+  }
+  .dice-result-info .result-skill {
+    font-family:var(--font-mono); font-size:9px;
+    color:var(--text-dim); letter-spacing:0.04em;
+  }
+  .dice-result-info .result-numbers {
+    font-family:var(--font-mono); font-size:9px;
+    color:var(--text-faint);
+  }
+  .dice-result-verdict {
+    flex-shrink:0;
+    font-family:var(--font-display);
+    font-size:15px; font-weight:900;
+    padding:3px 10px; border-radius:2px;
+  }
+  .dice-result-verdict.success { color:#30A46C; background:rgba(48,164,108,0.1); }
+  .dice-result-verdict.fail { color:var(--blood); background:rgba(139,26,26,0.15); }
+
+  /* ═══ TOP HUD ═══ */
+  .top-hud {
+    position:absolute; top:18px; left:24px; right:24px;
+    display:flex; justify-content:space-between;
+    z-index:20; pointer-events:none;
+  }
+  .hud-left {
+    font-family:var(--font-mono); font-size:10px;
+    color:var(--text-dim); letter-spacing:0.06em;
+  }
+  .hud-left em { color:var(--gold); font-style:normal; }
+  .hud-right {
+    font-family:var(--font-mono); font-size:10px;
+    color:var(--blood); display:flex; align-items:center; gap:6px;
+  }
+  .hud-dot {
+    width:5px; height:5px; background:var(--blood);
+    border-radius:50%; animation:flicker 2s ease-in-out infinite;
+  }
+  @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .conn-status {
+    position:fixed; top:4px; right:8px;
+    font-size:9px; font-family:var(--font-mono); z-index:200;
+  }
+  .conn-status.connected { color:#30A46C; }
+  .conn-status.disconnected { color:var(--blood); }
+</style>
+</head>
+<body>
+
+  <div class="top-hud">
+    <div class="hud-left">第 <em>—</em> 幕 · <em id="hud-location">准备中</em> · <em id="hud-time">—</em></div>
+    <div class="hud-right"><div class="hud-dot"></div><span id="hud-viewers">—</span> 注视者</div>
+  </div>
+
+  <!-- ═══ 合并面板：场景背景 + 浮动旁白 + 骰子 ═══ -->
+  <div class="stage" id="stage">
+    <div class="stage-bg" id="stage-bg">
+      <div class="stage-frame"><div class="stage-corners"></div></div>
+      <div class="stage-placeholder" id="stage-placeholder">
+        <div class="ornament">☥</div>
+        <div class="label">等待场景加载 · COMFYUI 预生成</div>
+      </div>
+      <img id="stage-img" src="" alt="" />
+    </div>
+
+    <!-- 场景信息 -->
+    <div class="stage-info">
+      <span class="stage-location" id="scene-location">—</span>
+      <span class="stage-mood" id="scene-mood">—</span>
+    </div>
+
+    <!-- 浮动旁白气泡 -->
+    <div class="narrative-overlay" id="narrative-overlay"></div>
+
+    <!-- 浮动骰子祭坛 -->
+    <div class="dice-mask" id="dice-mask"></div>
+    <div class="dice-altar" id="dice-altar">
+      <div class="dice-ring"><div class="dice-value" id="dice-value">—</div></div>
+      <div class="dice-info">
+        <div class="dice-action" id="dice-action">—</div>
+        <div class="dice-result" id="dice-result">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 右侧列：角色面板 + 骰子展示 ═══ -->
+  <div class="right-column">
+    <!-- 角色面板 (黄色·不改) -->
+    <div class="status-panel" id="status-panel">
+      <div class="status-title">✦ 调查员档案</div>
+    </div>
+    <!-- 剧情摘要 -->
+    <div class="recap-panel" id="recap-panel">
+      <div class="recap-title">— 行动记录 —</div>
+      <div class="recap-empty">等待调查员行动…</div>
+    </div>
+    <!-- 骰子展示 (蓝色框) -->
+    <div class="dice-display" id="dice-display">
+      <div class="log-empty">骰子检定将在此显示</div>
+    </div>
+  </div>
+
+  <!-- ═══ 底部栏 ═══ -->
+  <div class="bottom-bar">
+    <div class="bottom-left">
+      <div class="danmaku-strip" id="danmaku-strip"></div>
+      <div class="voting-strip" id="voting-strip"></div>
+    </div>
+  </div>
+
+  <div class="conn-status disconnected" id="conn-status">● 离线</div>
+
+<script>
+const STATUS = document.getElementById('conn-status');
+let ws = null, reconnectTimer = null;
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}/ws`);
+  ws.onopen = () => {
+    STATUS.textContent = '● 在线';
+    STATUS.className = 'conn-status connected';
+    if (reconnectTimer) { clearInterval(reconnectTimer); reconnectTimer = null; }
+  };
+  ws.onclose = () => {
+    STATUS.textContent = '● 离线';
+    STATUS.className = 'conn-status disconnected';
+    if (!reconnectTimer) reconnectTimer = setInterval(connect, 3000);
+  };
+  ws.onmessage = (event) => handleMessage(JSON.parse(event.data));
+}
+
+function handleMessage(data) {
+  switch (data.type) {
+    case 'full_sync':
+      updateScene(data.scene);
+      updateNarrative(data.narrative);
+      updateDice(data.dice);
+      updateCharacters(data.characters);
+      updateDanmaku(data.danmaku);
+      updateVote(data.vote);
+      break;
+    case 'scene': updateScene(data.scene); break;
+    case 'narrative': updateNarrative(data.narrative); break;
+    case 'dice': updateDice(data.dice); break;
+    case 'characters': updateCharacters(data.characters); break;
+    case 'danmaku': updateDanmaku(data.danmaku); break;
+    case 'vote': updateVote(data.vote); break;
+  }
+}
+
+/* ── Scene (合并面板背景图) ── */
+let currentStageImg = null;
+function updateScene(s) {
+  if (!s) return;
+  document.getElementById('scene-location').textContent = s.location || '—';
+  document.getElementById('scene-mood').textContent = s.mood ? `◆ ${s.mood}` : '—';
+  document.getElementById('hud-location').textContent = s.location || '准备中';
+
+  if (s.image) {
+    const ph = document.getElementById('stage-placeholder');
+    if (ph) ph.style.display = 'none';
+
+    if (currentStageImg && currentStageImg.dataset.src === s.image) return;
+
+    if (currentStageImg) currentStageImg.classList.remove('active');
+
+    const newImg = document.createElement('img');
+    newImg.src = `/images/${s.image}`;
+    newImg.dataset.src = s.image;
+    newImg.onload = () => {
+      newImg.classList.add('active');
+      if (currentStageImg && currentStageImg !== newImg) {
+        setTimeout(() => currentStageImg.remove(), 1500);
+      }
+      currentStageImg = newImg;
+    };
+    document.getElementById('stage-bg').appendChild(newImg);
+  }
+}
+
+/* ── Narrative (浮动气泡覆盖在场景上) ── */
+function updateNarrative(n) {
+  if (!n || !n.lines) return;
+  const container = document.getElementById('narrative-overlay');
+  container.innerHTML = '';
+
+  n.lines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'narrative-line';
+    div.textContent = line;
+    if (i === n.current_index) {
+      div.classList.add('current');
+      setTimeout(() => div.classList.add('show'), 50);
+    } else if (i < n.current_index) {
+      div.classList.add('old', 'show');
+    }
+    container.appendChild(div);
+  });
+
+  if (n.current_index >= 0) {
+    const current = container.querySelector('.current');
+    if (current) current.scrollIntoView({ behavior:'smooth', block:'end' });
+  }
+}
+
+/* ── Dice (祭坛动画 + 右下图形展示) ── */
+function updateDice(d) {
+  if (!d) return;
+  const altar = document.getElementById('dice-altar');
+  const mask = document.getElementById('dice-mask');
+  if (d.visible) {
+    // 激活蒙版 + 祭坛
+    mask.classList.add('active');
+    altar.classList.add('active');
+    document.getElementById('dice-value').textContent = d.value || '—';
+    document.getElementById('dice-action').textContent = d.skill || '检定';
+
+    const resultEl = document.getElementById('dice-result');
+    if (d.success === true) {
+      resultEl.textContent = `${d.target} → ${d.value} · 成功`;
+      resultEl.className = 'dice-result success';
+    } else if (d.success === false) {
+      resultEl.textContent = `${d.target} → ${d.value} · 失败`;
+      resultEl.className = 'dice-result';
+    } else {
+      resultEl.textContent = d.character ? `${d.character} · ${d.skill}` : '—';
+      resultEl.className = 'dice-result';
+    }
+
+    // 骰子图形 + 剧情摘要
+    updateDiceDisplay(d);
+    addRecapEntry(d);
+
+    clearTimeout(altar._hideTimer);
+    altar._hideTimer = setTimeout(() => {
+      altar.classList.remove('active');
+      mask.classList.remove('active');
+    }, 4000);
+  } else {
+    altar.classList.remove('active');
+    mask.classList.remove('active');
+  }
+}
+
+/* ── 剧情摘要 ── */
+function addRecapEntry(d) {
+  if (!d.character || !d.skill) return;
+  const panel = document.getElementById('recap-panel');
+  const empty = panel.querySelector('.recap-empty');
+  if (empty) empty.remove();
+
+  const charName = d.character;
+  const skillName = d.skill;
+  const verdict = d.success === true ? '成功' : d.success === false ? '失败' : '';
+
+  const entry = document.createElement('div');
+  entry.className = 'recap-entry';
+  entry.innerHTML = `<span class="recap-char">${charName}</span> ${skillName}${verdict ? ' — ' + verdict : ''}`;
+  panel.appendChild(entry);
+  panel.scrollTop = panel.scrollHeight;
+
+  // 保留最近 8 条
+  while (panel.querySelectorAll('.recap-entry').length > 8) {
+    panel.removeChild(panel.querySelector('.recap-entry'));
+  }
+}
+
+/* 生成骰子面 SVG (d% 用十位+个位双骰) */
+function diceFaceSVG(value, isSuccess) {
+  const accent = isSuccess === true ? '#30A46C' : isSuccess === false ? '#8B1A1A' : '#C9A84C';
+  const tens = Math.floor(value / 10);
+  const ones = value % 10;
+  return `
+    <svg viewBox="0 0 100 56" xmlns="http://www.w3.org/2000/svg">
+      <!-- 左骰 -->
+      <rect x="2" y="2" width="45" height="52" rx="6" fill="#1A1518" stroke="${accent}" stroke-width="1.5"/>
+      <text x="24" y="38" text-anchor="middle" font-family="serif" font-size="28" font-weight="900" fill="${accent}">${tens}</text>
+      <!-- 右骰 -->
+      <rect x="52" y="2" width="45" height="52" rx="6" fill="#1A1518" stroke="${accent}" stroke-width="1.5"/>
+      <text x="74" y="38" text-anchor="middle" font-family="serif" font-size="28" font-weight="900" fill="${accent}">${ones}</text>
+    </svg>`;
+}
+
+function updateDiceDisplay(d) {
+  const display = document.getElementById('dice-display');
+  const empty = display.querySelector('.log-empty');
+  if (empty) empty.remove();
+  display.innerHTML = '';
+
+  const isSuccess = d.success;
+  const svg = diceFaceSVG(d.value || 0, isSuccess);
+
+  display.innerHTML = `
+    <div class="dice-face">${svg}</div>
+    <div class="dice-result-info">
+      <div class="result-char">${d.character || '—'}</div>
+      <div class="result-skill">${d.skill || '检定'}</div>
+      <div class="result-numbers">目标 ${d.target || '—'} → 掷出 ${d.value || '—'}</div>
+    </div>
+    <div class="dice-result-verdict ${isSuccess === true ? 'success' : isSuccess === false ? 'fail' : ''}">
+      ${isSuccess === true ? '成功' : isSuccess === false ? '失败' : ''}
+    </div>
+  `;
+}
+
+/* ── Characters ── */
+function updateCharacters(chars) {
+  if (!chars) return;
+  const panel = document.getElementById('status-panel');
+  panel.innerHTML = '<div class="status-title">✦ 调查员档案</div>';
+
+  chars.forEach(c => {
+    const hpPct = c.hp_max > 0 ? (c.hp / c.hp_max * 100) : 0;
+    const sanPct = c.san_max > 0 ? (c.san / c.san_max * 100) : 0;
+    const luckPct = c.luck_max > 0 ? (c.luck / c.luck_max * 100) : 0;
+
+    const card = document.createElement('div');
+    card.className = `dossier${c.active ? ' active' : ''}`;
+    card.innerHTML = `
+      <div class="dossier-header"><span class="mark"></span>${c.name} · ${c.role}</div>
+      <div class="stat-line">
+        <span class="stat-name">生命</span>
+        <div class="stat-track"><div class="stat-fill vitality" style="width:${hpPct}%"></div></div>
+        <span class="stat-num">${c.hp}/${c.hp_max}</span>
+      </div>
+      <div class="stat-line">
+        <span class="stat-name">理智</span>
+        <div class="stat-track"><div class="stat-fill sanity" style="width:${sanPct}%"></div></div>
+        <span class="stat-num">${c.san}/${c.san_max}</span>
+      </div>
+      <div class="stat-line">
+        <span class="stat-name">幸运</span>
+        <div class="stat-track"><div class="stat-fill fortune" style="width:${luckPct}%"></div></div>
+        <span class="stat-num">${c.luck}/${c.luck_max}</span>
+      </div>
+      ${c.status ? `<div class="dossier-note">${c.status}</div>` : ''}
+    `;
+    panel.appendChild(card);
+  });
+}
+
+/* ── Danmaku ── */
+function updateDanmaku(d) {
+  if (!d || !d.messages) return;
+  const strip = document.getElementById('danmaku-strip');
+  strip.innerHTML = d.messages.map(m =>
+    `<div class="danmaku-msg${m.type === 'gift' ? ' gift' : ''}">${m.type === 'gift' ? '◆ ' : ''}${m.text}</div>`
+  ).join('');
+}
+
+/* ── Vote ── */
+function updateVote(v) {
+  if (!v) return;
+  const strip = document.getElementById('voting-strip');
+  if (!v.visible || !v.options || v.options.length === 0) {
+    strip.innerHTML = ''; return;
+  }
+  const labels = ['A', 'B', 'C'];
+  const segs = ['a', 'b', 'c'];
+  strip.innerHTML = [
+    `<span class="vote-label">${v.prompt || 'VOTE::ACTION'}</span>`,
+    ...v.options.map((opt, i) =>
+      `<div class="vote-btn${opt.leading ? ' favored' : ''}">[${labels[i]}] ${opt.label} <span class="vote-num">${opt.pct}%</span></div>`
+    ),
+    `<div class="vote-gauge">${v.options.map((opt, i) => `<div class="gauge-seg ${segs[i]}" style="width:${opt.pct}%"></div>`).join('')}</div>`
+  ].join('');
+}
+
+connect();
+</script>
+
+</body>
+</html>
