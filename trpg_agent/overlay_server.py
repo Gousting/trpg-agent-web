@@ -10,7 +10,13 @@ from typing import Optional
 import aiohttp
 from aiohttp import web
 
+from .scene_matcher import SceneMatcher
+
 OVERLAY_DIR = pathlib.Path(__file__).parent.parent / "docs"
+SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "Sceneimage"
+
+# ── Scene matcher ──
+scene_matcher = SceneMatcher()
 
 # ── Data models ──
 
@@ -208,6 +214,49 @@ async def api_reset(request: web.Request) -> web.Response:
     return web.json_response({"ok": True})
 
 
+async def api_scene_match(request: web.Request) -> web.Response:
+    """根据文本描述自动匹配场景图并推送。
+
+    POST /api/scene/match
+    {"text": "你们来到了昏暗的医院走廊..."}
+
+    自动匹配最佳场景图，推送给所有客户端。
+    """
+    if not scene_matcher._loaded:
+        scene_matcher.load()
+
+    data = await request.json()
+    text = data.get("text", "")
+
+    if not text:
+        return web.json_response({"ok": False, "error": "missing text"}, status=400)
+
+    matches = scene_matcher.match(text, top_k=3)
+    if not matches:
+        return web.json_response({"ok": False, "error": "no match", "matches": []})
+
+    best = matches[0]
+    scene.image = best.filename
+    scene.location = best.location
+    scene.mood = best.mood
+
+    await broadcast({"type": "scene", "scene": asdict(scene)})
+
+    return web.json_response({
+        "ok": True,
+        "matched": {
+            "image": best.filename,
+            "location": best.location,
+            "mood": best.mood,
+            "score": best.score,
+        },
+        "alternatives": [
+            {"image": m.filename, "location": m.location, "score": m.score}
+            for m in matches[1:]
+        ],
+    })
+
+
 # ── App factory ──
 
 def create_app() -> web.Application:
@@ -225,9 +274,16 @@ def create_app() -> web.Application:
     app.router.add_post("/api/danmaku", api_danmaku)
     app.router.add_post("/api/vote", api_vote)
     app.router.add_post("/api/reset", api_reset)
+    app.router.add_post("/api/scene/match", api_scene_match)
 
-    # Static files
-    app.router.add_static("/images", pathlib.Path("/tmp"))
+    # Static files — serve scene images from data/ directory
+    app.router.add_static("/images/scenes", SCENES_DIR)
+
+    # Pre-load scene matcher on startup
+    n = scene_matcher.load()
+    if n > 0:
+        import logging
+        logging.getLogger(__name__).info("SceneMatcher 已加载 %d 个场景（%d 种类型）", n, len(scene_matcher.list_scene_types()))
 
     return app
 

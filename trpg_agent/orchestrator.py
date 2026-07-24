@@ -91,8 +91,12 @@ class DMBrain:
         num_predict: int = 220,
         max_buffer_lines: int = 8,
         retriever=None,
+        on_turn_complete: Callable[[str], None] | None = None,
     ) -> None:
         self._client = client
+        # Scene match callback (ADR 055): invoked after each DM turn with the answer text.
+        # The callback POSTs to the overlay server's /api/scene/match to auto-switch scene images.
+        self._on_turn_complete = on_turn_complete
         # Rulebook retriever (stage 3, ADR 019): an object with
         # ``async fetch_block(query, *, channel_id) -> str`` (rag/retrieve.RulebookRetriever).
         # Per turn the latest user_msg is embedded and matching rule chunks join the prompt —
@@ -700,6 +704,13 @@ class DMBrain:
         history.append({"role": "assistant", "content": answer})
         if len(history) > self._max_messages:  # keep the tail; recaps will cover the rest later
             del history[: len(history) - self._max_messages]
+        # Fire scene-match callback (ADR 055): the overlay server gets the DM answer text
+        # and auto-switches the scene background image.
+        if self._on_turn_complete is not None and answer:
+            try:
+                self._on_turn_complete(answer)
+            except Exception:
+                pass  # scene match is best-effort; never block a turn
 
     def take_pending(self, kind: str, channel_id: int) -> list:
         """Return and clear the queued requests of one marker-registry kind (ADR 051). The
