@@ -6,167 +6,293 @@
 <title>TRPG Roguelike 跑团</title>
 <style>
   :root {
-    --bg: #0d0d0d; --panel: #1a1a1a; --border: #2a2a2a;
-    --text: #c8c0b8; --accent: #8b4513; --kp-color: #b8a080;
+    --bg: #0a0a0a;
+    --panel: #111;
+    --border: #1f1f1f;
+    --text: #b0a89a;
+    --text-dim: #665;
+    --accent: #8b0000;
+    --gold: #8a7a50;
+    --kp-color: #b8a080;
+    --player-blue: #4a90d9;
+    --player-green: #50c878;
+    --player-orange: #e07050;
+    --bubble-bg: rgba(20,16,12,0.92);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    background: var(--bg); color: var(--text);
-    font-family: 'Georgia', 'Noto Serif SC', serif;
-    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    background: #000;
+    color: var(--text);
+    font-family: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', 'STSong', serif;
+    height: 100vh; display: grid;
+    grid-template-columns: 4fr 3fr 3fr;
+    grid-template-rows: 36px 1fr auto;
+    overflow: hidden;
   }
+
+  /* ═══ 顶部控制栏 ═══ */
   #controls {
-    background: var(--panel); border-bottom: 1px solid var(--border);
-    padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    grid-column: 1 / -1; grid-row: 1;
+    background: #0d0d0d; border-bottom: 1px solid #1a1a1a;
+    padding: 0 12px; display: flex; align-items: center; gap: 8px;
+    font-size: 11px; z-index: 10;
   }
   #controls button {
-    background: var(--accent); color: #fff; border: none;
-    padding: 8px 18px; font-size: 13px; cursor: pointer; border-radius: 3px; font-family: inherit;
+    background: var(--accent); color: #ddd; border: none;
+    padding: 4px 14px; font-size: 11px; cursor: pointer;
+    font-family: inherit; letter-spacing: 1px;
   }
-  #controls button:disabled { opacity: 0.4; }
-  #controls label { font-size: 11px; color: #888; }
+  #controls button:disabled { opacity: 0.35; }
+  #controls label { color: #555; font-size: 10px; }
   #controls input, #controls select {
-    background: #222; border: 1px solid var(--border); color: var(--text);
-    padding: 5px 8px; font-size: 12px; border-radius: 3px; font-family: inherit;
+    background: #1a1a1a; border: 1px solid #222; color: #999;
+    padding: 3px 6px; font-size: 10px; font-family: inherit;
   }
-  #status { font-size: 12px; color: #888; margin-left: auto; }
-  /* ── 地图展示区 ── */
-  #map-panel {
-    background: #0a0a0a; border-bottom: 1px solid #222;
-    padding: 0; flex-shrink: 0; display: flex; flex-direction: column;
-    max-height: 42vh;
+  #status { font-size: 10px; color: #555; margin-left: auto; }
+
+  /* ═══ 左侧：场景背景 ═══ */
+  #scene {
+    grid-column: 1; grid-row: 2;
+    position: relative; background: #080808;
+    border-right: 1px solid #1a1a1a;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
   }
-  #map-panel h3 {
-    font-size: 11px; color: #665; margin: 0; padding: 6px 12px;
-    background: #111; border-bottom: 1px solid #1a1a1a; flex-shrink: 0;
+  #scene-img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: sepia(0.15) brightness(0.7) saturate(0.6);
   }
-  #map-panel .map-wrap {
-    flex: 1; display: flex; justify-content: center; align-items: center;
-    padding: 6px; min-height: 0;
+  #scene-label {
+    position: absolute; bottom: 10px; left: 10px;
+    font-size: 11px; color: #665; letter-spacing: 2px;
   }
-  #map-img {
-    max-width: 100%; max-height: calc(42vh - 40px); height: auto;
-    display: block; object-fit: contain;
-    border: 1px solid #222; border-radius: 2px;
+  #scene-mood {
+    position: absolute; bottom: 10px; right: 10px;
+    font-size: 10px; color: #554;
+    display: flex; align-items: center; gap: 4px;
   }
-  /* ── 主区域 ── */
-  #main { display: flex; flex: 1; overflow: hidden; }
-  #sidebar {
-    width: 280px; background: var(--panel); border-right: 1px solid var(--border);
-    padding: 12px; overflow-y: auto; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px;
+  #scene-mood::before {
+    content: ''; display: inline-block;
+    width: 5px; height: 5px; background: #8b0000; border-radius: 50%;
   }
-  .char-card {
-    background: #141414; border: 1px solid var(--border);
-    border-radius: 6px; padding: 10px 12px; transition: border-color 0.3s;
+
+  /* ═══ 中间：对话叙事区 ═══ */
+  #narrative {
+    grid-column: 2; grid-row: 2;
+    display: flex; flex-direction: column;
+    background: #0c0c0c;
+    border-right: 1px solid #1a1a1a;
+    overflow: hidden;
   }
-  .char-card.active { border-color: var(--accent); }
-  .char-name { font-size: 14px; font-weight: bold; margin-bottom: 6px; }
-  .stat-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
-  .stat-label { color: #888; }
-  .stat-bar-bg { height: 5px; background: #222; border-radius: 3px; margin-bottom: 4px; overflow: hidden; }
-  .stat-bar-fg { height: 100%; border-radius: 3px; transition: width 0.5s, background 0.5s; }
-  .hp-bar { background: #c0392b; }
-  .san-bar { background: #2980b9; }
-  .inv-list { font-size: 10px; color: #888; margin-top: 4px; line-height: 1.4; }
-  .conditions { font-size: 10px; color: #c0392b; }
-  /* ── 聊天区 ── */
+  #room-header {
+    padding: 10px 14px; border-bottom: 1px solid #181818;
+    font-size: 10px; color: #555; flex-shrink: 0;
+    display: flex; gap: 16px;
+  }
+  #room-header span { color: #8a7a50; }
   #chat {
-    flex: 1; overflow-y: auto; padding: 16px 20px;
-    display: flex; flex-direction: column; gap: 12px;
+    flex: 1; overflow-y: auto; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 8px;
   }
-  .msg { max-width: 88%; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-  .msg-header { font-size: 10px; font-weight: bold; margin-bottom: 3px; opacity: 0.7; }
-  .msg-body { font-size: 13px; line-height: 1.7; padding: 10px 14px; border-radius: 6px; }
-  .msg-kp .msg-body { background: #1a1a1a; border: 1px solid #2a2a2a; border-left: 3px solid var(--kp-color); }
-  .msg-player .msg-body { background: #141414; border: 1px solid #252525; border-left: 3px solid var(--player-color, #555); }
-  .msg-dice {
-    align-self: center; background: #1a1008; border: 1px solid #3a2810;
-    border-radius: 6px; padding: 8px 14px; font-size: 12px; color: #d4a040;
-    text-align: center; animation: fadeIn 0.5s ease;
+  .msg { max-width: 95%; animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .msg-header { font-size: 9px; font-weight: bold; margin-bottom: 2px; opacity: 0.55; letter-spacing: 1px; }
+  .msg-body { font-size: 12.5px; line-height: 1.75; padding: 10px 14px; border-radius: 4px; }
+
+  /* KP 旁白 — 引用条风格 */
+  .msg-kp .msg-body {
+    background: transparent; border: none; border-left: 2px solid #3a3020;
+    padding: 4px 0 4px 12px; color: #aaa;
+  }
+  /* 玩家发言 */
+  .msg-player .msg-body {
+    background: rgba(20,18,14,0.6); border: 1px solid #1f1f1f;
+    border-left: 2px solid var(--player-color, #555);
+  }
+  /* 系统消息 */
+  .msg-system {
+    align-self: center; font-size: 10px; color: #554;
+    padding: 2px 8px; animation: fadeIn 0.5s ease;
   }
   .msg-item {
     align-self: center; background: #0a1a0a; border: 1px solid #1a3a1a;
-    border-radius: 6px; padding: 6px 14px; font-size: 12px; color: #50c878;
-    text-align: center; animation: fadeIn 0.5s ease;
+    border-radius: 4px; padding: 5px 12px; font-size: 11px; color: #50c878;
   }
   .msg-damage {
     align-self: center; background: #1a0808; border: 1px solid #3a1818;
-    border-radius: 6px; padding: 6px 14px; font-size: 12px; color: #e05050;
-    text-align: center; animation: fadeIn 0.3s ease;
+    border-radius: 4px; padding: 4px 12px; font-size: 11px; color: #e05050;
   }
-  #progress { height: 3px; background: #222; flex-shrink: 0; }
+
+  /* ═══ 底部旁白气泡 (绿框) ═══ */
+  #narration-bar {
+    grid-column: 1 / 3; grid-row: 3;
+    position: relative;
+    background: var(--bubble-bg);
+    border-top: 1px solid #2a2018;
+    padding: 12px 20px;
+    min-height: 52px;
+    display: flex; align-items: flex-start; gap: 10px;
+    z-index: 5;
+  }
+  #narration-bar::before {
+    content: '';
+    position: absolute; top: -8px; left: 40px;
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--bubble-bg);
+  }
+  #narration-quote {
+    width: 2px; min-height: 28px; background: #3a2818;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  #narration-text {
+    font-size: 13px; line-height: 1.8; color: #c8b898;
+    flex: 1;
+  }
+  #narration-speaker {
+    font-size: 10px; color: #665; flex-shrink: 0;
+    writing-mode: vertical-rl; letter-spacing: 2px;
+  }
+
+  /* ═══ 右侧上：角色面板 (黄框·不改) ═══ */
+  #sidebar {
+    grid-column: 3; grid-row: 2;
+    background: var(--panel); padding: 10px 12px;
+    overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .char-card {
+    background: #141414; border: 1px solid var(--border);
+    padding: 8px 10px; transition: border-color 0.3s;
+  }
+  .char-card.active { border-color: var(--accent); }
+  .char-name { font-size: 12px; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 1px; }
+  .stat-label { color: #666; }
+  .stat-bar-bg { height: 4px; background: #1a1a1a; border-radius: 2px; margin-bottom: 3px; overflow: hidden; }
+  .stat-bar-fg { height: 100%; border-radius: 2px; transition: width 0.5s, background 0.5s; }
+  .hp-bar { background: #8b0000; }
+  .san-bar { background: #3a6090; }
+  .luck-bar { background: #6a5a30; }
+  .inv-list { font-size: 9px; color: #665; margin-top: 3px; line-height: 1.4; }
+  .conditions { font-size: 9px; color: #c0392b; }
+
+  /* ═══ 右侧下：骰子/日志面板 (蓝框) ═══ */
+  #dice-log {
+    grid-column: 3; grid-row: 3;
+    background: #0a0a0a; border-top: 1px solid #1a1a1a;
+    padding: 8px 12px; overflow-y: auto;
+    font-size: 10px; color: #554;
+    display: flex; flex-direction: column; gap: 4px;
+    max-height: 120px;
+  }
+  #dice-log .log-entry {
+    display: flex; align-items: center; gap: 8px;
+    padding: 3px 0; border-bottom: 1px solid #141414;
+    animation: fadeIn 0.4s ease;
+  }
+  #dice-log .log-icon { font-size: 14px; flex-shrink: 0; }
+  #dice-log .log-speaker { color: #8a7a50; font-size: 10px; min-width: 36px; }
+  #dice-log .log-detail { color: #777; flex: 1; }
+  #dice-log .log-result {
+    font-weight: bold; font-size: 12px;
+    padding: 1px 6px; border-radius: 2px;
+  }
+  .log-result.success { color: #50c878; }
+  .log-result.fail { color: #c0392b; }
+
+  /* ═══ 进度条 ═══ */
+  #progress {
+    grid-column: 1 / -1; grid-row: 4;
+    height: 2px; background: #1a1a1a;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  }
   #progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
-  #room-info {
-    background: #111; border-bottom: 1px solid #222; padding: 6px 16px;
-    font-size: 11px; color: #888; flex-shrink: 0; display: flex; gap: 20px;
-  }
-  #room-info span { color: var(--kp-color); }
 </style>
 </head>
 <body>
 
+<!-- 顶部控制 -->
 <div id="controls">
   <button id="btn-start" onclick="startGame()">▶ 开始跑团</button>
-  <label>Ollama</label><input id="ollama-host" type="text" value="http://192.168.0.107:11434" style="width:200px">
+  <label>Host</label><input id="ollama-host" value="http://192.168.0.107:11434" style="width:180px">
   <label>KP</label><select id="kp-model"><option>gemma4:12b</option></select>
   <label>玩家</label><select id="player-model"><option>ornith:9b</option></select>
-  <label>轮数</label><input id="turns" type="number" value="12" min="3" max="30" style="width:45px">
-  <label>种子</label><input id="seed" type="text" placeholder="随机" style="width:55px">
+  <label>轮</label><input id="turns" type="number" value="12" min="3" max="30" style="width:40px">
+  <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
   <span id="status">就绪</span>
 </div>
 
-<div id="room-info">
-  📍 <span id="room-name">—</span>
-  🎒 房间物品: <span id="room-items">—</span>
+<!-- 左侧：场景背景 (红框) -->
+<div id="scene">
+  <img id="scene-img" src="" alt="">
+  <div id="scene-label">—</div>
+  <div id="scene-mood">—</div>
 </div>
 
-<!-- 地图展示区 -->
-<div id="map-panel">
-  <h3>🗺️ 松林疗养院</h3>
-  <div class="map-wrap">
-    <img id="map-img" src="" alt="地牢地图">
-  </div>
-</div>
-
-<div id="main">
-  <div id="sidebar">
-    <div class="char-card" id="card-陈明">
-      <div class="char-name" style="color:#4a90d9">🕵️ 陈明</div>
-      <div class="stat-row"><span class="stat-label">HP</span><span id="hp-陈明">12/12</span></div>
-      <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-陈明" style="width:100%"></div></div>
-      <div class="stat-row"><span class="stat-label">SAN</span><span id="san-陈明">60/60</span></div>
-      <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-陈明" style="width:100%"></div></div>
-      <div class="inv-list" id="inv-陈明">🎒 手电筒·警徽·.38左轮</div>
-      <div class="conditions" id="cond-陈明"></div>
-    </div>
-    <div class="char-card" id="card-林晓">
-      <div class="char-name" style="color:#50c878">🔬 林晓</div>
-      <div class="stat-row"><span class="stat-label">HP</span><span id="hp-林晓">10/10</span></div>
-      <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-林晓" style="width:100%"></div></div>
-      <div class="stat-row"><span class="stat-label">SAN</span><span id="san-林晓">70/70</span></div>
-      <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-林晓" style="width:100%"></div></div>
-      <div class="inv-list" id="inv-林晓">🎒 急救包·笔记本·相机</div>
-      <div class="conditions" id="cond-林晓"></div>
-    </div>
-    <div class="char-card" id="card-王刚">
-      <div class="char-name" style="color:#e07050">💪 王刚</div>
-      <div class="stat-row"><span class="stat-label">HP</span><span id="hp-王刚">15/15</span></div>
-      <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-王刚" style="width:100%"></div></div>
-      <div class="stat-row"><span class="stat-label">SAN</span><span id="san-王刚">40/40</span></div>
-      <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-王刚" style="width:100%"></div></div>
-      <div class="inv-list" id="inv-王刚">🎒 棒球棍·打火机·香烟</div>
-      <div class="conditions" id="cond-王刚"></div>
-    </div>
+<!-- 中间：叙事区 -->
+<div id="narrative">
+  <div id="room-header">
+    📍 <span id="room-name">—</span>
+    🎒 <span id="room-items">—</span>
   </div>
   <div id="chat">
-    <div style="text-align:center;color:#555;margin-top:100px;font-size:14px;">
+    <div style="text-align:center;color:#444;margin-top:80px;font-size:13px;">
       点击「开始跑团」<br>
-      <span style="font-size:12px;color:#444;">程序化地图 · 物品收集 · Roguelike</span>
+      <span style="font-size:11px;color:#333;">程序化地图 · 物品收集 · Roguelike</span>
     </div>
   </div>
 </div>
 
+<!-- 右侧上：角色面板 (黄框·不改) -->
+<div id="sidebar">
+  <div class="char-card" id="card-陈明">
+    <div class="char-name" style="color:#4a90d9">🕵️ 陈明</div>
+    <div class="stat-row"><span class="stat-label">生命</span><span id="hp-陈明">12/12</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-陈明" style="width:100%"></div></div>
+    <div class="stat-row"><span class="stat-label">理智</span><span id="san-陈明">60/60</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-陈明" style="width:100%"></div></div>
+    <div class="stat-row"><span class="stat-label">幸运</span><span id="luck-陈明">50</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-陈明" style="width:100%"></div></div>
+    <div class="inv-list" id="inv-陈明">🎒 手电筒·警徽·.38左轮</div>
+    <div class="conditions" id="cond-陈明"></div>
+  </div>
+  <div class="char-card" id="card-林晓">
+    <div class="char-name" style="color:#50c878">🔬 林晓</div>
+    <div class="stat-row"><span class="stat-label">生命</span><span id="hp-林晓">10/10</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-林晓" style="width:100%"></div></div>
+    <div class="stat-row"><span class="stat-label">理智</span><span id="san-林晓">70/70</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-林晓" style="width:100%"></div></div>
+    <div class="stat-row"><span class="stat-label">幸运</span><span id="luck-林晓">45</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-林晓" style="width:100%"></div></div>
+    <div class="inv-list" id="inv-林晓">🎒 急救包·笔记本·相机</div>
+    <div class="conditions" id="cond-林晓"></div>
+  </div>
+  <div class="char-card" id="card-王刚">
+    <div class="char-name" style="color:#e07050">💪 王刚</div>
+    <div class="stat-row"><span class="stat-label">生命</span><span id="hp-王刚">15/15</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-王刚" style="width:100%"></div></div>
+    <div class="stat-row"><span class="stat-label">理智</span><span id="san-王刚">40/40</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-王刚" style="width:100%"></div></div>
+    <div class="stat-row"><span class="stat-label">幸运</span><span id="luck-王刚">55</span></div>
+    <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-王刚" style="width:100%"></div></div>
+    <div class="inv-list" id="inv-王刚">🎒 棒球棍·打火机·香烟</div>
+    <div class="conditions" id="cond-王刚"></div>
+  </div>
+</div>
+
+<!-- 底部旁白气泡 (绿框) -->
+<div id="narration-bar">
+  <div id="narration-quote"></div>
+  <div id="narration-text"></div>
+  <div id="narration-speaker"></div>
+</div>
+
+<!-- 右下骰子日志 (蓝框) -->
+<div id="dice-log"></div>
+
+<!-- 进度条 -->
 <div id="progress"><div id="progress-bar"></div></div>
 
 <script>
@@ -175,9 +301,12 @@ let streamTarget = null;
 
 function startGame() {
   const btn = document.getElementById('btn-start');
-  btn.disabled = true; btn.textContent = '⏳ 运行中...'; btn.classList.add('running');
+  btn.disabled = true; btn.textContent = '⏳ 运行中...';
   document.getElementById('status').textContent = '生成地图...';
   document.getElementById('chat').innerHTML = '';
+  document.getElementById('dice-log').innerHTML = '';
+  document.getElementById('narration-text').textContent = '';
+  document.getElementById('narration-speaker').textContent = '';
   document.getElementById('progress-bar').style.width = '0%';
   currentTurn = 0;
   totalTurns = parseInt(document.getElementById('turns').value) || 12;
@@ -195,11 +324,14 @@ function startGame() {
   es.onmessage = (e) => {
     const d = JSON.parse(e.data);
     switch (d.type) {
-      case 'status': document.getElementById('status').textContent = d.text; break;
+      case 'status':
+        document.getElementById('status').textContent = d.text;
+        break;
       case 'map':
         gmap = d.map;
         tileGrid = d.grid;
-        document.getElementById('map-img').src = d.image || '';
+        document.getElementById('scene-img').src = d.image || '';
+        document.getElementById('scene-label').textContent = gmap.current_room_name || '';
         document.getElementById('status').textContent = '地图生成完成';
         break;
       case 'init':
@@ -238,9 +370,12 @@ function startGame() {
         document.getElementById('progress-bar').style.width = (currentTurn/totalTurns*100)+'%';
         if (d.state) updateState(d.state);
         break;
+
+      /* ── 骰子 → 蓝框日志 ── */
       case 'dice_roll':
-        addMsg('dice', '', '🎲 ' + d.speaker + ' · ' + d.text);
+        addDiceLog(d.speaker, d.text);
         break;
+
       case 'item_pickup':
         addMsg('item', '', '📦 ' + d.speaker + ' 获得: ' + d.items.join(', '));
         break;
@@ -250,13 +385,14 @@ function startGame() {
       case 'room_change':
         gmap = d.map;
         tileGrid = d.grid;
-        gmap.current_room_id = d.room_id;
-        document.getElementById('map-img').src = d.image || '';
+        if (gmap) gmap.current_room_id = d.room_id;
+        document.getElementById('scene-img').src = d.image || '';
+        document.getElementById('scene-label').textContent = d.room_name || '';
         updateRoomInfo({name: d.room_name, desc: d.room_desc, items: d.items});
-        addMsg('kp', '📍', '进入 ' + d.room_name + ' — ' + d.room_desc);
+        addMsg('system', '', '📍 进入 ' + d.room_name + ' — ' + d.room_desc);
         break;
       case 'done':
-        addMsg('kp', '📋 终局', d.summary.replace(/\\n/g, '<br>'));
+        addMsg('system', '', '📋 ' + d.summary.replace(/\\n/g, '<br>'));
         document.getElementById('status').textContent = '完成 ✓';
         resetBtn();
         break;
@@ -267,10 +403,11 @@ function startGame() {
 
 function resetBtn() {
   const btn = document.getElementById('btn-start');
-  btn.disabled = false; btn.textContent = '▶ 重新开始'; btn.classList.remove('running');
+  btn.disabled = false; btn.textContent = '▶ 重新开始';
   if (es) es.close();
 }
 
+/* ── 消息 ── */
 function addMsg(type, speaker, text, color) {
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
@@ -280,6 +417,12 @@ function addMsg(type, speaker, text, color) {
   div.innerHTML = hdr + `<div class="msg-body">${text}</div>`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
+
+  // 同时更新底部旁白气泡 (KP消息)
+  if (type === 'kp' && text) {
+    document.getElementById('narration-text').textContent = text;
+    document.getElementById('narration-speaker').textContent = speaker;
+  }
   return div;
 }
 
@@ -289,29 +432,57 @@ function appendToken(div, text) {
     body.textContent += text;
     const chat = document.getElementById('chat');
     chat.scrollTop = chat.scrollHeight;
+    // 实时更新旁白气泡
+    document.getElementById('narration-text').textContent = body.textContent;
   }
 }
 
+/* ── 骰子日志 (蓝框) ── */
+function addDiceLog(speaker, text) {
+  const log = document.getElementById('dice-log');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+
+  // 解析 "检定: 技能 值 → 值 结果" 格式
+  const icon = text.includes('失败') ? '❌' : text.includes('成功') ? '✅' : '🎲';
+  const resultClass = text.includes('失败') ? 'fail' :
+                      text.includes('成功') || text.includes('通过') ? 'success' : '';
+
+  entry.innerHTML = `
+    <span class="log-icon">${icon}</span>
+    <span class="log-speaker">${speaker}</span>
+    <span class="log-detail">${text}</span>
+  `;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+/* ── 角色高亮 ── */
 function highlightCard(name) {
   document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
   const card = document.getElementById('card-' + name);
   if (card) card.classList.add('active');
 }
 
+/* ── 状态更新 ── */
 function updateState(state) {
   for (const [name, s] of Object.entries(state)) {
     const hpEl = document.getElementById('hp-' + name);
     const sanEl = document.getElementById('san-' + name);
+    const luckEl = document.getElementById('luck-' + name);
     const hpBar = document.getElementById('hpbar-' + name);
     const sanBar = document.getElementById('sanbar-' + name);
+    const luckBar = document.getElementById('luckbar-' + name);
     if (hpEl) hpEl.textContent = s.hp + '/' + s.max_hp;
     if (sanEl) sanEl.textContent = s.san + '/' + s.max_san;
+    if (luckEl) luckEl.textContent = s.luck;
     if (hpBar) {
       const pct = s.hp / s.max_hp * 100;
       hpBar.style.width = pct + '%';
-      hpBar.style.background = pct > 50 ? '#c0392b' : pct > 25 ? '#e67e22' : '#e74c3c';
+      hpBar.style.background = pct > 50 ? '#8b0000' : pct > 25 ? '#a06020' : '#c0392b';
     }
     if (sanBar) sanBar.style.width = (s.san / s.max_san * 100) + '%';
+    if (luckBar) luckBar.style.width = (s.luck / 99 * 100) + '%';
     const invEl = document.getElementById('inv-' + name);
     if (invEl && s.inventory && s.inventory.length > 0) {
       invEl.innerHTML = '🎒 ' + s.inventory.join(' · ');
