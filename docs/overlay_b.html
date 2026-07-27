@@ -579,7 +579,7 @@ function handleMessage(data) {
       updateBgm(data.bgm);
       break;
     case 'scene': updateScene(data.scene); break;
-    case 'narrative': updateNarrative(data.narrative); break;
+    case 'narrative': updateNarrative(data.narrative, data.audio_url); break;
     case 'dice': updateDice(data.dice); break;
     case 'characters': updateCharacters(data.characters); break;
     case 'item': updateItem(data.item); break;
@@ -607,9 +607,8 @@ function updateScene(s) {
 
     const newImg = document.createElement('img');
     newImg.dataset.src = s.image;
-    newImg.src = `/images/scenes/${s.image}`;
 
-    // onload fires unreliably for cached images — use complete check + event
+    // MUST add listener BEFORE setting src — cached images fire 'load' synchronously
     const activate = () => {
       if (newImg.classList.contains('active')) return;
       newImg.classList.add('active');
@@ -619,10 +618,13 @@ function updateScene(s) {
       currentStageImg = newImg;
     };
     newImg.addEventListener('load', activate, {once: true});
-    if (newImg.complete && newImg.naturalWidth > 0) {
-      activate();
-    }
+    newImg.src = `/images/scenes/${s.image}`;
     document.getElementById('stage-bg').appendChild(newImg);
+
+    // Deferred activate: load event missed for cached images even with rAF
+    setTimeout(() => {
+      if (!newImg.classList.contains('active')) activate();
+    }, 100);
   }
 }
 
@@ -645,7 +647,9 @@ function updateItem(it) {
 }
 
 /* ── Narrative (浮动气泡覆盖在场景上) ── */
-function updateNarrative(n) {
+let ttsAudio = null;
+
+function updateNarrative(n, audioUrl) {
   if (!n || !n.lines) return;
   const container = document.getElementById('narrative-overlay');
   container.innerHTML = '';
@@ -666,6 +670,13 @@ function updateNarrative(n) {
   if (n.current_index >= 0) {
     const current = container.querySelector('.current');
     if (current) current.scrollIntoView({ behavior:'smooth', block:'end' });
+  }
+
+  // Play TTS audio for the latest line
+  if (audioUrl && audioUnlocked) {
+    if (ttsAudio) { ttsAudio.pause(); ttsAudio = null; }
+    ttsAudio = new Audio(audioUrl);
+    ttsAudio.play().catch(() => {});
   }
 }
 

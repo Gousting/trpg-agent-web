@@ -18,6 +18,10 @@ SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "Sceneim
 ITEMS_DIR = pathlib.Path(__file__).parent.parent / "data" / "items" / "Itemimage"
 CHARS_DIR = pathlib.Path(__file__).parent.parent / "data" / "characters" / "Userimage"
 BGM_DIR = pathlib.Path(__file__).parent.parent / "data" / "bgm"
+TTS_CACHE = pathlib.Path(__file__).parent.parent / "data" / "tts_cache"
+
+import hashlib
+import edge_tts
 
 # ── Scene matcher ──
 scene_matcher = SceneMatcher()
@@ -98,6 +102,24 @@ connected_clients: set[web.WebSocketResponse] = set()
 # ── BGM mood mapping ──
 _bgm_mappings: dict[str, str] = {}
 _bgm_default = "exploration"
+
+# ── TTS ──
+TTS_VOICE = "zh-CN-YunyangNeural"  # KP 旁白沉稳男声
+TTS_CACHE.mkdir(exist_ok=True)
+
+
+async def _speak(text: str) -> str | None:
+    """生成 TTS 音频，返回可访问的 URL 路径，失败返回 None。"""
+    h = hashlib.md5(text.encode()).hexdigest()[:12]
+    out = TTS_CACHE / f"{h}.mp3"
+    if out.exists() and out.stat().st_size > 1000:
+        return f"/audio/tts/{h}.mp3"
+    try:
+        comm = edge_tts.Communicate(text, TTS_VOICE)
+        await comm.save(str(out))
+        return f"/audio/tts/{h}.mp3" if out.exists() else None
+    except Exception:
+        return None
 
 
 def build_state_message() -> dict:
@@ -226,8 +248,16 @@ async def api_push_line(request: web.Request) -> web.Response:
     text = data.get("text", "")
     narrative.lines.append(text)
     narrative.current_index = len(narrative.lines) - 1
-    await broadcast({"type": "narrative", "narrative": asdict(narrative)})
-    return web.json_response({"ok": True})
+
+    # Auto-generate TTS
+    audio_url = await _speak(text)
+
+    await broadcast({
+        "type": "narrative",
+        "narrative": asdict(narrative),
+        **({"audio_url": audio_url} if audio_url else {}),
+    })
+    return web.json_response({"ok": True, "audio_url": audio_url})
 
 
 async def api_roll_dice(request: web.Request) -> web.Response:
@@ -359,6 +389,7 @@ def create_app() -> web.Application:
     app.router.add_static("/images/items", ITEMS_DIR)
     app.router.add_static("/images/characters", CHARS_DIR)
     app.router.add_static("/audio/bgm", BGM_DIR)
+    app.router.add_static("/audio/tts", TTS_CACHE)
 
     n = scene_matcher.load()
     if n > 0:
