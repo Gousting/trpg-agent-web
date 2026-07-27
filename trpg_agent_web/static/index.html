@@ -26,7 +26,7 @@
     font-family: 'Noto Serif SC', 'Source Han Serif SC', 'SimSun', 'STSong', serif;
     height: 100vh; display: grid;
     grid-template-columns: 4fr 3fr 3fr;
-    grid-template-rows: 36px 1fr auto;
+    grid-template-rows: 36px auto 1fr auto;
     overflow: hidden;
   }
 
@@ -50,9 +50,55 @@
   }
   #status { font-size: 10px; color: #555; margin-left: auto; }
 
+  /* ═══ 投票条（controls 下方全宽） ═══ */
+  #vote-bar {
+    grid-column: 1 / -1; grid-row: 2;
+    background: #0f0f0f; border-bottom: 1px solid #1a1a1a;
+    padding: 6px 16px; display: none; align-items: center; gap: 16px;
+    font-size: 11px; overflow-x: auto;
+  }
+  #vote-bar.active { display: flex; }
+  #vote-bar .vote-title {
+    color: #8a7a50; font-size: 10px; letter-spacing: 2px;
+    flex-shrink: 0; white-space: nowrap;
+  }
+  .vote-option {
+    display: flex; align-items: center; gap: 8px;
+    flex: 1; min-width: 140px; max-width: 280px;
+    background: #141414; border: 1px solid #1f1f1f;
+    border-radius: 3px; padding: 6px 10px;
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .vote-option:hover { border-color: #3a3020; }
+  .vote-option.voted { border-color: var(--accent); background: #1a1010; }
+  .vote-option .vote-label {
+    color: #888; font-size: 10px; white-space: nowrap;
+    flex-shrink: 0; min-width: 56px;
+  }
+  .vote-option .vote-bar-wrap {
+    flex: 1; height: 12px; background: #1a1a1a;
+    border-radius: 2px; overflow: hidden; position: relative;
+  }
+  .vote-option .vote-bar-fill {
+    height: 100%; background: linear-gradient(90deg, #4a3020, #8a5a30);
+    border-radius: 2px; transition: width 0.6s ease;
+    min-width: 2px;
+  }
+  .vote-option .vote-pct {
+    color: #8a7a50; font-size: 10px; font-weight: bold;
+    min-width: 32px; text-align: right; flex-shrink: 0;
+  }
+  .vote-option .vote-count {
+    color: #555; font-size: 9px; min-width: 24px; text-align: right; flex-shrink: 0;
+  }
+  .vote-option.leading .vote-bar-fill {
+    background: linear-gradient(90deg, #6a2000, #b84020);
+  }
+  .vote-option.leading .vote-pct { color: #c06040; }
+
   /* ═══ 左侧：场景背景 ═══ */
   #scene {
-    grid-column: 1; grid-row: 2;
+    grid-column: 1; grid-row: 3;
     position: relative; background: #080808;
     border-right: 1px solid #1a1a1a;
     display: flex; align-items: center; justify-content: center;
@@ -78,7 +124,7 @@
 
   /* ═══ 中间：对话叙事区 ═══ */
   #narrative {
-    grid-column: 2; grid-row: 2;
+    grid-column: 2; grid-row: 3;
     display: flex; flex-direction: column;
     background: #0c0c0c;
     border-right: 1px solid #1a1a1a;
@@ -125,7 +171,7 @@
 
   /* ═══ 底部旁白气泡 (绿框) ═══ */
   #narration-bar {
-    grid-column: 1 / 3; grid-row: 3;
+    grid-column: 1 / 3; grid-row: 4;
     position: relative;
     background: var(--bubble-bg);
     border-top: 1px solid #2a2018;
@@ -157,7 +203,7 @@
 
   /* ═══ 右侧上：角色面板 (黄框·不改) ═══ */
   #sidebar {
-    grid-column: 3; grid-row: 2;
+    grid-column: 3; grid-row: 3;
     background: var(--panel); padding: 10px 12px;
     overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
     border-bottom: 1px solid #1a1a1a;
@@ -180,7 +226,7 @@
 
   /* ═══ 右侧下：骰子/日志面板 (蓝框) ═══ */
   #dice-log {
-    grid-column: 3; grid-row: 3;
+    grid-column: 3; grid-row: 4;
     background: #0a0a0a; border-top: 1px solid #1a1a1a;
     padding: 8px 12px; overflow-y: auto;
     font-size: 10px; color: #554;
@@ -223,6 +269,9 @@
   <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
   <span id="status">就绪</span>
 </div>
+
+<!-- 投票条 (顶部全宽) -->
+<div id="vote-bar"></div>
 
 <!-- 左侧：场景背景 (红框) -->
 <div id="scene">
@@ -308,6 +357,7 @@ function startGame() {
   document.getElementById('narration-text').textContent = '';
   document.getElementById('narration-speaker').textContent = '';
   document.getElementById('progress-bar').style.width = '0%';
+  hideVote();
   currentTurn = 0;
   totalTurns = parseInt(document.getElementById('turns').value) || 12;
 
@@ -391,6 +441,15 @@ function startGame() {
         updateRoomInfo({name: d.room_name, desc: d.room_desc, items: d.items});
         addMsg('system', '', '📍 进入 ' + d.room_name + ' — ' + d.room_desc);
         break;
+      case 'vote_start':
+        renderVote(d.title || '投票', d.options);
+        break;
+      case 'vote_update':
+        updateVote(d.counts);
+        break;
+      case 'vote_end':
+        hideVote();
+        break;
       case 'done':
         addMsg('system', '', '📋 ' + d.summary.replace(/\\n/g, '<br>'));
         document.getElementById('status').textContent = '完成 ✓';
@@ -457,7 +516,59 @@ function addDiceLog(speaker, text) {
   log.scrollTop = log.scrollHeight;
 }
 
-/* ── 角色高亮 ── */
+/* ── 投票条 ── */
+let voteChoices = [];
+
+function renderVote(title, options) {
+  const bar = document.getElementById('vote-bar');
+  voteChoices = options.map(o => ({label: o, count: 0, pct: 0}));
+  const total = options.length;
+  const eq = Math.floor(100 / total);
+
+  let html = `<span class="vote-title">⚡ ${title}</span>`;
+  options.forEach((opt, i) => {
+    html += `
+      <div class="vote-option" data-idx="${i}" onclick="castVote(${i})">
+        <span class="vote-label">${opt}</span>
+        <div class="vote-bar-wrap">
+          <div class="vote-bar-fill" style="width:${eq}%"></div>
+        </div>
+        <span class="vote-pct">${eq}%</span>
+        <span class="vote-count">0</span>
+      </div>`;
+  });
+  bar.innerHTML = html;
+  bar.classList.add('active');
+}
+
+function castVote(idx) {
+  const bar = document.getElementById('vote-bar');
+  const opts = bar.querySelectorAll('.vote-option');
+  opts.forEach((el, i) => {
+    el.classList.toggle('voted', i === idx);
+  });
+}
+
+function updateVote(counts) {
+  const total = counts.reduce((a,b) => a+b, 0) || 1;
+  const max = Math.max(...counts);
+  const bar = document.getElementById('vote-bar');
+  const opts = bar.querySelectorAll('.vote-option');
+  opts.forEach((el, i) => {
+    const pct = Math.round(counts[i] / total * 100);
+    el.querySelector('.vote-bar-fill').style.width = pct + '%';
+    el.querySelector('.vote-pct').textContent = pct + '%';
+    el.querySelector('.vote-count').textContent = counts[i];
+    el.classList.toggle('leading', counts[i] === max && max > 0);
+  });
+}
+
+function hideVote() {
+  const bar = document.getElementById('vote-bar');
+  bar.classList.remove('active');
+  bar.innerHTML = '';
+  voteChoices = [];
+}
 function highlightCard(name) {
   document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
   const card = document.getElementById('card-' + name);
