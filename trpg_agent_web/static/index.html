@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COC TRPG 跑团</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;600;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #0A0A0C; --surface: #121114; --surface-alt: #1A1518;
+    --blood: #8B1A1A; --blood-glow: rgba(139,26,26,0.3);
+    --gold: #C9A84C; --gold-dim: rgba(201,168,76,0.15);
+    --parchment: #D4C5A9; --parchment-dim: rgba(212,197,169,0.08);
+    --text-main: #D4C5A9; --text-dim: #7A7265; --text-faint: #4A4340;
+    --radius: 2px;
+    --font-display: 'Noto Serif SC', 'Crimson Text', serif;
+    --font-body: 'Crimson Text', 'Noto Serif SC', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--void); color: var(--text-main);
+    font-family: var(--font-body); font-size: 14px; line-height: 1.6;
+    height: 100vh; display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: 36px 1fr;
+    overflow: hidden;
+  }
+
+  /* ═══ 顶部控制栏 ═══ */
+  #controls {
+    grid-column: 1 / -1; grid-row: 1;
+    background: var(--surface); border-bottom: 1px solid rgba(201,168,76,0.1);
+    padding: 0 12px; display: flex; align-items: center; gap: 8px;
+    font-size: 11px; z-index: 10;
+  }
+  #controls button {
+    background: var(--blood); color: #ddd; border: none;
+    padding: 4px 14px; font-size: 11px; cursor: pointer;
+    font-family: inherit; letter-spacing: 1px;
+  }
+  #controls button:disabled { opacity: 0.35; }
+  #controls label { color: var(--text-faint); font-size: 10px; }
+  #controls input, #controls select {
+    background: #1a1a1a; border: 1px solid #222; color: #999;
+    padding: 3px 6px; font-size: 10px; font-family: inherit;
+  }
+  #status { font-size: 10px; color: var(--text-faint); margin-left: auto; }
+
+  body.live #controls label,
+  body.live #controls input,
+  body.live #controls select,
+  body.live #controls button { display: none; }
+  body.live #controls #status { font-size: 9px; margin-left: 0; display: block; }
+
+  /* ═══ 左侧：场景舞台 ═══ */
+  #scene {
+    grid-column: 1; grid-row: 2;
+    position: relative; background: #080808;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; border-right: 1px solid rgba(201,168,76,0.08);
+  }
+  #scene-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 40% 50%, #1a1015 0%, #0A0A0C 80%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #scene-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity 1.2s ease-out;
+    filter: sepia(0.15) brightness(0.6) saturate(0.5);
+  }
+  #scene-img.active { opacity: 1; }
+  #scene-label {
+    position: absolute; bottom: 16px; left: 20px;
+    font-size: 13px; color: var(--text-dim); letter-spacing: 3px;
+    text-shadow: 0 0 12px rgba(0,0,0,0.8);
+  }
+  #scene-mood {
+    position: absolute; bottom: 16px; right: 20px;
+    font-size: 10px; color: var(--text-faint);
+    display: flex; align-items: center; gap: 6px;
+  }
+  #scene-mood::before {
+    content: ''; display: inline-block;
+    width: 5px; height: 5px; background: var(--blood); border-radius: 50%;
+  }
+  /* 场景角落装饰 */
+  .scene-corners {
+    position: absolute; inset: 16px; pointer-events: none;
+  }
+  .scene-corners::before, .scene-corners::after {
+    content: ''; position: absolute; width: 40px; height: 40px;
+    border-color: var(--gold); border-style: solid; opacity: 0.18;
+  }
+  .scene-corners::before { top: 0; left: 0; border-width: 2px 0 0 2px; }
+  .scene-corners::after { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+  /* 骰子叠加层 */
+  #dice-mask {
+    position: absolute; inset: 0; z-index: 4;
+    background: rgba(0,0,0,0); pointer-events: none;
+    transition: background 0.4s ease;
+  }
+  #dice-mask.show { background: rgba(0,0,0,0.55); }
+  #dice-overlay {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    display: none; flex-direction: column; align-items: center; gap: 6px;
+    pointer-events: none; z-index: 5;
+  }
+  #dice-overlay.show { display: flex; animation: dicePop 0.4s ease-out; }
+  @keyframes dicePop {
+    from { transform: translate(-50%,-50%) scale(0.4); opacity: 0; }
+    to { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  }
+  #dice-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    background: rgba(100,20,20,0.25); border: 2px solid rgba(160,40,40,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; font-weight: bold; color: #d44;
+    text-shadow: 0 0 24px rgba(200,0,0,0.4);
+    font-family: var(--font-mono);
+  }
+  #dice-skill {
+    font-size: 13px; color: #c88; letter-spacing: 2px;
+    background: rgba(0,0,0,0.6); padding: 3px 14px; border-radius: 2px;
+    font-family: var(--font-display);
+  }
+
+  /* ═══ 右侧：合并面板 ═══ */
+  #right-panel {
+    grid-column: 2; grid-row: 2;
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* 角色卡 */
+  #characters {
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+    padding: 10px 12px;
+  }
+  #characters h2 {
+    font-size: 9px; color: var(--text-faint);
+    letter-spacing: 4px; margin-bottom: 8px;
+    font-weight: normal; font-family: var(--font-display);
+  }
+  .char-card {
+    background: #111; border: 1px solid #1f1f1f;
+    padding: 6px 10px; margin-bottom: 4px;
+    transition: border-color 0.3s;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .char-card.active { border-color: var(--blood); }
+  .char-portrait {
+    width: 44px; height: 44px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0;
+    border: 1px solid rgba(201,168,76,0.15);
+  }
+  .char-info { flex: 1; min-width: 0; }
+  .char-name { font-size: 11px; font-weight: bold; margin-bottom: 3px; letter-spacing: 1px; font-family: var(--font-display); }
+  .stat-row { display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 0; }
+  .stat-label { color: var(--text-faint); }
+  .stat-bar-bg { height: 2px; background: #1a1a1a; border-radius: 1px; margin-bottom: 3px; overflow: hidden; }
+  .stat-bar-fg { height: 100%; border-radius: 1px; transition: width 0.5s, background 0.5s; }
+  .hp-bar { background: #6a2020; }
+  .san-bar { background: #2a4060; }
+  .luck-bar { background: #4a3a20; }
+  .inv-list { font-size: 8px; color: var(--text-faint); margin-top: 2px; line-height: 1.4; }
+  .conditions { font-size: 8px; color: var(--blood); }
+
+  /* 行动日志 */
+  #action-log {
+    flex: 1; overflow-y: auto; padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  #action-log h2 {
+    font-size: 10px; color: var(--text-faint); letter-spacing: 4px;
+    margin-bottom: 6px; font-weight: normal; font-family: var(--font-display);
+  }
+  .log-msg { font-size: 12px; line-height: 1.7; animation: fadeIn 0.4s ease; font-family: var(--font-body); }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+  .log-msg .speaker { color: var(--gold); font-weight: bold; margin-right: 4px; }
+  .log-msg.kp { color: #a09880; border-left: 2px solid rgba(201,168,76,0.15); padding-left: 10px; }
+  .log-msg.player { color: #b0a090; padding: 2px 0; font-size: 11px; }
+  .log-msg.system { color: var(--text-faint); text-align: center; font-size: 10px; }
+  .log-msg.dice { color: #e05050; text-align: center; font-size: 11px; }
+  .log-msg.dice.success { color: #50c878; }
+  .log-msg.item { color: #50c878; text-align: center; font-size: 11px; }
+  .log-msg.damage { color: #e05050; text-align: center; font-size: 11px; }
+
+  /* BGM 指示器 */
+  #bgm-indicator {
+    position: fixed; top: 42px; right: 16px; z-index: 20;
+    font-size: 9px; color: var(--text-faint); letter-spacing: 2px;
+    display: flex; align-items: center; gap: 4px; opacity: 0;
+    transition: opacity 0.5s;
+  }
+  #bgm-indicator.on { opacity: 1; }
+  #bgm-indicator::before {
+    content: '♪'; font-size: 10px; color: var(--gold);
+  }
+
+  /* 进度条 */
+  #progress {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 2px;
+    background: #1a1a1a; z-index: 20;
+  }
+  #progress-bar { height: 100%; background: var(--blood); width: 0%; transition: width 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- 顶部控制 -->
+<div id="controls">
+  <button id="btn-start" onclick="startGame()">▶ 开始跑团</button>
+  <label>Host</label><input id="ollama-host" value="http://localhost:11434" style="width:180px">
+  <label>KP</label><select id="kp-model"><option>gemma4:12b</option><option>qwen3.6:27b</option></select>
+  <label>玩家</label><select id="player-model"><option>ornith:9b</option><option>gemma4:12b</option></select>
+  <label>轮</label><input id="turns" type="number" value="10" min="3" max="30" style="width:40px">
+  <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
+  <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option></select>
+  <span id="status">就绪</span>
+</div>
+
+<!-- BGM 指示器 -->
+<div id="bgm-indicator">氛圍音軌</div>
+
+<!-- 左侧：场景舞台 -->
+<div id="scene">
+  <div id="scene-bg">
+    <img id="scene-img" src="" alt="">
+  </div>
+  <div class="scene-corners"></div>
+  <div id="scene-label">—</div>
+  <div id="scene-mood">—</div>
+
+  <div id="dice-mask"></div>
+  <div id="dice-overlay">
+    <div id="dice-circle">—</div>
+    <div id="dice-skill"></div>
+  </div>
+</div>
+
+<!-- 右侧面板 -->
+<div id="right-panel">
+  <div id="characters">
+    <h2>調查員檔案</h2>
+    <div class="char-card" id="card-陈明">
+      <img class="char-portrait" id="portrait-陈明" src="" onerror="this.style.display='none'">
+      <div class="char-info">
+        <div class="char-name" style="color:#4a90d9">🕵️ 陈明</div>
+        <div class="stat-row"><span class="stat-label">HP</span><span id="hp-陈明">12/12</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-陈明" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">SAN</span><span id="san-陈明">60/60</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-陈明" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">LUCK</span><span id="luck-陈明">50</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-陈明" style="width:100%"></div></div>
+        <div class="inv-list" id="inv-陈明">🎒 手电筒·警徽·.38左轮</div>
+        <div class="conditions" id="cond-陈明"></div>
+      </div>
+    </div>
+    <div class="char-card" id="card-林晓">
+      <img class="char-portrait" id="portrait-林晓" src="" onerror="this.style.display='none'">
+      <div class="char-info">
+        <div class="char-name" style="color:#50c878">🔬 林晓</div>
+        <div class="stat-row"><span class="stat-label">HP</span><span id="hp-林晓">10/10</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-林晓" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">SAN</span><span id="san-林晓">70/70</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-林晓" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">LUCK</span><span id="luck-林晓">45</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-林晓" style="width:100%"></div></div>
+        <div class="inv-list" id="inv-林晓">🎒 急救包·笔记本·相机</div>
+        <div class="conditions" id="cond-林晓"></div>
+      </div>
+    </div>
+    <div class="char-card" id="card-王刚">
+      <img class="char-portrait" id="portrait-王刚" src="" onerror="this.style.display='none'">
+      <div class="char-info">
+        <div class="char-name" style="color:#e07050">💪 王刚</div>
+        <div class="stat-row"><span class="stat-label">HP</span><span id="hp-王刚">15/15</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-王刚" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">SAN</span><span id="san-王刚">40/40</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-王刚" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">LUCK</span><span id="luck-王刚">55</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-王刚" style="width:100%"></div></div>
+        <div class="inv-list" id="inv-王刚">🎒 棒球棍·打火机·香烟</div>
+        <div class="conditions" id="cond-王刚"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="action-log">
+    <h2>行動記錄</h2>
+    <div style="text-align:center;color:var(--text-faint);margin-top:60px;font-size:13px;">點擊「開始跑團」進入故事</div>
+  </div>
+</div>
+
+<!-- 进度条 -->
+<div id="progress"><div id="progress-bar"></div></div>
+
+<script>
+let es = null, totalTurns = 10, currentTurn = 0, gmap = null, tileGrid = null;
+let streamTarget = null;
+
+function startGame() {
+  document.body.classList.add('live');
+  const btn = document.getElementById('btn-start');
+  btn.disabled = true; btn.textContent = '⏳ 運行中...';
+  document.getElementById('status').textContent = '生成地圖...';
+  document.getElementById('action-log').innerHTML = '<h2>行動記錄</h2>';
+  document.getElementById('progress-bar').style.width = '0%';
+  hideDice();
+  currentTurn = 0;
+  totalTurns = parseInt(document.getElementById('turns').value) || 10;
+
+  const params = new URLSearchParams({
+    host: document.getElementById('ollama-host').value,
+    kp: document.getElementById('kp-model').value,
+    player: document.getElementById('player-model').value,
+    turns: totalTurns,
+    seed: document.getElementById('seed').value || '',
+    mode: document.getElementById('mode').value,
+  });
+
+  es = new EventSource('/api/stream?' + params);
+
+  es.addEventListener('status', (e) => {
+    const d = JSON.parse(e.data);
+    document.getElementById('status').textContent = d.text;
+  });
+
+  es.addEventListener('error', (e) => {
+    const d = JSON.parse(e.data);
+    document.getElementById('status').textContent = d.text;
+    resetBtn();
+  });
+
+  es.addEventListener('map', (e) => {
+    const d = JSON.parse(e.data);
+    gmap = d.map;
+    tileGrid = d.grid;
+    const img = document.getElementById('scene-img');
+    if (d.image) img.src = d.image;
+    document.getElementById('scene-label').textContent = gmap.current_room_name || '';
+    document.getElementById('status').textContent = '地圖生成完成';
+  });
+
+  es.addEventListener('init', (e) => {
+    const d = JSON.parse(e.data);
+    // 加载头像
+    (d.investigators || []).forEach(inv => {
+      const img = document.getElementById('portrait-' + inv.name);
+      if (img && inv.portrait) img.src = '/images/characters/' + inv.portrait;
+    });
+    document.getElementById('status').textContent = '遊戲開始';
+  });
+
+  es.addEventListener('kp_stream_start', () => {
+    streamTarget = addLog('kp', 'KP', '');
+  });
+
+  es.addEventListener('kp_token', (e) => {
+    const d = JSON.parse(e.data);
+    if (streamTarget) { streamTarget.textContent += d.text; scrollLog(); }
+  });
+
+  es.addEventListener('kp_stream_end', (e) => {
+    const d = JSON.parse(e.data);
+    if (d.state) updateState(d.state);
+    if (d.scene) {
+      const img = document.getElementById('scene-img');
+      img.src = '/images/scenes/' + d.scene.image;
+      img.classList.add('active');
+      document.getElementById('scene-label').textContent = d.scene.location || '';
+      document.getElementById('scene-mood').textContent = d.scene.mood || '';
+    }
+    currentTurn++;
+    document.getElementById('progress-bar').style.width = (currentTurn/totalTurns*100)+'%';
+    streamTarget = null;
+  });
+
+  es.addEventListener('player_stream_start', (e) => {
+    const d = JSON.parse(e.data);
+    highlightCard(d.speaker);
+    streamTarget = addLog('player', d.speaker, '', d.color);
+  });
+
+  es.addEventListener('player_token', (e) => {
+    const d = JSON.parse(e.data);
+    if (streamTarget) { streamTarget.querySelector('.text').textContent += d.text; scrollLog(); }
+  });
+
+  es.addEventListener('player_stream_end', (e) => {
+    const d = JSON.parse(e.data);
+    streamTarget = null;
+  });
+
+  es.addEventListener('dice_roll', (e) => {
+    const d = JSON.parse(e.data);
+    const cls = d.text.includes('失败') ? 'dice' :
+                d.text.match(/成功|通过/) ? 'dice success' : 'dice';
+    addLog(cls, d.speaker, d.text);
+    showDiceOverlay(d);
+  });
+
+  es.addEventListener('item_pickup', (e) => {
+    const d = JSON.parse(e.data);
+    addLog('item', '', '📦 ' + d.speaker + ' 獲得: ' + d.items.join(', '));
+  });
+
+  es.addEventListener('damage', (e) => {
+    const d = JSON.parse(e.data);
+    addLog('damage', '', '💥 ' + d.speaker + ' 受到 ' + d.amount + ' 點傷害 (' + d.source + ')');
+  });
+
+  es.addEventListener('room_change', (e) => {
+    const d = JSON.parse(e.data);
+    gmap = d.map;
+    tileGrid = d.grid;
+    if (gmap) gmap.current_room_id = d.room_id;
+    const img = document.getElementById('scene-img');
+    if (d.image) img.src = d.image;
+    document.getElementById('scene-label').textContent = d.room_name || '';
+    addLog('system', '', '📍 進入 ' + d.room_name + ' — ' + d.room_desc);
+  });
+
+  es.addEventListener('await_player', (e) => {
+    const d = JSON.parse(e.data);
+    addLog('system', '', '⌛ 等待 ' + d.speaker + ' 輸入行動...');
+    document.getElementById('status').textContent = '輪到 ' + d.speaker;
+  });
+
+  es.addEventListener('done', (e) => {
+    const d = JSON.parse(e.data);
+    addLog('system', '', '📋 遊戲結束');
+    document.getElementById('status').textContent = '完成 ✓';
+    resetBtn();
+  });
+
+  es.onerror = () => {
+    document.getElementById('status').textContent = '連接斷開';
+    resetBtn();
+  };
+}
+
+function resetBtn() {
+  document.body.classList.remove('live');
+  const btn = document.getElementById('btn-start');
+  btn.disabled = false; btn.textContent = '▶ 重新開始';
+  if (es) { es.close(); es = null; }
+}
+
+/* ── 行動日誌 ── */
+function addLog(type, speaker, text, color) {
+  const log = document.getElementById('action-log');
+  const div = document.createElement('div');
+  div.className = 'log-msg ' + type;
+  if (type === 'player' && color) div.style.color = color;
+
+  if (type === 'kp') {
+    div.textContent = text;
+  } else if (type === 'player') {
+    div.innerHTML = `<span class="speaker" style="color:${color||'#aaa'}">${speaker}</span><span class="text">${text}</span>`;
+  } else if (type === 'dice' || type === 'dice success') {
+    div.innerHTML = '🎲 <span class="speaker">' + speaker + '</span> ' + text;
+  } else {
+    div.textContent = text;
+  }
+  log.appendChild(div);
+  scrollLog();
+  return div;
+}
+
+function scrollLog() {
+  const log = document.getElementById('action-log');
+  log.scrollTop = log.scrollHeight;
+}
+
+/* ── 骰子疊加層 ── */
+function showDiceOverlay(d) {
+  const overlay = document.getElementById('dice-overlay');
+  const mask = document.getElementById('dice-mask');
+  const match = d.text.match(/(\d+)/);
+  document.getElementById('dice-circle').textContent = match ? match[1] : '—';
+  document.getElementById('dice-skill').textContent = d.skill || d.text || '';
+  overlay.classList.remove('show');
+  mask.classList.remove('show');
+  void overlay.offsetWidth;
+  overlay.classList.add('show');
+  mask.classList.add('show');
+  setTimeout(() => { overlay.classList.remove('show'); mask.classList.remove('show'); }, 3500);
+}
+
+function hideDice() {
+  document.getElementById('dice-overlay').classList.remove('show');
+  document.getElementById('dice-mask').classList.remove('show');
+}
+
+/* ── 角色高亮 ── */
+function highlightCard(name) {
+  document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('card-' + name);
+  if (card) card.classList.add('active');
+}
+
+/* ── 狀態更新 ── */
+function updateState(state) {
+  for (const [name, s] of Object.entries(state)) {
+    const hpEl = document.getElementById('hp-' + name);
+    const sanEl = document.getElementById('san-' + name);
+    const luckEl = document.getElementById('luck-' + name);
+    const hpBar = document.getElementById('hpbar-' + name);
+    const sanBar = document.getElementById('sanbar-' + name);
+    const luckBar = document.getElementById('luckbar-' + name);
+    if (hpEl) hpEl.textContent = s.hp + '/' + s.max_hp;
+    if (sanEl) sanEl.textContent = s.san + '/' + s.max_san;
+    if (luckEl) luckEl.textContent = s.luck;
+    if (hpBar) {
+      const pct = s.hp / s.max_hp * 100;
+      hpBar.style.width = pct + '%';
+      hpBar.style.background = pct > 50 ? '#8b0000' : pct > 25 ? '#a06020' : '#c0392b';
+    }
+    if (sanBar) sanBar.style.width = (s.san / s.max_san * 100) + '%';
+    if (luckBar) luckBar.style.width = (s.luck / 99 * 100) + '%';
+    const invEl = document.getElementById('inv-' + name);
+    if (invEl && s.inventory && s.inventory.length > 0) {
+      invEl.innerHTML = '🎒 ' + s.inventory.join(' · ');
+    }
+    const condEl = document.getElementById('cond-' + name);
+    if (condEl && s.conditions && s.conditions.length > 0) {
+      condEl.textContent = '⚠ ' + s.conditions.join(', ');
+    } else if (condEl) {
+      condEl.textContent = '';
+    }
+  }
+}
+</script>
+</body>
+</html>
