@@ -4,6 +4,9 @@
 代码追踪当前场景，LLM 只看到当前场景内容。剧情不跳章，线索不泄露。
 
 纯数据操作，无 LLM 调用。
+
+模块组合器：
+    from trpg_agent.adventure import ModuleComposer
 """
 
 from __future__ import annotations
@@ -12,6 +15,9 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
+
+# ModuleComposer 从 .module_composer 导入，避免循环引用
+# 用法: from trpg_agent.adventure.module_composer import ModuleComposer
 
 log = logging.getLogger(__name__)
 

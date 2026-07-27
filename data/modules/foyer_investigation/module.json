@@ -1,0 +1,57 @@
+{
+  "id": "foyer_investigation",
+  "title": "古屋调查·门厅",
+  "genre": ["horror", "investigation"],
+  "difficulty": 1,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": ["indoor", "urban"],
+    "required_clues": [],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "enter_house",
+      "label": "深入古屋",
+      "provides_clues": ["blood_trail_found", "portrait_identified", "ritual_note_found"],
+      "mood": "unease",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "foyer",
+      "title": "古屋门厅",
+      "part": 1,
+      "scene_type": "室内场景 - 废弃建筑入口",
+      "description": "沉重的橡木门在身后合上，发出沉闷的回响。门厅布满蛛网，空气中弥漫着霉味和若有若无的腥甜气息。墙上挂着褪色的家族肖像，凝视着闯入者。一道暗色拖痕从门厅延伸至通往地下室的石阶。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "f1", "text": "检查地板上的暗色拖痕（侦查）——是新鲜血迹，往地下室方向"},
+        {"id": "f2", "text": "查看墙上的家族肖像（知识/历史）——这个家族在1920年全部失踪"},
+        {"id": "f3", "text": "搜索门厅的旧家具（侦查）——发现一封半完成的信，内容提到'仪式将在满月完成'"}
+      ],
+      "secrets": [
+        {"id": "fs1", "text": "肖像中的男人是屋主阿瑟·惠特利，失踪前是密斯卡托尼克大学的考古学教授，专攻中东古代遗迹"}
+      ],
+      "leads_to": ["library"],
+      "guidance": "让调查员熟悉环境，收集初步线索。血迹、肖像和信件是三个关键信息点。"
+    }
+  ],
+  "npcs": [],
+  "variance": {
+    "mood_variants": [
+      {
+        "scene_id": "foyer",
+        "base_description": "沉重的橡木门在身后合上，发出沉闷的回响。门厅布满蛛网，空气中弥漫着霉味。",
+        "variable_details": [
+          "墙上的壁纸已经大片大片地剥落，露出下面发黑的木板。",
+          "一盏破旧的吊灯在头顶轻轻摇晃，虽然门窗都紧闭着。",
+          "地板上的灰尘厚得可以在上面写字。",
+          "角落里堆着干枯的花瓣——曾经是玫瑰，现在黑得像炭。"
+        ]
+      }
+    ]
+  }
+}

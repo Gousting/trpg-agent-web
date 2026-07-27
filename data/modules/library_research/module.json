@@ -1,0 +1,83 @@
+{
+  "id": "library_research",
+  "title": "古屋调查·图书室",
+  "genre": ["horror", "investigation"],
+  "difficulty": 2,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": ["indoor"],
+    "required_clues": ["blood_trail_found"],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "trusted_path",
+      "label": "取得管理员信任，前往地下室",
+      "provides_clues": ["cursed_slab_found", "keepers_trust"],
+      "mood": "dread",
+      "next_location_type": "basement",
+      "requires": {"resolved_element": "l2"}
+    },
+    {
+      "id": "alone_path",
+      "label": "独自调查，绕路逃亡",
+      "provides_clues": ["cursed_slab_found"],
+      "mood": "panic",
+      "next_location_type": "outdoor",
+      "requires": {"resolved_element": "l1"}
+    }
+  ],
+  "scenes": [
+    {
+      "id": "library",
+      "title": "惠特利的图书室",
+      "part": 1,
+      "scene_type": "书房",
+      "description": "图书室比门厅更加阴暗。高至天花板的书架塞满了发霉的书籍，大部分是考古学论文和中东旅行日志。一张翻倒的书桌旁散落着笔记，墨迹早已干涸。角落里立着一个上锁的铁柜。",
+      "npcs_here": ["老管理员"],
+      "opportunities": [
+        {"id": "l1", "text": "翻阅散落的笔记（图书馆使用）——记录了一次中东考古的发现：'碑文描述了一个沉睡在深渊中的存在，它等待被唤醒。'"},
+        {"id": "l2", "text": "撬开上锁的铁柜（锁匠/力量）——里面是惠特利的日记，最后几页越来越疯狂。取得管理员信任。"},
+        {"id": "l3", "text": "检查书架上的特殊收藏（克苏鲁神话）——几本不该存在于私人藏书室的禁书"}
+      ],
+      "secrets": [
+        {"id": "ls1", "text": "惠特利的日记记载：他带回了'一件不应该被带出沙漠的东西'——一块刻着召唤咒语的黑色石板"},
+        {"id": "ls2", "text": "管理员认识惠特利。他是家族仅存的仆人，二十年来守着这栋屋子，等待有人来终结这一切"}
+      ],
+      "leads_to": ["basement"],
+      "guidance": "管理员是关键 NPC。l2 解锁信任路线→地下室决战；l1 解锁独自路线→逃亡。两条路线互斥。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "老管理员",
+      "description": "驼背、瘦削的老人，穿着一件褪色的管家制服。他说话声音很轻，总是避免直视对方。二十年来独自守着空屋，精神已接近崩溃边缘。",
+      "attitude": "wary"
+    }
+  ],
+  "variance": {
+    "npc_variants": [
+      {
+        "npc_name": "老管理员",
+        "variants": [
+          {
+            "attitude": "wary",
+            "description": "警惕地看着你们，手里紧握着一把老式猎枪",
+            "secret": "他知道地下室有什么，但二十年的恐惧让他不敢说"
+          },
+          {
+            "attitude": "friendly",
+            "description": "几乎是哭求着迎接你们，像是看到了救星",
+            "secret": "他其实是惠特利失踪当晚唯一的幸存者——因为他逃跑了，二十年来活在愧疚中"
+          },
+          {
+            "attitude": "neutral",
+            "description": "面无表情地坐在角落，像是早已放弃了希望",
+            "secret": "他已经疯了。他有时会跟'不存在的人'说话——那是二十年前死去的屋主"
+          }
+        ]
+      }
+    ]
+  }
+}

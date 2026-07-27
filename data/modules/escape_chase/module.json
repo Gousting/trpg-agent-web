@@ -1,0 +1,58 @@
+{
+  "id": "escape_chase",
+  "title": "逃亡·暗夜追逐",
+  "genre": ["horror", "chase"],
+  "difficulty": 3,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": ["outdoor"],
+    "required_clues": ["cursed_slab_found"],
+    "forbidden_clues": ["keepers_trust"],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "survived",
+      "label": "逃出生天",
+      "provides_clues": ["barely_escaped"],
+      "mood": "terror",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "woods",
+      "title": "古屋外的密林",
+      "part": 2,
+      "scene_type": "森林",
+      "description": "你们跌跌撞撞冲出古屋，背后的门在巨响中炸裂。身后传来不属于这个世界的嘶吼——深渊之子追出来了。月光稀疏地穿过树冠，密林中无数双眼睛在黑暗中闪烁。你们只有一条路：跑。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "e1", "text": "寻找掩护（侦查）——密林中有几块巨石可以暂时藏身"},
+        {"id": "e2", "text": "制造干扰（敏捷/妙手）——扔出东西引开追猎者的注意"},
+        {"id": "e3", "text": "回头看一眼（意志/SAN）——确认追猎者的距离，但不稳定的视线可能带来精神冲击"}
+      ],
+      "secrets": [
+        {"id": "es1", "text": "深渊之子在离开祭坛后会逐渐虚弱——如果能撑过最初的三轮，它就会被迫退回地下室"}
+      ],
+      "leads_to": [],
+      "san_check": {"trigger": "回头确认追猎者的距离", "level": "MAJOR"},
+      "guidance": "追逐场景。每轮深渊之子进行一次追击检定（敏捷50）。调查员可以尝试藏匿、干扰或硬跑。3轮后深渊之子自动退散。"
+    }
+  ],
+  "npcs": [],
+  "variance": {
+    "mood_variants": [
+      {
+        "scene_id": "woods",
+        "base_description": "你们跌跌撞撞冲出古屋，冲进密林。月光稀疏，树影幢幢。",
+        "variable_details": [
+          "林间的雾气越来越浓，能见度不足十米。",
+          "远处的灌木丛中传来树枝折断的声音——它在靠近。",
+          "你们脚下的地面突然变得泥泞，每一步都在消耗体力。",
+          "头顶的乌鸦突然集体飞起，凄厉地鸣叫着。"
+        ]
+      }
+    ]
+  }
+}

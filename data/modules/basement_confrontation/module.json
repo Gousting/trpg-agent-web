@@ -1,0 +1,70 @@
+{
+  "id": "basement_confrontation",
+  "title": "古屋调查·地下室祭坛",
+  "genre": ["horror", "climax"],
+  "difficulty": 3,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": ["basement", "indoor"],
+    "required_clues": ["cursed_slab_found"],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "摧毁祭坛",
+      "provides_clues": ["ritual_stopped", "slab_destroyed"],
+      "mood": "relief",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "basement",
+      "title": "地下室祭坛",
+      "part": 2,
+      "scene_type": "地下密室",
+      "description": "石阶盘绕而下，空气越来越潮湿、腥甜。地下室的中央，一根根人类的肋骨和早已无法辨认的腐烂组织堆砌成一座扭曲的祭坛。祭坛顶部嵌着一块黑色石板，表面闪烁着不祥的暗光。祭坛周围的液体正在自行沸腾，某种巨大的、不属于这个维度的存在正挣扎着从中成型。",
+      "npcs_here": ["深渊之子"],
+      "opportunities": [
+        {"id": "b1", "text": "检查祭坛上的黑色石板（克苏鲁神话）——上面的铭文是召唤咒语，大声诵读会完成召唤"},
+        {"id": "b2", "text": "寻找摧毁石板的方法（图书馆使用/知识）——高温或足够强的物理冲击可以破坏它"},
+        {"id": "b3", "text": "念出驱逐咒语（克苏鲁神话/意志）——石板背面刻着反向铭文，可以逆转召唤"}
+      ],
+      "secrets": [
+        {"id": "bs1", "text": "石板是活体——它会主动影响接近者的心智。每轮接近祭坛的人需要 SAN 检定"}
+      ],
+      "leads_to": [],
+      "san_check": {"trigger": "第一次看到祭坛和深渊之子", "level": "MAJOR"},
+      "combat": {"trigger": "接近祭坛 3 米以内", "enemy": "深渊之子", "hp": 18, "armor": 2},
+      "guidance": "高潮场景。给调查员 3-4 轮时间。深渊之子每轮变强。破坏石板或念出驱逐咒语即胜利。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "深渊之子",
+      "description": "一团由触手、眼球和半透明薄膜组成的巨大畸形体，不断发出婴儿般的呜咽声和成年男性的低吼。尚未完全进入这个世界，但每分每秒都在变得更具体。",
+      "hp": 18,
+      "armor": 2,
+      "attacks": [
+        {"name": "触手抽击", "skill": 50, "damage": "1d6+1"},
+        {"name": "心灵震爆", "skill": 70, "damage": "0", "effect": "san_loss", "san_level": "MINOR"}
+      ]
+    }
+  ],
+  "variance": {
+    "mood_variants": [
+      {
+        "scene_id": "basement",
+        "base_description": "石阶盘绕而下，空气越来越潮湿。地下室的中央堆砌着一座扭曲的祭坛。",
+        "variable_details": [
+          "祭坛周围的蜡烛自行点燃，火焰是绿色的。",
+          "墙壁上刻满了螺旋状的符咒，在烛光下似乎在缓慢转动。",
+          "地面的积水倒映着不存在的光源。",
+          "空气中充满低频的震动，你能感觉到它在胸腔里共鸣。"
+        ]
+      }
+    ]
+  }
+}
