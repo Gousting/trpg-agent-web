@@ -9,15 +9,17 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import shutil
 from datetime import datetime
 from pathlib import Path
 
+import edge_tts
 import httpx
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -65,6 +67,23 @@ app.mount("/images/scenes", StaticFiles(directory=str(SCENES_DIR)), name="scenes
 app.mount("/images/characters", StaticFiles(directory=str(CHARS_DIR)), name="characters")
 app.mount("/audio/bgm", StaticFiles(directory=str(BGM_DIR)), name="bgm")
 
+# ── TTS ───────────────────────────────────────
+TTS_DIR = DATA_DIR / "tts_cache"
+TTS_DIR.mkdir(exist_ok=True)
+TTS_VOICE = "zh-CN-YunyangNeural"  # KP 旁白沉稳男声
+
+# ── BGM mood 映射 ──────────────────────────────
+_bgm_mappings: dict[str, str] = {}
+_bgm_default = "exploration"
+try:
+    _bgm_data = json.loads((DATA_DIR / "bgm_mappings.json").read_text(encoding="utf-8"))
+    _bgm_mappings = _bgm_data.get("mappings", {})
+    _bgm_default = _bgm_data.get("default", "exploration")
+except Exception:
+    pass
+
+app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
+
 
 @app.get("/", response_class=HTMLResponse)
 async def index() -> str:
@@ -97,28 +116,73 @@ def _state_snapshot(session: Session) -> dict:
 
 async def _chat_stream(client: OllamaClient, system: str, user_msg: str,
                        temperature: float = 0.8, max_tokens: int = 2000):
-    """流式聊天，yield token。"""
+    """流式聊天，yield token（已过滤 GS 标记）。"""
+    buf = ""
     try:
         async for token in client.chat_stream(
             system, [{"role": "user", "content": user_msg}],
             options={"temperature": temperature, "num_predict": max_tokens},
         ):
-            yield token
+            buf += token
+            # 移除 <!--GS ... --> 标记块
+            while True:
+                start = buf.find("<!--GS")
+                if start == -1:
+                    break
+                end = buf.find("-->", start)
+                if end == -1:
+                    break  # 标记未闭合，等更多 token
+                buf = buf[:start] + buf[end + 3:]
+            # 如果缓冲区以 <!--GS 开头，说明正在标记块内，暂不输出
+            if buf.startswith("<!--GS"):
+                continue
+            # 输出安全部分（不包含待定标记）
+            # 检查是否以 <!-- 开头（可能是未闭合的 GS）
+            marker_start = buf.find("<!--GS")
+            if marker_start > 0:
+                safe = buf[:marker_start]
+                buf = buf[marker_start:]
+                if safe:
+                    yield safe
+            elif marker_start == -1:
+                yield buf
+                buf = ""
     except Exception as e:
         yield f"\n[错误] {e}"
+    if buf and "<!--GS" not in buf:
+        yield buf
 
 
-def _match_scene(text: str) -> dict | None:
-    """从叙述文本匹配场景图。"""
+def _match_scene(text: str, *, min_score: float = 1.5) -> dict | None:
+    """从叙述文本匹配场景图，低分不返回。"""
     try:
         sm = _scene_matcher()
-        matches = sm.match(text, top_k=1)
+        matches = sm.match(text, top_k=1, min_score=min_score)
         if matches:
             m = matches[0]
-            return {"image": m.filename, "location": m.location, "mood": m.mood}
+            return {"image": m.filename, "location": m.location, "mood": m.mood, "score": m.score}
     except Exception:
         pass
     return None
+
+
+async def _speak(text: str) -> str | None:
+    """生成 TTS 音频，返回相对 URL 路径。"""
+    h = hashlib.md5(text.encode()).hexdigest()[:12]
+    out = TTS_DIR / f"{h}.mp3"
+    if out.exists() and out.stat().st_size > 1000:
+        return f"/audio/tts/{h}.mp3"
+    try:
+        comm = edge_tts.Communicate(text, TTS_VOICE)
+        await comm.save(str(out))
+        return f"/audio/tts/{h}.mp3" if out.exists() else None
+    except Exception:
+        return None
+
+
+def _bgm_for_mood(mood: str) -> str:
+    """根据场景氛围匹配 BGM 音轨名。"""
+    return _bgm_mappings.get(mood, _bgm_default)
 
 
 # ── SSE 事件流 ──────────────────────────────────
@@ -194,17 +258,32 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         opening_text = f"你们站在{current_room.name}中。{current_room.description}"
     session.record_turn("(游戏开始)", opening_text)
 
-    # 场景匹配
-    scene_info = _match_scene(opening_text)
+    # 场景匹配 + TTS + BGM（开场用低阈值确保有初始场景）
+    scene_info = _match_scene(opening_text, min_score=0)
+    if scene_info is None:
+        # 兜底：随机选一张场景图作为初始背景
+        sm = _scene_matcher()
+        if sm._images:
+            import random
+            fname = random.choice(list(sm._images.keys()))
+            tags = sm._images[fname]
+            scene_info = {"image": fname, "location": tags.get("location", ""),
+                          "mood": (tags.get("mood", [""]) or [""])[0], "score": 0}
+    audio_url = await _speak(opening_text[:500])
+    bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else _bgm_default
     yield _sse("kp_stream_end", {
         "state": _state_snapshot(session),
         "scene": scene_info,
+        "audio_url": audio_url,
+        "bgm_track": bgm_track,
     })
     await asyncio.sleep(0.5)
 
     # ── 游戏循环 ──────────────────────────────
     last_narration = opening_text
     player_order = [inv["name"] for inv in INVESTIGATORS]
+    current_bgm = bgm_track
+    current_scene = scene_info  # 跟踪当前场景，避免无意义切换
 
     for turn in range(turns):
         speaker = player_order[turn % len(player_order)]
@@ -214,17 +293,17 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
         # ── 玩家行动 ───────────────────────────
         if mode == "ai":
-            action = await _ai_player_turn(
-                host, player_model, session, inv_data, inv_state, rc,
-                last_narration, speaker,
-            )
-            # yield player turn via SSE
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
-            for chunk in _split_for_stream(action):
-                yield _sse("player_token", {"text": chunk, "speaker": speaker})
-                await asyncio.sleep(0.02)
+            action = ""
+            async for token in _ai_player_stream(host, player_model, inv_data, inv_state,
+                                                  rc, last_narration, speaker):
+                action += token
+                yield _sse("player_token", {"text": token, "speaker": speaker})
+            if not action.strip():
+                action = f"（{speaker} 谨慎地观察四周）"
+                yield _sse("player_token", {"text": action, "speaker": speaker})
             yield _sse("player_stream_end", {"speaker": speaker})
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(0.2)
         else:
             # 人类模式：等待前端发来玩家输入
             yield _sse("await_player", {
@@ -235,6 +314,11 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
         # ── 房间物品拾取 ───────────────────────
         items_picked = _handle_pickup(dmap, inv_state, action)
+        if items_picked:
+            yield _sse("item_pickup", {
+                "speaker": speaker, "items": items_picked,
+                "inventory": list(inv_state.inventory),
+            })
 
         # ── 检定 ───────────────────────────────
         dice_context, dice_result = "", {}
@@ -274,16 +358,38 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         session.record_turn(action, narration, speaker=speaker)
         last_narration = narration
 
-        # 场景匹配
-        scene_info = _match_scene(narration)
+        # 场景匹配 + TTS + BGM（只在真正变化时切换）
+        # 没有当前场景时降低阈值，确保至少有一张图
+        threshold = 0 if current_scene is None else 1.5
+        scene_info = _match_scene(narration, min_score=threshold)
+        audio_url = await _speak(narration[:500])
+
+        # 只有场景图变化或房间切换时才更新
+        scene_changed = (
+            scene_info is not None
+            and (current_scene is None or scene_info["image"] != current_scene.get("image"))
+        )
+        if scene_changed:
+            current_scene = scene_info
+
+        bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else current_bgm
+        bgm_changed = bgm_track != current_bgm
+        if bgm_changed:
+            current_bgm = bgm_track
 
         # 房间移动检测
         room_change = _detect_move(dmap, action)
+        if room_change:
+            # 房间变了，强制更新场景
+            scene_changed = True
 
         yield _sse("kp_stream_end", {
             "state": _state_snapshot(session),
-            "scene": scene_info,
+            "scene": current_scene if scene_changed else None,
+            "audio_url": audio_url,
+            "bgm_track": bgm_track if bgm_changed else None,
             "room_change": room_change,
+            "room": rc,
         })
 
         if room_change:
@@ -296,10 +402,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     yield _sse("done", {"summary": session.state.scene_summary()})
 
 
-async def _ai_player_turn(host: str, player_model: str, session: Session,
-                          inv_data: dict, inv_state, rc: dict,
-                          last_narration: str, speaker: str) -> str:
-    """AI 扮演玩家生成行动文本。"""
+async def _ai_player_stream(host: str, player_model: str,
+                           inv_data: dict, inv_state, rc: dict,
+                           last_narration: str, speaker: str):
+    """流式生成 AI 玩家行动，逐 token yield。"""
     skills_str = json.dumps(inv_state.skills, ensure_ascii=False)
     items_str = ", ".join(inv_state.inventory) if inv_state.inventory else "无"
     player_system = (
@@ -313,19 +419,15 @@ async def _ai_player_turn(host: str, player_model: str, session: Session,
     player_msg = f"主持人叙述：{last_narration[:600]}\n\n{inv_data['name']}的行动："
     player_client = OllamaClient(host, player_model, num_ctx=4096, timeout=120)
     try:
-        action = await player_client.chat(player_system,
-                                          [{"role": "user", "content": player_msg}],
-                                          options={"temperature": 0.9, "num_predict": 2000})
-        await player_client.aclose()
-        return action.strip() if action.strip() else f"（{speaker} 谨慎地观察四周）"
+        async for token in player_client.chat_stream(
+            player_system, [{"role": "user", "content": player_msg}],
+            options={"temperature": 0.9, "num_predict": 2000},
+        ):
+            yield token
     except Exception:
+        pass
+    finally:
         await player_client.aclose()
-        return f"（{speaker} 谨慎地观察四周）"
-
-
-def _split_for_stream(text: str, chunk_size: int = 3) -> list[str]:
-    """把文本切成小块用于流式输出。"""
-    return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
 
 
 def _handle_pickup(dmap: DungeonMap, inv_state, action: str) -> list[str]:

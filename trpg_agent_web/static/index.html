@@ -191,6 +191,25 @@
   .log-msg.item { color: #50c878; text-align: center; font-size: 11px; }
   .log-msg.damage { color: #e05050; text-align: center; font-size: 11px; }
 
+  /* 物品弹出卡 */
+  #item-popup {
+    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+    display: none; align-items: center; gap: 10px; z-index: 6;
+    background: rgba(10,8,6,0.92); border: 1px solid rgba(201,168,76,0.3);
+    padding: 10px 20px; border-radius: 4px; pointer-events: none;
+  }
+  #item-popup.show { display: flex; animation: dicePop 0.4s ease-out; }
+  #item-popup .item-icon { font-size: 28px; }
+  #item-popup .item-text { color: var(--gold); font-size: 13px; font-family: var(--font-display); }
+  /* 房间物品 */
+  #room-items {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    display: none; gap: 8px; z-index: 6; font-size: 10px; color: var(--text-dim);
+    background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 2px; pointer-events: none;
+  }
+  #room-items.show { display: flex; }
+  #room-items::before { content: '🔍'; }
+
   /* BGM 指示器 */
   #bgm-indicator {
     position: fixed; top: 42px; right: 16px; z-index: 20;
@@ -228,6 +247,10 @@
 <!-- BGM 指示器 -->
 <div id="bgm-indicator">氛圍音軌</div>
 
+<!-- 音频元素 -->
+<audio id="bgm-audio" loop preload="none"></audio>
+<audio id="tts-audio" preload="none"></audio>
+
 <!-- 左侧：场景舞台 -->
 <div id="scene">
   <div id="scene-bg">
@@ -242,6 +265,13 @@
     <div id="dice-circle">—</div>
     <div id="dice-skill"></div>
   </div>
+  <!-- 物品弹出卡 -->
+  <div id="item-popup">
+    <div class="item-icon">📦</div>
+    <div class="item-text"></div>
+  </div>
+  <!-- 房间物品提示 -->
+  <div id="room-items"></div>
 </div>
 
 <!-- 右侧面板 -->
@@ -377,6 +407,12 @@ function startGame() {
       document.getElementById('scene-label').textContent = d.scene.location || '';
       document.getElementById('scene-mood').textContent = d.scene.mood || '';
     }
+    // TTS 旁白
+    if (d.audio_url) playTTS(d.audio_url);
+    // BGM 切换（只在变化时）
+    if (d.bgm_track) switchBGM(d.bgm_track);
+    // 房间物品
+    if (d.room) updateRoomItems(d.room);
     currentTurn++;
     document.getElementById('progress-bar').style.width = (currentTurn/totalTurns*100)+'%';
     streamTarget = null;
@@ -409,6 +445,12 @@ function startGame() {
   es.addEventListener('item_pickup', (e) => {
     const d = JSON.parse(e.data);
     addLog('item', '', '📦 ' + d.speaker + ' 獲得: ' + d.items.join(', '));
+    showItemPopup(d.items.join('、'));
+    // 更新角色物品栏
+    if (d.inventory) {
+      const invEl = document.getElementById('inv-' + d.speaker);
+      if (invEl) invEl.innerHTML = '🎒 ' + d.inventory.join(' · ');
+    }
   });
 
   es.addEventListener('damage', (e) => {
@@ -497,6 +539,55 @@ function showDiceOverlay(d) {
 function hideDice() {
   document.getElementById('dice-overlay').classList.remove('show');
   document.getElementById('dice-mask').classList.remove('show');
+}
+
+/* ── TTS 旁白播放 ── */
+function playTTS(url) {
+  const audio = document.getElementById('tts-audio');
+  audio.src = url;
+  audio.play().catch(() => {});
+}
+
+/* ── BGM 切换（交叉淡入淡出）── */
+let currentBGMTrack = '';
+function switchBGM(track) {
+  if (track === currentBGMTrack) return;
+  currentBGMTrack = track;
+  const audio = document.getElementById('bgm-audio');
+  const ind = document.getElementById('bgm-indicator');
+  const src = '/audio/bgm/' + track + '.mp3';
+  if (audio.src.endsWith(src)) return;
+  // 淡出
+  audio.volume = 0;
+  audio.pause();
+  // 切换 + 淡入
+  audio.src = src;
+  audio.volume = 0.25;
+  audio.play().catch(() => {});
+  ind.classList.add('on');
+  ind.textContent = '♪ ' + track;
+  setTimeout(() => { ind.classList.remove('on'); }, 3000);
+}
+
+/* ── 物品弹出卡 ── */
+function showItemPopup(text) {
+  const popup = document.getElementById('item-popup');
+  popup.querySelector('.item-text').textContent = text;
+  popup.classList.remove('show');
+  void popup.offsetWidth;
+  popup.classList.add('show');
+  setTimeout(() => { popup.classList.remove('show'); }, 3000);
+}
+
+/* ── 房间物品 ── */
+function updateRoomItems(room) {
+  const el = document.getElementById('room-items');
+  if (room.items && room.items.length > 0) {
+    el.textContent = ' ' + room.items.join(' · ');
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
 }
 
 /* ── 角色高亮 ── */
