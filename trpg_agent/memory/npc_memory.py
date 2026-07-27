@@ -10,7 +10,7 @@ deterministic propagation, not another LLM call.
 
 Pure functions + one LLM-call wrapper with an injected OllamaClient (testable like
 ``rules/combat.py`` — no Discord, no ``SessionRuntime``). The trigger seam (scene change /
-``wrap up``) and persistence live in :mod:`dmbot.runtime`.
+``wrap up``) and persistence live in the runtime layer.
 """
 
 from __future__ import annotations
@@ -99,7 +99,7 @@ _CHEKHOV_PROMPT_PATH = _PROMPT_PATH.parent / "chekhov_extract_zh.md"
 
 
 def attitude_zh(attitude: str) -> str:
-    """German label for a stored attitude token; an off-scale/legacy value renders verbatim."""
+    """Localized label for a stored attitude token; unknown legacy values render verbatim."""
     key = (attitude or "").strip().lower()
     return _ATTITUDE_ZH.get(key, attitude or "未知")
 

@@ -39,12 +39,16 @@ trpg
 # 或先做离线自检（不连接 Ollama）
 trpg --check --adventure 鬼屋
 
+# 或执行单轮脚本化验证
+trpg --once "陈明检查门厅地板上的拖痕" --adventure 鬼屋
+
 # 或指定模组
 trpg --adventure 鬼屋
 ```
 
 CLI 模式下你会看到一个 KP 和三个调查员在终端里自动跑团，逐轮推进剧情。你随时可以插话接管某个调查员的决策。
 默认读取 `OLLAMA_HOST`、`OLLAMA_MODEL`、`OLLAMA_NUM_CTX` 环境变量；未设置时使用 `http://localhost:11434` 和 `qwen2.5:7b`。
+如需跳过启动时的 Ollama 连通性检查，可追加 `--skip-preflight`。如需保存终端镜像日志，可设置 `TRPG_LOG_FILE=1`。
 
 ## 可选依赖
 
@@ -67,7 +71,7 @@ pip install trpg-agent[test]
 哥特恐怖风浏览器覆盖层，通过 WebSocket 实时推送游戏状态到 OBS：
 
 ```bash
-cd trpg_agent && python3 -m trpg_agent.overlay_server
+python -m trpg_agent.overlay_server
 # 端口 8766，OBS 浏览器源 URL: http://localhost:8766/
 ```
 

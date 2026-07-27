@@ -8,7 +8,7 @@ threads are non-daemon — the interpreter joins them at exit, so a mid-sentence
 
 Two pieces:
 
-- ``progress`` — a singleton :class:`ShutdownProgress`. ``DMBot.close()`` declares the total
+- ``progress`` — a singleton :class:`ShutdownProgress`. The runtime declares the total
   step count, every teardown stage wraps itself in ``progress.step("label")``, and the console
   shows ``[i/n] label ...`` (animated while running, finalised with its duration). Outside a
   shutdown (``begin()`` never called) ``step()`` degrades to a plain log line.

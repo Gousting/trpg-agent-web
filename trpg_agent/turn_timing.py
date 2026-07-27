@@ -1,12 +1,8 @@
-"""Per-DM-turn latency record + the context-budget warning threshold.
+"""Per-turn latency record + the context-budget warning threshold.
 
-Pulled out of :mod:`dmbot.runtime` for context-leanness (ADR 034's pattern): ``_TurnTiming`` is a
 self-contained, state-free logging helper (it threads ``time.monotonic`` timestamps through the turn
-flow and emits one ``[latency]`` line per turn — no ``SessionRuntime`` state), so an agent editing
-the latency/ctx logging no longer pulls the whole session runtime into context. ``runtime`` re-exports
-both names, so ``from ..runtime import _TurnTiming`` keeps working unchanged.
-
-Docs and code are English; game content (what the DM says) stays German (CLAUDE.md).
+flow and emits one ``[latency]`` line per turn — no session runtime state), so an agent editing
+the latency/ctx logging no longer pulls the whole runtime into context.
 """
 
 from __future__ import annotations
@@ -25,7 +21,7 @@ _CTX_WARN_FRACTION = 0.85
 
 @dataclass
 class _TurnTiming:
-    """Per-DM-turn latency record (logging only — no behaviour change, no ADR). Timestamps are
+    """Per-turn latency record (logging only — no behaviour change, no ADR). Timestamps are
     ``time.monotonic`` carried through the existing turn flow (trigger → respond → speak); the
     deltas are emitted as one ``[latency]`` line per turn at the end of ``_deliver_answer``.
 

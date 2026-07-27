@@ -12,6 +12,7 @@ import httpx
 
 from .adventure import Adventure
 from .llm.client import OllamaClient
+from .llm.preflight import check_ollama
 from .llm.sanitize import _sanitize
 from .logsetup import setup_logging
 from .session import Session
@@ -22,6 +23,7 @@ DEFAULT_OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 DEFAULT_OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 DEFAULT_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "4096"))
 DEFAULT_LOG_LEVEL = os.getenv("TRPG_LOG_LEVEL", "INFO")
+DEFAULT_PREFLIGHT = os.getenv("TRPG_PREFLIGHT", "1").lower() not in {"0", "false", "no", "off"}
 _EXIT_COMMANDS = {"/quit", "/exit", "/q"}
 _ADVENTURE_ALIASES = {
     "haunted_house": "haunted_house",
@@ -46,7 +48,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--log-level", default=DEFAULT_LOG_LEVEL, help="日志级别")
     parser.add_argument("--check", action="store_true", help="只做离线自检，不连接 Ollama")
     parser.add_argument("--once", help="执行一轮输入后退出，便于脚本化验证")
+    parser.add_argument("--skip-preflight", action="store_true", help="跳过 Ollama 连通性预检")
     return parser
+
+
+async def _read_user_input(prompt: str) -> str | None:
+    try:
+        return (await asyncio.to_thread(input, prompt)).strip()
+    except EOFError:
+        return None
 
 
 async def _run_turn(
@@ -94,6 +104,9 @@ async def _run_cli(args: argparse.Namespace) -> int:
         session.persist()
         return 0
 
+    if DEFAULT_PREFLIGHT and not args.skip_preflight:
+        check_ollama(args.host, args.model)
+
     client = OllamaClient(host=args.host, model=args.model, num_ctx=args.num_ctx)
     try:
         if args.once:
@@ -106,8 +119,12 @@ async def _run_cli(args: argparse.Namespace) -> int:
         print("输入调查员行动开始跑团；/summary 查看状态，/save 立即保存，/quit 退出。")
         while True:
             try:
-                player_input = input("\n你> ").strip()
-            except EOFError:
+                player_input = await _read_user_input("\n你> ")
+            except KeyboardInterrupt:
+                print("\n收到中断，正在退出。")
+                break
+
+            if player_input is None:
                 print()
                 break
 
@@ -148,7 +165,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(list(argv) if argv is not None else None)
     setup_logging(args.log_level)
     log.info("TRPG Agent 启动中")
-    return asyncio.run(_run_cli(args))
+    try:
+        return asyncio.run(_run_cli(args))
+    except KeyboardInterrupt:
+        print("\n已取消。")
+        return 130
 
 
 if __name__ == "__main__":

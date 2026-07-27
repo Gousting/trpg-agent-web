@@ -1,8 +1,8 @@
-"""DMbot orchestrator — the DM brain that turns player input into a DM answer (Phase 5).
+"""TRPG Agent orchestrator — the core that turns player input into a KP answer (Phase 5).
 
 Wires the LLM layer: buffer the players' transcribed lines per channel, and on a trigger build
 the prompt (system persona + running history + the buffered lines), ask Ollama, and return the
-German DM answer — while keeping a per-channel conversation history.
+Chinese KP answer — while keeping a per-channel conversation history.
 
 Later phases extend the prompt (recap → JSON state → RAG) and add the dice-marker flow; for now
 it is persona + history + the latest player turn. Player lines are buffered from the STT worker
@@ -35,8 +35,8 @@ from .rules.marker import (
 from .rules.profile import SystemProfile
 from .tts.textsplit import has_speakable_content
 
-# Re-exported for back-compat after the pure helpers moved to dmbot/llm/* (ADR 034): tests
-# and DMBrain/StreamAssembler still reference these names from `orchestrator`.
+# Re-exported for back-compat after the pure helpers moved into dedicated modules (ADR 034):
+# tests and DMBrain/StreamAssembler still reference these names from `orchestrator`.
 from .llm.sanitize import (  # noqa: F401
     _ROLE_LABEL,
     _ROLE_LABELS,
@@ -162,8 +162,8 @@ class DMBrain:
         # behind the persona's no-puppeting rule (the live fix; nemo ignores the soft rule).
         self._known_speakers: dict[int, list[str]] = {}
         # Memory (Phase 9): the stored session recap + a compact world-state block, injected into the
-        # system prompt after the persona (docs/conventions.md order: core → tone → recap → JSON state →
-        # history). Set per channel by the cog from the world state, refreshed when state changes.
+        # system prompt after the persona (core → tone → recap → JSON state → history). Set per
+        # channel by the cog from the world state, refreshed when state changes.
         self._recap: dict[int, str] = {}
         self._state_summary: dict[int, str] = {}
         # The adventure block (stage 1+2 of the hybrid, ADR 019): always-on adventure summary +
@@ -342,7 +342,7 @@ class DMBrain:
         check: Callable[[str], list[Violation]] | None,
     ) -> str:
         """The consistency guard (ADR 045): check the answer against the world state and, on a
-        violation, regenerate **once** with a concrete German correction appended (the echo/intro
+        violation, regenerate **once** with a concrete correction appended (the echo/intro
         nudge mechanism). Strictly fail-open — a guard error, an empty retry or a still-violating
         retry all deliver an answer anyway; the guard never blocks the session. Max one retry.
 
@@ -849,7 +849,7 @@ class DMBrain:
         return req
 
     def add_test_result(self, channel_id: int, line: str) -> None:
-        """Buffer a rolled test result (a German summary line) to feed the next turn so the DM
+        """Buffer a rolled test result (a one-line summary) to feed the next turn so the DM
         narrates its consequence (architecture §9: 'back into the next prompt')."""
         self._test_results.setdefault(channel_id, []).append(line)
 
@@ -900,7 +900,7 @@ class DMBrain:
             self._npc_memory_block.pop(channel_id, None)
 
     async def summarize(self, channel_id: int, *, prior_recap: str = "") -> str | None:
-        """Produce a German "Was bisher geschah" recap from this channel's history (the `wrap up`
+        """Produce a recap from this channel's history (the `wrap up`
         trigger, D14). Code stores the returned string in the world state; this only generates it.
         ``None`` if there's no history to summarise.
 
@@ -975,7 +975,7 @@ class DMBrain:
         self._last_turn.pop(channel_id, None)
 
     async def answer_rules(self, question: str, context: str, *, system_name: str) -> str | None:
-        """Answer a player's rules question (``!rules <frage>``) in German, grounded ONLY in the
+        """Answer a player's rules question (``!rules <frage>``), grounded ONLY in the
         retrieved rulebook excerpts ``context``. The rulebook is English layout-soup, so the model
         translates + condenses it — but must not invent rules (golden rule #7): if the excerpts
         don't cover it, it says so. Stateless (no channel history). ``None`` on an empty reply."""

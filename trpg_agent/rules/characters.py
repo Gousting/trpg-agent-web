@@ -160,7 +160,7 @@ class CharacterStore:
         )
 
     def intro_roster_de(self) -> str:
-        """A compact German party roster for the one-time ``!intro`` opening monologue (ADR 031):
+        """A compact party roster for the one-time ``!intro`` opening monologue (ADR 031):
         one bullet per character with the flavour the DM needs to give each figure a personal beat —
         concept, then (full depth, Tobi's choice) origin, faction, distinguishing marks, goals,
         connections and character arc. Read from each :class:`Character`'s ``raw`` source dict and
@@ -171,7 +171,7 @@ class CharacterStore:
         private goals."""
         if not self._by_name:
             return ""
-        # (raw field, German label) appended after the concept lead descriptor, each present field as
+        # (raw field, display label) appended after the concept lead descriptor, each present field as
         # "Label: value"; whitespace in multi-line sheet fields (goals/arc) is collapsed to one line.
         fields = [
             ("origin", "Herkunft"),

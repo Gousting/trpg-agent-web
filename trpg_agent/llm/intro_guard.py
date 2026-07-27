@@ -42,7 +42,7 @@ def is_weak_intro(text: str, roster_names: list[str]) -> bool:
         first = _first_name(name)
         if not first:
             continue
-        # Tolerate the German genitive/possessive 's' ("Seskins Hand", "Jürgens Blick") so a good
+        # Tolerate possessive-name variants with a trailing 's' ("Seskins Hand", "Jürgens Blick") so a good
         # opening that only names a figure in that form isn't judged weak and regenerated for nothing.
         if not re.search(rf"\b{re.escape(first.casefold())}s?\b", low):
             return True

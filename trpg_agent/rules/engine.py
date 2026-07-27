@@ -2,8 +2,8 @@
 
 Golden rule #2: dice (RNG) **and** their resolution (success, degrees, crit, damage) are
 computed here, never by the LLM. The engine is system-agnostic: it takes a numeric target
-and a :class:`~dmbot.rules.profile.SystemProfile` and applies the profile's resolution kind.
-Imperium Maledictum (1d100 roll-under, SL = tens-difference) is the first profile; other
+and a :class:`~trpg_agent.rules.profile.SystemProfile` and applies the profile's resolution kind.
+The current legacy profile set still includes Imperium-style helpers; other
 systems are other profiles plugged into ``RESOLVERS``.
 
 Everything is pure and takes an explicit ``rng: random.Random`` (default a module-level
@@ -184,9 +184,7 @@ def _face_str(face: int) -> str:
 def describe_result_de(
     result: TestResult, *, skill: str, character: str | None = None, difficulty: str | None = None
 ) -> str:
-    """A German one-line summary, in the GM-rolls-for-the-player style the table asked for
-    (open item K): "🎲 Tobi auf Wahrnehmung (Ziel 35): 23 — Erfolg, 1 EG." Feeds back into the
-    DM context so the model narrates the consequence."""
+    """A one-line roll summary fed back into model context so the consequence can be narrated."""
     who = character or "Wurf"
     diff = f", {difficulty}" if difficulty else ""
     head = f"🎲 {who} auf {skill}{diff} (Ziel {result.target}): {_face_str(result.roll)}"
@@ -235,9 +233,7 @@ def describe_damage_de(
     max_wounds: int,
     downed: bool,
 ) -> str:
-    """A German one-line damage summary that feeds back so the DM narrates the consequence:
-    "💥 Vask trifft Kultist mit Kettenschwert: 8 + 2 EG − 3 Soak = 7 Wunden → Kultist 3/10."
-    """
+    """A one-line damage summary that feeds back so the consequence can be narrated."""
     who = attacker or "攻击方"
     weap = f" mit {weapon}" if weapon else ""
     sl = f" + {dmg.success_level} EG" if dmg.success_level else ""
@@ -338,7 +334,7 @@ class TableOutcome:
     bonus: int       # +10 per Warp Charge over threshold (Perils) / shed (Phenomena)
     total: int       # roll + bonus — the value actually looked up
     name: str        # the effect's name, e.g. "Backlash"
-    effect: str      # the German effect text the DM narrates
+    effect: str      # the effect text the DM narrates
     corruption: int  # Corruption gained (Perils table; 0 for Phenomena)
     table: str       # "perils" | "phenomena"
 
@@ -395,9 +391,11 @@ def resolve_phenomena(
 
 
 def describe_manifest_de(result: ManifestResult, *, character: str | None = None) -> str:
-    """German one-line Manifest summary fed back so the DM narrates the power's effect:
-    "🌀 Mortn manifestiert Smite (Ziel 35): 23 — Erfolg, 1 EG · Warp 2/4." Marks Push, Critical,
-    Fumble and a Threshold breach so the model knows what just happened in the Warp."""
+    """One-line Manifest summary fed back so the power's effect can be narrated.
+
+    Marks Push, Critical, Fumble and a Threshold breach so the model knows what just happened in
+    the Warp.
+    """
     who = character or "Psioniker"
     t = result.test
     head = f"🌀 {who} manifestiert {result.power} (Ziel {t.target}): {_face_str(t.roll)}"
@@ -421,7 +419,7 @@ def describe_manifest_de(result: ManifestResult, *, character: str | None = None
 
 
 def describe_perils_de(outcome: TableOutcome, *, character: str | None = None) -> str:
-    """German one-line consequence summary for a Perils/Phenomena roll, fed back to the DM."""
+    """One-line consequence summary for a Perils/Phenomena roll, fed back to the narrator."""
     who = character or "Der Psioniker"
     label = "亚空间危机" if outcome.table == "perils" else "灵能现象"
     corr = f" · +{outcome.corruption} Verderbnis" if outcome.corruption else ""

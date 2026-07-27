@@ -1,12 +1,11 @@
-"""Session recaps — the 'narrative thread' half of memory (architecture §7b, golden rule #3).
+"""Session recaps — the narrative-thread half of memory (architecture §7b, golden rule #3).
 
-The LLM *summarises* the session into a "Was bisher geschah" recap; code *stores* it (in the world
-state) and re-injects it at the front of the next session's prompt. This keeps the story coherent
-across restarts without dragging the whole raw history along.
+The LLM summarises the session into a recap; code stores it in world state and re-injects it at the
+front of the next session's prompt. This keeps the story coherent across restarts without dragging
+the whole raw history along.
 
-This module is the pure prompt-building half (Chinese system prompt + history → a transcript the
-summariser reads). The LLM call itself lives in :meth:`dmbot.orchestrator.DMBrain.summarize`, which
-owns the Ollama client and the per-channel history.
+This module only builds recap prompts and recap input text. The actual LLM call is handled by the
+runtime layer that owns the Ollama client and the per-channel history.
 """
 
 from __future__ import annotations
@@ -26,14 +25,15 @@ RECAP_SYSTEM_ZH = (
 
 
 def build_recap_user(history: list[dict[str, str]], prior_recap: str = "") -> str:
-    """Render the per-channel chat history into a transcript for the summariser. Player turns are
-    labelled ``玩家``, the DM's narration ``主持人``; ``[Würfel]``/``💥`` result lines that
-    were fed back are kept (they mark what happened mechanically).
+    """Render per-channel chat history into a transcript for the summariser.
 
-    ``prior_recap`` makes the recap *cumulative* (the auto-compaction trigger, D56): when the running
-    history is about to be cleared, an earlier recap already covers what scrolled out of it. We feed
-    that prior recap in as the lead-in so the new recap *supersedes and extends* it — nothing already
-    summarised is lost. Empty when there's no prior recap (the plain `!wrap up` case)."""
+    Player turns are labelled ``玩家`` and KP narration ``主持人``; result lines fed back into the
+    turn are kept because they mark what happened mechanically.
+
+    ``prior_recap`` makes the recap cumulative: when running history is about to be cleared, an
+    earlier recap already covers what scrolled out. Feeding it back in ensures the new recap
+    supersedes and extends the old one instead of losing previously summarised content.
+    """
     lines: list[str] = []
     for msg in history:
         role = msg.get("role")

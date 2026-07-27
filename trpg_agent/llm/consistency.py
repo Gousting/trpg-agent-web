@@ -33,8 +33,8 @@ if TYPE_CHECKING:  # duck-typed at runtime — keeps llm/ decoupled from memory/
 
 @dataclass(frozen=True)
 class Violation:
-    """One consistency breach: ``kind`` is ``"dead"`` or ``"absent"``; ``hint_de`` is the
-    concrete German correction the retry prompt carries."""
+    """One consistency breach: ``kind`` is ``"dead"`` or ``"absent"``; ``hint_de`` carries the
+    concrete correction text appended to the retry prompt."""
 
     kind: str
     npc: str
@@ -192,7 +192,6 @@ def check(text: str, world_state: WorldState | None, scene: Scene | None) -> lis
 
 
 def retry_nudge_de(violations: list[Violation]) -> str:
-    """The German correction appended to the regenerate prompt (same mechanism as the
-    echo/intro nudges): concrete, one line per violation."""
+    """Build the correction text appended to the regenerate prompt, one line per violation."""
     hints = " ".join(v.hint_de for v in violations)
     return f"KORREKTUR: Deine Antwort widersprach dem Spielzustand. {hints}"

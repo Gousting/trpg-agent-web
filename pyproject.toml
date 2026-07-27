@@ -39,6 +39,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["trpg_agent"]
-
-[tool.uv]
-environments = ["sys_platform == 'linux'"]

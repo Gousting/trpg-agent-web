@@ -1,6 +1,6 @@
 """Phase 1 全链路集成测试 — 模拟一次 COC 跑团对话。
 
-用法: uv run python tests/test_pipeline.py
+用法: python -m tests.test_pipeline
 前提: Ollama 运行中；可通过 OLLAMA_HOST / OLLAMA_MODEL 覆盖默认配置。
 """
 

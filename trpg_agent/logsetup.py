@@ -1,26 +1,26 @@
-"""Console + file logging for DMbot.
+"""Console + file logging for TRPG Agent.
 
 The **console** is curated for reading during play: a green theme (dark "diff added-line"
 green) where transcripts (``📝``) render as a chat layout — speaker name in bright green, the
 line in green — and the high-frequency pipeline chatter (the ``PCM ⟳`` heartbeats,
 faster-whisper's per-utterance lines) is hidden from the console.
 
-Two **files** (both opt-in via ``DM_LOG_FILE=1``, UTF-8, both kept token-light so they can be
+Two **files** (both opt-in via ``TRPG_LOG_FILE=1``, UTF-8, both kept token-light so they can be
 pasted whole when debugging):
 - ``logs/terminal.log`` — a plain (no-ANSI) **mirror of exactly what the console shows**, **reset
   on every start** (it only ever holds the current run; ``debug.log`` stays append).
 - ``logs/debug.log`` — **more** detail for debugging (third-party INFO like the ``httpx`` request
   lines, full tracebacks), but the 2 s ``PCM ⟳`` heartbeat flood is collapsed to ~one-in-N so it
-  stays small. This replaces the old single ``dmbot.log`` (which kept the heartbeat torrent and was
+    stays small. This replaces the old single project log (which kept the heartbeat torrent and was
   unpasteable).
 
-ANSI colours are enabled on the Windows console via ``colorama.just_fix_windows_console()``
-(turns on virtual-terminal processing for the conhost that ``start_dmbot.bat`` opens).
+ANSI colours are enabled on the Windows console via ``colorama.just_fix_windows_console()``.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import re
 import shutil
 import textwrap
@@ -58,10 +58,21 @@ _NAME_W = 12
 _GAP = "  "
 
 
+def _env_flag(*names: str) -> bool:
+    for name in names:
+        value = os.getenv(name)
+        if value is None:
+            continue
+        return value.lower() not in {"0", "false", "no", "off", ""}
+    return False
+
+
 def _short_name(name: str) -> str:
-    """Trim the noisy ``dmbot.`` package prefix from a logger name so it costs fewer tokens when a
-    log is pasted (``dmbot.voice.delivery`` → ``voice.delivery``). Third-party names (httpx,
-    faster_whisper, discord.*) are left intact — there the full path tells you who logged it."""
+    """Trim the app package prefix from a logger name so pasted logs stay token-light.
+
+    Third-party names (httpx, faster_whisper, discord.*) are left intact — there the full path
+    tells you who logged it.
+    """
     for prefix in _APP_LOGGER_PREFIXES:
         dotted = f"{prefix}."
         if name.startswith(dotted):
@@ -118,7 +129,7 @@ class _ConsoleFormatter(logging.Formatter):
         if msg.startswith("logged in as"):  # the startup "ready" line (__main__) — a bit brighter
             return f"{_DIM}{_GREEN}{ts}{_RESET}{_GAP}{_BGREEN}{msg}{_RESET}"
 
-        # INFO: the curated console only shows dmbot.* lines (see _ConsoleNoiseFilter), so the logger
+        # INFO: the curated console only shows app logs (see _ConsoleNoiseFilter), so the logger
         # name is redundant noise — drop it. The message (usually emoji-prefixed) stands on its own,
         # and pasted logs stay token-light.
         return f"{_DIM}{_GREEN}{ts}  {msg}{_RESET}"
@@ -137,8 +148,8 @@ class _PlainMirrorFormatter(_ConsoleFormatter):
 
 
 class _DebugFormatter(logging.Formatter):
-    """``%(name)s``-bearing format for ``logs/debug.log`` with the ``dmbot.`` prefix trimmed
-    (:func:`_short_name`), to keep the pasted log token-light. Restores the record afterwards so the
+    """``%(name)s``-bearing format for ``logs/debug.log`` with app prefixes trimmed by
+    :func:`_short_name`, to keep the pasted log token-light. Restores the record afterwards so the
     other handlers (which share the record) still see the full name."""
 
     def format(self, record: logging.LogRecord) -> str:
@@ -151,7 +162,7 @@ class _DebugFormatter(logging.Formatter):
 
 
 class _ConsoleNoiseFilter(logging.Filter):
-    """Keep the CONSOLE lean: only DMbot's own lines, plus any WARNING/ERROR from anywhere.
+    """Keep the console lean: only the app's own lines, plus any WARNING/ERROR from anywhere.
 
     Third-party INFO chatter (TTS/coqui synthesizer, httpx requests, faster_whisper, discord) and
     the 2 s PCM heartbeat are dropped from the console. The file handler (when enabled) has no
@@ -251,13 +262,18 @@ class _TranscriptFormatter(logging.Formatter):
 
 
 def setup_logging(
-    level: str = "INFO", *, to_file: bool = False, transcript_file: bool = False
+    level: str = "INFO", *, to_file: bool | None = None, transcript_file: bool | None = None
 ) -> Path | None:
     """Install the console handler (always) and the file handler (only when ``to_file``).
 
     The console is kept lean (see :class:`_ConsoleNoiseFilter`). The full-detail file log is
-    **off by default** — enable it with ``DM_LOG_FILE=1`` when you need to inspect a run after the
+    **off by default** — enable it with ``TRPG_LOG_FILE=1`` when you need to inspect a run after the
     window closes. Returns the log-file path when file logging is on, else ``None``."""
+    if to_file is None:
+        to_file = _env_flag("TRPG_LOG_FILE", "DM_LOG_FILE")
+    if transcript_file is None:
+        transcript_file = _env_flag("TRPG_TRANSCRIPT_FILE")
+
     root = logging.getLogger()
     root.setLevel(getattr(logging, level, logging.INFO))
     for handler in list(root.handlers):  # idempotent across restarts/tests
@@ -276,7 +292,7 @@ def setup_logging(
         try:
             _LOGS_DIR.mkdir(parents=True, exist_ok=True)
             # 1) terminal.log — a plain (no-ANSI) mirror of exactly what the console shows: the
-            #    curated, lean view (dmbot.* + WARNING/ERROR; no PCM heartbeat, no third-party INFO).
+            #    curated, lean view (app logs + WARNING/ERROR; no PCM heartbeat, no third-party INFO).
             #    Truncated on every start (mode="w") so it only ever holds the current run's console.
             term_h = logging.FileHandler(_TERMINAL_FILE, mode="w", encoding="utf-8")
             term_h.setFormatter(_PlainMirrorFormatter())
@@ -316,7 +332,7 @@ def setup_logging(
 
     where = (
         f"logs: {_TERMINAL_FILE.name} (terminal mirror) + {_DEBUG_FILE.name} (reduced debug)"
-        if log_file else "file logging off (set DM_LOG_FILE=1)"
+        if log_file else "file logging off (set TRPG_LOG_FILE=1)"
     )
     if transcript_path:
         where += f"; transcript {transcript_path}"

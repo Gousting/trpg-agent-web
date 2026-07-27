@@ -10,7 +10,7 @@ decision is ever derived from it and every list mutation happens here, determini
 Pure functions + dataclasses (no Discord, no LLM, no ``SessionRuntime``) — testable like
 ``rules/combat.py``. Persistence is ``data/sessions/<id>/chekhov.json`` beside the other
 session files, written atomically like ``state.json``. The trigger seam (the ``!wrap``
-extraction) and the prompt injection live in :mod:`dmbot.runtime`.
+extraction) and the prompt injection live in the runtime layer.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ _SIMILARITY_THRESHOLD = 0.6
 @dataclass
 class ChekhovThread:
     """One unresolved detail of a session (ADR 050) — narrative-layer prose like
-    :class:`~dmbot.memory.state.NpcMemory`: the *detail* is LLM-extracted (or hand-seeded via
+    ``NpcMemory``: the *detail* is LLM-extracted (or hand-seeded via
     ``!faden neu``), code stores/caps/serialises it, and no hard field is ever derived from it."""
 
     id: str                    # short sequential token ("t1", "t2", …) — what the commands take

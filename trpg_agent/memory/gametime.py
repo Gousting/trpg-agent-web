@@ -2,10 +2,10 @@
 
 The internal model is one int: ``WorldState.time_minutes``, minutes since day 1, 00:00.
 Everything else here is derived rendering (day/clock/phase), duration parsing for the
-``<<ZEIT +4h>>`` marker and the ``!zeit``/``!frist`` commands, and the coarse German
+``<<ZEIT +4h>>`` marker and the ``!zeit``/``!frist`` commands, and the coarse legacy
 remaining-time phrases for deadlines. No state, no Discord, no LLM — unit-tested alone.
 
-Deliberately decoupled from :mod:`dmbot.memory.state` (plain values in, strings out), so
+Deliberately decoupled from the world-state module (plain values in, strings out), so
 ``rules/marker.py`` can import the duration parser without a rules→memory→rules cycle.
 """
 
@@ -21,7 +21,7 @@ MORNING_MINUTES = 8 * 60
 # Hard clamp for one <<ZEIT>> marker turn (ADR 048 #4): bigger jumps are command territory.
 MAX_MARKER_ADVANCE_MINUTES = 12 * 60
 
-# Tolerant duration grammar: optional +, int or decimal amount (comma or dot), German/short
+# Tolerant duration grammar: optional +, int or decimal amount (comma or dot), legacy/short
 # units. Matches "+30m", "4h", "2 Std", "90 min", "1,5h". Anchored — the whole payload must
 # be a duration, so a garbled marker fails parse instead of half-matching.
 _DURATION_RE = re.compile(
@@ -35,7 +35,7 @@ _PHASES_DE = (("Morgen", 5, 11), ("Tag", 11, 17), ("Abend", 17, 22))
 
 
 def parse_duration_de(text: str) -> int | None:
-    """Parse a German duration ("+30m", "4h", "2 Std", "1,5h") to whole minutes.
+    """Parse a legacy duration form ("+30m", "4h", "2 Std", "1,5h") to whole minutes.
 
     ``None`` when the text isn't a duration or rounds to zero — the caller treats that as
     an unparseable/rejected proposal (time never advances by nothing, ADR 048 #4)."""
@@ -81,7 +81,7 @@ def next_morning(minutes: int) -> int:
 
 
 def remaining_de(due_minutes: int, now_minutes: int) -> str:
-    """Coarse German remaining time ('noch ~20 Min' / 'noch ~3 Std' / 'noch ~2 Tage'), or
+    """Coarse remaining time phrase ('noch ~20 Min' / 'noch ~3 Std' / 'noch ~2 Tage'), or
     'ABGELAUFEN'. Coarse on purpose (ADR 048 #7): the DM should speak in fiction units."""
     diff = due_minutes - now_minutes
     if diff <= 0:

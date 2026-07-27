@@ -1,10 +1,10 @@
 """KP 回答清洗管道 — 去掉小模型在中文 COC 跑团中的常见毛病。
 
-纯正则（无外部依赖），所以可以独立测试。从 DMbot 的德语 sanitize.py 重写为中文版本。
+纯正则（无外部依赖），所以可以独立测试。当前实现是在旧版清洗管道基础上改写的中文版本。
 覆盖：角色标签前缀、元话语开场白、结尾催促问句、自纠正框架、括号内元注释、AI 自指、
 英文标点混杂、过渡词水句。
 
-所有函数保持与 DMbot 原版相同的签名，以兼容 stream_assembler 和 orchestrator。
+所有函数保持原有兼容签名，以兼容 stream_assembler 和 orchestrator。
 """
 
 from __future__ import annotations

@@ -13,7 +13,7 @@ the first join. Code only ever writes ``state.json``, so the sheet stays pristin
 resets by deleting ``state.json``.
 
 Pure data + pure functions, unit-tested without Discord or the LLM. Combat *math* lives in
-:mod:`dmbot.rules.engine`; this module only applies the resulting number and persists it.
+:mod:`trpg_agent.rules.engine`; this module only applies the resulting number and persists it.
 """
 
 from __future__ import annotations
@@ -41,12 +41,12 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-# Condition set on a combatant whose wounds reach 0. German (play language); the caller can pass a
-# system-specific word, but this is the sensible default for IM ("kampfunfähig" → out of the fight).
+# Condition set on a combatant whose wounds reach 0. This compatibility layer still uses the
+# legacy label ``kampfunfähig`` by default, but callers may pass a system-specific term.
 DOWNED_CONDITION = "kampfunfähig"
 
 # NPC attitude scale (ADR 044) — the fixed, code-owned axis attitude drift moves along. Stored
-# tokens are English (code); the prompt renders German labels. Order matters: index distance is
+# tokens are English (code); the prompt renderer supplies localized labels. Order matters: index distance is
 # what step_attitude clamps.
 ATTITUDE_SCALE = ("hostile", "wary", "neutral", "friendly", "loyal")
 
@@ -90,7 +90,7 @@ class NpcMemory:
     a revealed lie flips it to False (the NPC now knows it was lied to)."""
 
     about: list[str]        # ["party"] or ["pc:Kael"] (several possible)
-    gist: str               # 1–3 German sentences
+    gist: str               # 1–3 short localized sentences
     quote: str = ""         # verbatim key quote — only for promises/lies/threats, else empty
     believed: bool = True   # False = the NPC knows by now this was a lie
     importance: int = 3     # 1–5
@@ -825,8 +825,11 @@ def pressure_panel_de(state: WorldState) -> str:
 
 
 def world_state_summary_de(state: WorldState) -> str:
-    """A compact, *structured* German block for the prompt (docs/conventions.md: 'state as structured data,
-    don't boil it into prose'). Only non-empty sections appear. Empty state → ''."""
+    """A compact, structured state block for the prompt.
+
+    This compatibility layer currently renders legacy field labels. Only non-empty sections appear.
+    Empty state → ''.
+    """
     lines: list[str] = []
     if state.location:
         lines.append(f"Ort: {state.location}")

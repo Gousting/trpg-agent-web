@@ -1,6 +1,6 @@
 """Build a short, player-facing rules summary (Chinese) from the active system profile.
 
-System-agnostic: it reads the declarative :class:`~dmbot.rules.profile.SystemProfile` fields
+System-agnostic: it reads the declarative :class:`~trpg_agent.rules.profile.SystemProfile` fields
 (dice, resolution, the difficulty ladder, degrees rule, auto-bands, crit, damage) and renders the
 *essentials* a player needs at the table — so the `!rules` command stays in sync with whatever
 profile is loaded, never a hand-maintained copy. Pure function → unit-testable without Discord.

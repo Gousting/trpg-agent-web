@@ -1,12 +1,7 @@
-"""Boot-time check that the Ollama LLM host is reachable and the model is pulled.
+"""Boot-time check that the Ollama host is reachable and the selected model is available.
 
-Mirrors ``voice/preflight.py`` and ``__main__._ensure_opus``: a loud, clear message at
-startup beats a cryptic ``httpx.ConnectError`` mid-game (which is exactly what happens when
-Ollama — its own Windows process — simply isn't running; see docs/conventions.md "LLM not answering?").
-
-This only *checks* and warns. It deliberately does **not** start Ollama: the host may be
-remote (the 5080 over Tailscale, ADR 002), and starting a local daemon is the launcher's job
-(``start_dmbot.bat``), keeping "Ollama runs as its own process" intact.
+A clear startup warning beats a cryptic ``httpx.ConnectError`` in the first turn. The check is
+non-fatal by design: it warns early, but still lets the CLI come up for offline inspection.
 """
 
 from __future__ import annotations
@@ -41,9 +36,8 @@ def check_ollama(host: str, model: str, *, timeout: float = 5.0) -> bool:
         data = resp.json()
     except Exception as exc:  # noqa: BLE001 — any failure means "not usable", report it
         log.error(
-            "Ollama not reachable at %s (%s) — DM turns will fail. Start Ollama (the Windows "
-            "app / `ollama serve`) and enable its autostart; if the host is remote, check the "
-            "machine + Tailscale. See docs/conventions.md 'LLM not answering?'.",
+            "Ollama not reachable at %s (%s) — KP 回合将失败。请启动 Ollama（桌面应用或 `ollama serve`），"
+            "并检查 OLLAMA_HOST / --host 是否正确。",
             host, exc.__class__.__name__,
         )
         return False
@@ -51,11 +45,10 @@ def check_ollama(host: str, model: str, *, timeout: float = 5.0) -> bool:
     available = {m.get("name", "") for m in data.get("models", [])}
     if not _model_available(model, available):
         log.warning(
-            "Ollama is up at %s but model '%s' is not pulled (have: %s) — DM turns will fail. "
-            "Run `ollama pull %s`.",
+            "Ollama 已连接到 %s，但模型 '%s' 未拉取（当前有: %s）— KP 回合将失败。请执行 `ollama pull %s`。",
             host, model, ", ".join(sorted(available)) or "none", model,
         )
         return False
 
-    log.info("Ollama preflight OK — %s reachable, model '%s' available.", host, model)
+    log.info("Ollama 预检通过：%s 可访问，模型 '%s' 可用。", host, model)
     return True

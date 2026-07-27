@@ -1,6 +1,6 @@
 """单元测试 — 非 LLM 组件的完整覆盖。
 
-用法: uv run pytest tests/test_unit.py -v
+用法: python -m pytest tests/test_unit.py -v
 """
 
 from __future__ import annotations

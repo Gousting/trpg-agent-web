@@ -2,8 +2,8 @@
 
 A profile (``data/systems/<name>.json``) declares one ruleset's core mechanic: dice,
 resolution kind, where the target comes from, how degrees of success are computed, the
-difficulty ladder, and the character schema. The engine (:mod:`dmbot.rules.engine`) reads
-these and stays game-agnostic — IM is just the first profile, nothing is hardcoded.
+difficulty ladder, and the character schema. The engine reads these and stays game-agnostic —
+COC is just the first profile, nothing is hardcoded.
 
 Pure data + a thin typed wrapper, so it unit-tests without Discord or the LLM.
 """
@@ -14,7 +14,7 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Repo data dir: this file is dmbot/rules/profile.py → parents[2] is the repo root.
+# Repo data dir: this file is trpg_agent/rules/profile.py → parents[2] is the repo root.
 _DATA_SYSTEMS = Path(__file__).resolve().parents[2] / "data" / "systems"
 
 _REQUIRED = ("name", "dice", "resolution")

@@ -5,7 +5,7 @@ A thin async wrapper over Ollama's ``/api/chat``. The host and model come from c
 Tailscale stays a one-line change (ADR 002). Async because discord.py runs an event loop and a
 generation takes seconds; blocking it would freeze the whole bot.
 
-Two entry points: :meth:`OllamaClient.chat` returns the finished German answer (roll router,
+Two entry points: :meth:`OllamaClient.chat` returns the finished KP answer (roll router,
 recap, tests use it); :meth:`OllamaClient.chat_stream` yields text deltas as they generate so the
 DM turn can synthesise + speak the first sentence before the rest is done (ADR 017). Both set
 ``last_stats`` from the final response object identically.

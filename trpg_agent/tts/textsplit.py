@@ -1,11 +1,11 @@
-"""Split a DM answer for delivery — TTS-safe speech chunks *and* Discord-safe message pieces.
+"""Split a KP answer for delivery — TTS-safe speech chunks *and* chat-safe message pieces.
 
-XTTS truncates the audio of any single chunk longer than ~253 chars for German (it warns "text
-length exceeds the character limit"), which cut DM answers off mid-sentence. We split the text
-into sub-limit chunks here, then the XTTS wrapper synthesises each and concatenates the WAVs.
+The voice backend truncates audio when a single chunk gets too long, which used to cut narration
+off mid-sentence. We split the text into sub-limit chunks here, then the synthesis wrapper
+renders each and concatenates the WAVs.
 
-Discord rejects any message whose ``content`` exceeds 2000 chars (HTTP 400, error code 50035), so
-a long DM turn (notably the `!intro` monologue) is split into ``<= 2000``-char messages too —
+Chat transports reject any message whose ``content`` exceeds 2000 chars, so a long KP turn
+(notably the `!intro` monologue) is split into ``<= 2000``-char messages too —
 verbatim, unlike the lossy TTS chunker. Both splitters live here so the boundary logic has one home.
 
 Pure (no torch / no audio deps) so it stays unit-testable on its own.
@@ -16,7 +16,7 @@ from __future__ import annotations
 import re
 import unicodedata
 
-# Stay safely under XTTS's 253-char German limit.
+# Stay safely under the voice backend's per-chunk limit.
 TTS_CHAR_LIMIT = 240
 
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?…])\s+")

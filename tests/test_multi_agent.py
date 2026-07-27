@@ -1,7 +1,7 @@
 """多智能体 COC 跑团 — 接入检定/战斗/SAN 规则引擎。
 
 用法:
-    uv run python tests/test_multi_agent.py --turns 6
+    python -m tests.test_multi_agent --turns 6
 """
 
 from __future__ import annotations
