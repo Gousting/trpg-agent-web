@@ -50,6 +50,7 @@ _GREEN = "\033[32m"   # the darker "diff added-line" green — the ambient theme
 _BGREEN = "\033[92m"  # bright green, for emphasis (speaker names)
 _RED = "\033[91m"
 _YELLOW = "\033[93m"
+_APP_LOGGER_PREFIXES = ("trpg_agent", "dmbot")
 
 # Chat layout: timestamp + a 12-wide name + a dim metric, then the text. The hanging indent
 # for wrapped lines is computed per line from the actual prefix width.
@@ -61,7 +62,11 @@ def _short_name(name: str) -> str:
     """Trim the noisy ``dmbot.`` package prefix from a logger name so it costs fewer tokens when a
     log is pasted (``dmbot.voice.delivery`` → ``voice.delivery``). Third-party names (httpx,
     faster_whisper, discord.*) are left intact — there the full path tells you who logged it."""
-    return name[len("dmbot.") :] if name.startswith("dmbot.") else name
+    for prefix in _APP_LOGGER_PREFIXES:
+        dotted = f"{prefix}."
+        if name.startswith(dotted):
+            return name[len(dotted) :]
+    return name
 
 
 class _ConsoleFormatter(logging.Formatter):
@@ -73,7 +78,7 @@ class _ConsoleFormatter(logging.Formatter):
 
         if msg.startswith("🎭"):  # the DM's answer — prominent, bright, hanging indent
             text = msg.split(" ", 1)[1] if " " in msg else msg
-            label = "Spielleiter"[:_NAME_W]
+            label = "KP"[:_NAME_W]
             prefix = f"{ts}{_GAP}{label:>{_NAME_W}}{_GAP}"
             indent = len(prefix)
             cols = shutil.get_terminal_size((100, 24)).columns
@@ -160,7 +165,9 @@ class _ConsoleNoiseFilter(logging.Filter):
             return False  # the 2 s per-user heartbeat
         if "🪵" in msg:
             return False  # raw-LLM debug line — debug.log only, off the console + terminal mirror
-        return record.levelno >= logging.WARNING or record.name.startswith("dmbot")
+        return record.levelno >= logging.WARNING or any(
+            record.name.startswith(prefix) for prefix in _APP_LOGGER_PREFIXES
+        )
 
 
 class _UnpackErrorThrottle(logging.Filter):
@@ -240,11 +247,11 @@ class _TranscriptFormatter(logging.Formatter):
             return f"{ts}  {name}{marker}: {text}"
         # "🎭 <answer>" — the DM's turn
         text = msg.split(" ", 1)[1] if " " in msg else msg
-        return f"{ts}  Spielleiter: {text}"
+        return f"{ts}  KP: {text}"
 
 
 def setup_logging(
-    level: str, *, to_file: bool = False, transcript_file: bool = False
+    level: str = "INFO", *, to_file: bool = False, transcript_file: bool = False
 ) -> Path | None:
     """Install the console handler (always) and the file handler (only when ``to_file``).
 
@@ -283,7 +290,7 @@ def setup_logging(
             root.addHandler(debug_h)
             log_file = _DEBUG_FILE
         except OSError:
-            logging.getLogger("dmbot").warning(
+            logging.getLogger("trpg_agent").warning(
                 "could not open log files in %s — console only", _LOGS_DIR, exc_info=True
             )
 
@@ -297,7 +304,7 @@ def setup_logging(
             root.addHandler(transcript_h)
             transcript_path = _TRANSCRIPT_FILE
         except OSError:
-            logging.getLogger("dmbot").warning(
+            logging.getLogger("trpg_agent").warning(
                 "could not open transcript file %s", _TRANSCRIPT_FILE, exc_info=True
             )
 
@@ -313,7 +320,7 @@ def setup_logging(
     )
     if transcript_path:
         where += f"; transcript {transcript_path}"
-    logging.getLogger("dmbot").info(
-        "=== DMbot starting (%s) — %s ===", time.strftime("%Y-%m-%d %H:%M:%S"), where
+    logging.getLogger("trpg_agent").info(
+        "=== TRPG Agent starting (%s) — %s ===", time.strftime("%Y-%m-%d %H:%M:%S"), where
     )
     return log_file

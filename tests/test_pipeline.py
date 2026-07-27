@@ -1,12 +1,13 @@
 """Phase 1 全链路集成测试 — 模拟一次 COC 跑团对话。
 
 用法: uv run python tests/test_pipeline.py
-前提: Ollama 运行中，且已 pull 模型（默认 qwen2.5:7b）
+前提: Ollama 运行中；可通过 OLLAMA_HOST / OLLAMA_MODEL 覆盖默认配置。
 """
 
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -19,8 +20,8 @@ from trpg_agent.llm.prompt_assembly import assemble_system_prompt
 from trpg_agent.llm.sanitize import _sanitize
 from trpg_agent.rules.coc import resolve_coc, describe_result
 
-OLLAMA_HOST = "http://192.168.0.108:11434"
-MODEL = "gemma4:12b"
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 
 
 async def run_turn(

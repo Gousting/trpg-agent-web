@@ -6,6 +6,7 @@ requires-python = ">=3.11,<3.14"
 dependencies = [
     "colorama>=0.4.6",
     "dungeongen>=0.1.14",
+    "httpx>=0.28.1",
     "Pillow>=11.0",
     "python-dotenv>=1.2.2",
     "rich>=15.0.0",
@@ -17,10 +18,17 @@ web = [
     "httpx>=0.28.1",
     "uvicorn>=0.51.0",
 ]
+overlay = [
+    "aiohttp>=3.11.0",
+    "edge-tts>=7.2.3",
+]
 voice = [
     "faster-whisper>=1.0",
 ]
 miniapp = []
+test = [
+    "pytest>=8.4.1",
+]
 
 [project.scripts]
 trpg = "trpg_agent.__main__:main"

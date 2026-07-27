@@ -36,11 +36,15 @@ pip install trpg-agent
 # CLI 模式——终端交互式跑团
 trpg
 
+# 或先做离线自检（不连接 Ollama）
+trpg --check --adventure 鬼屋
+
 # 或指定模组
 trpg --adventure 鬼屋
 ```
 
 CLI 模式下你会看到一个 KP 和三个调查员在终端里自动跑团，逐轮推进剧情。你随时可以插话接管某个调查员的决策。
+默认读取 `OLLAMA_HOST`、`OLLAMA_MODEL`、`OLLAMA_NUM_CTX` 环境变量；未设置时使用 `http://localhost:11434` 和 `qwen2.5:7b`。
 
 ## 可选依赖
 
@@ -53,6 +57,9 @@ pip install trpg-agent[voice]
 
 # OBS 浏览器覆盖层（aiohttp + WebSocket）
 pip install trpg-agent[overlay]
+
+# 测试
+pip install trpg-agent[test]
 ```
 
 ### OBS 直播覆盖层

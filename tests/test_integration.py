@@ -1,12 +1,13 @@
 """Phase 4 全链路集成测试 — 模拟完整 COC 跑团 session。
 
 用法: uv run python tests/test_integration.py
-前提: Ollama 运行中，gemma4:12b 已加载
+前提: Ollama 运行中；可通过 OLLAMA_HOST / OLLAMA_MODEL 覆盖默认配置。
 """
 
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -18,8 +19,8 @@ from trpg_agent.llm.sanitize import _sanitize
 from trpg_agent.rules.sanity import SanLoss
 from trpg_agent.rules.combat import ActionType
 
-OLLAMA_HOST = "http://192.168.0.108:11434"
-MODEL = "gemma4:12b"
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 
 
 def sep(title: str = "") -> None:

@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import shutil
 import sys
 import time
@@ -22,6 +23,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from trpg_agent.session import Session
 from trpg_agent.llm.client import OllamaClient
 from trpg_agent.memory.game_state import Investigator, Npc, Quest
+
+
+DEFAULT_OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+DEFAULT_KP_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+DEFAULT_PLAYER_MODELS = os.getenv(
+    "OLLAMA_PLAYER_MODELS",
+    ",".join([DEFAULT_KP_MODEL, DEFAULT_KP_MODEL, DEFAULT_KP_MODEL]),
+)
 
 
 # ═══════════════════════════════════════════════════════
@@ -260,9 +269,9 @@ async def run_game(host: str, kp_model: str, player_models: list[str],
 
 def main():
     parser = argparse.ArgumentParser(description="多智能体 COC 跑团（检定引擎）")
-    parser.add_argument("--host", default="http://192.168.0.108:11434")
-    parser.add_argument("--kp", default="gemma4:12b")
-    parser.add_argument("--players", default="ornith:9b,ornith:9b,ornith:9b")
+    parser.add_argument("--host", default=DEFAULT_OLLAMA_HOST)
+    parser.add_argument("--kp", default=DEFAULT_KP_MODEL)
+    parser.add_argument("--players", default=DEFAULT_PLAYER_MODELS)
     parser.add_argument("--turns", type=int, default=6)
     args = parser.parse_args()
 
