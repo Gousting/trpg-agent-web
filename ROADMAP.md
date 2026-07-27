@@ -17,7 +17,8 @@
 **目标：能开播，有人看。**
 
 - [ ] **TTS 旁白朗读** — KP 叙述转语音，edge-tts 或 Piper 本地 TTS。KP 说出来的比显示在屏幕上的文字更有沉浸感。
-- [ ] **氛围 BGM 自动切换** — 房间类型 → BGM 映射（病房=阴森、走廊=悬疑、Boss=战斗）。氛围是跑团直播 70% 的观看体验。
+- [x] **TTS 旁白朗读** — ~~KP 叙述转语音，edge-tts 或 Piper 本地 TTS。KP 说出来的比显示在屏幕上的文字更有沉浸感。~~ ✅ overlay 已接入 `edge-tts`：`/api/push_line` 会自动生成旁白音频并返回 `audio_url`，结果缓存到 `data/tts_cache/`。
+- [x] **氛围 BGM 自动切换** — ~~房间类型 → BGM 映射（病房=阴森、走廊=悬疑、Boss=战斗）。氛围是跑团直播 70% 的观看体验。~~ ✅ overlay 已接入 mood → track 映射：`/api/bgm` 支持按 `mood` 自动选轨，`/api/scene_match` 命中场景后会自动切换 BGM。
 - [x] **OBS 场景适配** — ~~确保 Web UI 在 1920×1080 画布下布局美观~~ ✅ overlay_b.html 已完成：哥特恐怖风 1920×1080 布局，3:1 列比，场景卡 + 角色档案 + 行动记录 + 骰子祭坛动画 + 弹幕投票条。WebSocket 实时推送 + REST API。
 - [ ] **首场试播** — 内测录 10 分钟 demo，验证画质和布局。
 

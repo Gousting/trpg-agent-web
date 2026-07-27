@@ -79,8 +79,10 @@
 
 | 文件 | 状态 | 说明 |
 |------|------|------|
-| `trpg_agent/overlay_server.py` | ✅ | WebSocket 推送服务，REST API 控制场景/骰子/角色/弹幕/投票 |
+| `trpg_agent/overlay_server.py` | ✅ | WebSocket 推送服务，REST API 控制场景/骰子/角色/弹幕/投票，内置 TTS 旁白生成与 BGM 自动切换 |
 | `docs/overlay_b.html` | ✅ | 哥特恐怖风 OBS 浏览器覆盖层，1920×1080，3:1 列比 |
+| `data/bgm_mappings.json` | ✅ | 场景 mood → BGM 音轨映射，供 overlay 自动切歌 |
+| `data/tts_cache/` | ✅ | TTS 音频缓存目录，`/api/push_line` 自动写入并对外暴露 |
 | `docs/scene_bg.png` | ✅ | 密大禁书区场景卡（ComfyUI Z-Image + Ink Frenzy 生成） |
 | `docs/layout-mockup.html` | ✅ | 布局原型 A（已废弃，迭代到 overlay_b） |
 | `docs/layout-mockup-b.html` | ✅ | 布局原型 B（迭代到 overlay_b） |
@@ -119,4 +121,4 @@
 | `logsetup.py` | ✅ | 日志配置 |
 | `turn_timing.py` | ✅ | 回合计时 |
 | `shutdown.py` | ✅ | 优雅关闭 |
-| `tts/textsplit.py` | 🔧 | TTS 文本分割兼容层，文案已对齐当前项目语境 |
+| `tts/textsplit.py` | ✅ | TTS 文本分割兼容层，已接入旁白生成相关文本清洗与切分 |
