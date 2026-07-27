@@ -2,6 +2,24 @@
 
 基于 DMbot (Pr0degie/dungeonmaster) 搬运，为中文 COC 跑团适配。
 
+## 2026-07-27 进度核验
+
+- ✅ `python -m pytest -q` 本地通过，当前 **147 项测试全绿**
+- ✅ `python -m trpg_agent --check --adventure 鬼屋` 本地通过，CLI 启动、自检、默认角色加载、模组加载正常
+- ✅ `README.md`、`pyproject.toml`、测试入口、CLI 参数已对齐当前实现
+- ✅ 默认基线数据已补齐：`data/sessions/default/characters.json` 可直接支撑离线自检
+
+## 近期工程化收口
+
+| 文件 | 状态 | 说明 |
+|------|------|------|
+| `trpg_agent/__main__.py` | ✅ | CLI 可启动，支持 `--check` / `--once` / `--skip-preflight`，接入 Ollama 预检 |
+| `trpg_agent/logsetup.py` | ✅ | 日志环境变量统一为 `TRPG_LOG_FILE` / `TRPG_TRANSCRIPT_FILE`，兼容旧值 |
+| `trpg_agent/llm/preflight.py` | ✅ | 启动前 Ollama 连通性和模型可用性检查 |
+| `trpg_agent/__init__.py` | ✅ | 顶层导出改为懒加载，避免无关依赖提前拉起 |
+| `tests/test_cli.py` | ✅ | 新增 CLI 入口回归测试 |
+| `data/sessions/default/characters.json` | ✅ | 默认调查员基线已补齐 |
+
 ## 状态标记
 
 - ✅ 直接可用 / 已完成中文化
@@ -75,8 +93,8 @@
 
 | 文件 | 状态 | 说明 |
 |------|------|------|
-| `llm/consistency.py` | 🔧 | 一致性守卫，德语动词判断→中文方案 |
-| `llm/intro_guard.py` | 🔧 | 开场守卫，德语→中文 |
+| `llm/consistency.py` | 🔧 | 一致性守卫仍是兼容层，历史注释已清理；若重新强化 DMBrain 路径，再审视中文判定策略 |
+| `llm/intro_guard.py` | 🔧 | 开场守卫仍沿用兼容逻辑，历史注释已清理 |
 | `llm/stream_assembler.py` | 🚧 | 流式组装器，依赖 sanitize/marker/textsplit |
 
 ### 规则模块
@@ -91,14 +109,14 @@
 | 文件 | 状态 | 说明 |
 |------|------|------|
 | `memory/state.py` | ❌ | 已被 game_state.py 替代，可废弃 |
-| `memory/gametime.py` | 🔧 | 游戏内时间，德语→中文 |
+| `memory/gametime.py` | 🔧 | 游戏内时间兼容层仍保留旧格式输出，历史注释已清理 |
 
 ### 其他
 
 | 文件 | 状态 | 说明 |
 |------|------|------|
-| `orchestrator.py` | 🚧 | DMBrain，Discord 解耦后可用 |
+| `orchestrator.py` | 🚧 | DMBrain 兼容层，Discord 解耦后可用；核心历史注释已清理 |
 | `logsetup.py` | ✅ | 日志配置 |
 | `turn_timing.py` | ✅ | 回合计时 |
 | `shutdown.py` | ✅ | 优雅关闭 |
-| `tts/textsplit.py` | 🔧 | TTS 文本分割，待 Phase 5 |
+| `tts/textsplit.py` | 🔧 | TTS 文本分割兼容层，文案已对齐当前项目语境 |

@@ -50,6 +50,17 @@ CLI 模式下你会看到一个 KP 和三个调查员在终端里自动跑团，
 默认读取 `OLLAMA_HOST`、`OLLAMA_MODEL`、`OLLAMA_NUM_CTX` 环境变量；未设置时使用 `http://localhost:11434` 和 `qwen2.5:7b`。
 如需跳过启动时的 Ollama 连通性检查，可追加 `--skip-preflight`。如需保存终端镜像日志，可设置 `TRPG_LOG_FILE=1`。
 
+## 当前进度
+
+截至 2026-07-27，项目已经完成一轮工程化收口，当前可验证基线如下：
+
+- `python -m pytest -q`：本地通过，**147 项测试全绿**
+- `python -m trpg_agent --check --adventure 鬼屋`：本地通过，CLI 启动 / 默认调查员加载 / 模组加载正常
+- 默认会话基线已补齐：`data/sessions/default/characters.json` 内置 3 名调查员，可直接用于离线自检
+- 文档、安装说明、CLI 参数和测试入口已对齐当前实现，不再依赖早期局域网地址或 Linux-only `uv` 配置
+
+当前最稳定的使用方式是：先跑 `trpg --check --adventure 鬼屋` 确认本地基线，再接入本机 Ollama 做实机单轮验证。
+
 ## 可选依赖
 
 ```bash
@@ -81,9 +92,9 @@ REST API 控制：`POST /api/scene`（切换场景卡）、`/api/roll`（掷骰�
 
 ## 当前状态
 
-**可用的：** COC 规则引擎完整覆盖 7e 核心机制（检定/战斗/理智/孤注一掷/幸运）、Ollama 本地推理、SQLite 持久化（调查员跨 session 复用）、程序化地城地图、多智能体协作（KP + 3 玩家自动跑）、上下文窗口管理（token 预算 + recap 压缩）、场景卡模组系统、**OBS 浏览器覆盖层（WebSocket 实时推送 + REST API + 哥特恐怖风 UI）**、**ComfyUI Z-Image 场景卡批量预生成**。
+**可用的：** COC 规则引擎完整覆盖 7e 核心机制（检定/战斗/理智/孤注一掷/幸运）、Ollama 本地推理、SQLite 持久化（调查员跨 session 复用）、程序化地城地图、多智能体协作（KP + 3 玩家自动跑）、上下文窗口管理（token 预算 + recap 压缩）、场景卡模组系统、**OBS 浏览器覆盖层（WebSocket 实时推送 + REST API + 哥特恐怖风 UI）**、**ComfyUI Z-Image 场景卡批量预生成**、**CLI 离线自检与本地测试基线**。
 
-**开发中：** TTS 旁白朗读、BGM 自动切换、弹幕互动桥接。
+**开发中：** TTS 旁白朗读、BGM 自动切换、弹幕互动桥接、真实 Ollama 联机回合的持续冒烟验证。
 
 ## 依赖
 
