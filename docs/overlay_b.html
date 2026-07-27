@@ -596,15 +596,22 @@ function updateScene(s) {
     if (currentStageImg) currentStageImg.classList.remove('active');
 
     const newImg = document.createElement('img');
-    newImg.src = `/images/${s.image}`;
     newImg.dataset.src = s.image;
-    newImg.onload = () => {
+    newImg.src = `/images/scenes/${s.image}`;
+
+    // onload fires unreliably for cached images — use complete check + event
+    const activate = () => {
+      if (newImg.classList.contains('active')) return;
       newImg.classList.add('active');
       if (currentStageImg && currentStageImg !== newImg) {
         setTimeout(() => currentStageImg.remove(), 1500);
       }
       currentStageImg = newImg;
     };
+    newImg.addEventListener('load', activate, {once: true});
+    if (newImg.complete && newImg.naturalWidth > 0) {
+      activate();
+    }
     document.getElementById('stage-bg').appendChild(newImg);
   }
 }
