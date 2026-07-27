@@ -113,6 +113,15 @@
     width: 5px; height: 5px; background: #8b0000; border-radius: 50%;
   }
 
+  /* 骰子蒙版 — 激活时压暗背景 */
+  #dice-mask {
+    position: absolute; inset: 0; z-index: 4;
+    background: rgba(0,0,0,0);
+    pointer-events: none;
+    transition: background 0.4s ease;
+  }
+  #dice-mask.show { background: rgba(0,0,0,0.55); }
+
   /* 骰子叠加层 */
   #dice-overlay {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
@@ -204,7 +213,7 @@
 <!-- 顶部控制 -->
 <div id="controls">
   <button id="btn-start" onclick="startGame()">▶ 开始跑团</button>
-  <label>Host</label><input id="ollama-host" value="http://192.168.0.107:11434" style="width:180px">
+  <label>Host</label><input id="ollama-host" value="http://localhost:11434" style="width:180px">
   <label>KP</label><select id="kp-model"><option>gemma4:12b</option></select>
   <label>玩家</label><select id="player-model"><option>ornith:9b</option></select>
   <label>轮</label><input id="turns" type="number" value="12" min="3" max="30" style="width:40px">
@@ -220,6 +229,7 @@
   <img id="scene-img" src="" alt="">
   <div id="scene-label">—</div>
   <div id="scene-mood">—</div>
+  <div id="dice-mask"></div>
   <div id="dice-overlay">
     <div id="dice-circle">—</div>
     <div id="dice-skill"></div>
@@ -402,7 +412,7 @@ function addLog(type, speaker, text, color) {
   if (type === 'player' && color) div.style.color = color;
 
   if (type === 'kp') {
-    div.innerHTML = text;
+    div.textContent = text;
   } else if (type === 'player') {
     div.innerHTML = `<span class="speaker" style="color:${color||'#aaa'}">${speaker}</span><span class="text">${text}</span>`;
   } else if (type === 'dice') {
@@ -425,17 +435,21 @@ function scrollLog() {
 /* ── 骰子叠加层 ── */
 function showDiceOverlay(d) {
   const overlay = document.getElementById('dice-overlay');
+  const mask = document.getElementById('dice-mask');
   const match = d.text.match(/(\d+)/);
   document.getElementById('dice-circle').textContent = match ? match[1] : '—';
   document.getElementById('dice-skill').textContent = d.skill || d.text || '';
   overlay.classList.remove('show');
+  mask.classList.remove('show');
   void overlay.offsetWidth;
   overlay.classList.add('show');
-  setTimeout(() => overlay.classList.remove('show'), 3000);
+  mask.classList.add('show');
+  setTimeout(() => { overlay.classList.remove('show'); mask.classList.remove('show'); }, 3000);
 }
 
 function hideDice() {
   document.getElementById('dice-overlay').classList.remove('show');
+  document.getElementById('dice-mask').classList.remove('show');
 }
 
 /* ── 投票条 ── */

@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
 import json
+import os
+import random
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -85,7 +88,6 @@ class MapData(BaseModel):
 @app.post("/api/save-map")
 async def save_map(data: MapData):
     """保存 One Page Dungeon 生成的 PNG 地图。"""
-    import base64
     maps_dir = STATIC_DIR / "maps"
     maps_dir.mkdir(exist_ok=True)
     fname = f"dungeon_{data.seed or 'latest'}.png"
@@ -96,15 +98,15 @@ async def save_map(data: MapData):
 
 async def chat_stream_once(client: OllamaClient, system: str, user_msg: str,
                            temperature: float = 0.8, max_tokens: int = 2000):
-    """流式聊天，yield token。失败时 yield 空。"""
+    """流式聊天，yield token。失败时 yield 错误标记。"""
     try:
         async for token in client.chat_stream(
             system, [{"role": "user", "content": user_msg}],
             options={"temperature": temperature, "num_predict": max_tokens},
         ):
             yield token
-    except Exception:
-        pass
+    except Exception as e:
+        yield f"\n[LLM_ERROR] {e}"
 
 
 def state_snapshot(session: Session) -> dict:
@@ -131,9 +133,24 @@ async def event_stream(host: str, kp_model: str, player_model: str, turns: int, 
     yield f"data: {json.dumps({'type': 'map', 'map': dmap.to_dict(), 'grid': dmap.grid, 'image': dmap.relative_path}, ensure_ascii=False)}\n\n"
 
     # ── 模型初始化 ──────────────────────────────
-    async with httpx.AsyncClient(timeout=5) as cl:
-        resp = await cl.get(f"{host}/api/tags")
-        available = [m["name"] for m in resp.json().get("models", [])]
+    try:
+        async with httpx.AsyncClient(timeout=5) as cl:
+            resp = await cl.get(f"{host}/api/tags")
+            available = [m["name"] for m in resp.json().get("models", [])]
+    except Exception:
+        available = []
+
+    if available:
+        if kp_model not in available:
+            avail_str = ", ".join(available)
+            msg = "KP模型 {} 不可用，可用: {}".format(kp_model, avail_str)
+            yield 'data: {}\n\n'.format(json.dumps({'type': 'status', 'text': msg}, ensure_ascii=False))
+            return
+        if player_model not in available:
+            avail_str = ", ".join(available)
+            msg = "玩家模型 {} 不可用，可用: {}".format(player_model, avail_str)
+            yield 'data: {}\n\n'.format(json.dumps({'type': 'status', 'text': msg}, ensure_ascii=False))
+            return
 
     kp_client = OllamaClient(host, kp_model, num_ctx=8192, timeout=180)
 
@@ -207,14 +224,18 @@ async def event_stream(host: str, kp_model: str, player_model: str, turns: int, 
         await asyncio.sleep(0.2)
 
         # ── 处理房间物品拾取 ──────────────────────
+        # Fix #1: 必须同时满足"想拾取"且"物品名出现在行动描述中"
         items_picked = []
         room = dmap.current_room
         if room:
-            for item in list(room.items):
-                if item.lower() in action.lower() or any(kw in action for kw in ["拿", "捡", "收集"]):
-                    inv_state.inventory.append(item)
-                    room.items.remove(item)
-                    items_picked.append(item)
+            pickup_keywords = ["拿", "捡", "收集", "取", "拿走", "拾起"]
+            wants_pickup = any(kw in action for kw in pickup_keywords)
+            if wants_pickup:
+                for item in list(room.items):
+                    if item.lower() in action.lower():
+                        inv_state.inventory.append(item)
+                        room.items.remove(item)
+                        items_picked.append(item)
 
         if items_picked:
             yield f"data: {json.dumps({'type': 'item_pickup', 'speaker': speaker, 'items': items_picked}, ensure_ascii=False)}\n\n"
@@ -226,7 +247,6 @@ async def event_stream(host: str, kp_model: str, player_model: str, turns: int, 
             if any(kw in action for kw in ["攻击", "打", "开火", "开枪"]):
                 threat_text = f"⚔️ {threat_name}: {threat_check}"
                 room.cleared = True
-                import random
                 dmg = random.randint(0, 3)
                 if dmg > 0:
                     inv_state.take_damage(dmg)
@@ -275,13 +295,18 @@ async def event_stream(host: str, kp_model: str, player_model: str, turns: int, 
         last_narration = narration
 
         # ── 检测房间移动 ──────────────────────────
+        # Fix #2: 精确匹配 — 房间名 ≥2 字且排除否定语境
         new_room_id = None
         if room:
             for conn_id in room.connections:
                 neighbor = dmap.get_room(conn_id)
-                if neighbor and neighbor.name.replace("(", "").split("(")[0] in action:
-                    new_room_id = conn_id
-                    break
+                if not neighbor:
+                    continue
+                room_short = neighbor.name.replace("(", "").split("(")[0].strip()
+                if room_short and len(room_short) >= 2 and room_short in action:
+                    if not any(neg in action for neg in ["不去", "离开", "返回"]):
+                        new_room_id = conn_id
+                        break
 
         if new_room_id:
             dmap.move_to(new_room_id)
@@ -299,13 +324,17 @@ async def event_stream(host: str, kp_model: str, player_model: str, turns: int, 
 
 @app.get("/api/stream")
 async def stream(
-    host: str = "http://192.168.0.107:11434",
+    host: str = os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
     kp: str = "gemma4:12b",
     player: str = "ornith:9b",
     turns: int = 12,
     seed: str = "",
 ):
-    seed_val = int(seed) if seed else None
+    # Fix #9: seed 非数字时静默回退到随机种子
+    try:
+        seed_val = int(seed) if seed else None
+    except ValueError:
+        seed_val = None
     return StreamingResponse(
         event_stream(host, kp, player, turns, seed_val),
         media_type="text/event-stream",
