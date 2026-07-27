@@ -31,6 +31,7 @@
 - [ ] **角色立绘生成** — ComfyUI 按性格 prompt 出图，每个调查员有头像。视觉差异化。
 - [ ] **弹幕互动桥接** — B站开放平台 WebSocket → 关键词过滤 → LLM 二次审核 → prompt 注入。形态B（弹幕共演）的核心。
 - [ ] **多模组支持** — 至少 5 个模组轮换，避免重复跑同一个让观众腻。
+- [x] **模块化剧情系统** — `module_composer.py` + BFS 分支图引擎，多出口模块按兼容性自动组合生成完整冒险。`data/modules/` 下 4 个示例模块（foyer→library 双分支→basement/escape）。
 
 ## Phase 3：深度互动（2 月）
 

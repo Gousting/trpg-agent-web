@@ -17,7 +17,10 @@ trpg_agent/
 ├── rules/         # COC 7e 规则引擎：检定、战斗、理智、孤注一掷、幸运
 ├── mapgen.py      # 程序化地城地图（dungeongen OPD 交叉阴影线风格）
 ├── overlay_server.py # OBS 浏览器覆盖层 WebSocket 服务
-├── adventure/     # 冒险模组系统、场景变异
+├── adventure/     # 冒险模组系统、场景变异、模块化剧情组合引擎
+│   ├── __init__.py        # Adventure/Scene/NPC 数据模型
+│   ├── variance.py        # Roguelike 变异系统（线索/NPC/氛围随机化）
+│   └── module_composer.py # 多出口分支图组合引擎（BFS + 兼容性匹配）
 ├── session.py     # 会话管理器：状态加载/持久化、token 预算、自动存档
 └── orchestrator.py # DM 大脑：连接 STT buffer → prompt → LLM → 输出
 ```

@@ -4,7 +4,7 @@
 
 ## 2026-07-27 进度核验
 
-- ✅ `python -m pytest -q` 本地通过，当前 **147 项测试全绿**
+- ✅ `python -m pytest -q` 本地通过，当前 **157 项测试全绿**
 - ✅ `python -m trpg_agent --check --adventure 鬼屋` 本地通过，CLI 启动、自检、默认角色加载、模组加载正常
 - ✅ `README.md`、`pyproject.toml`、测试入口、CLI 参数已对齐当前实现
 - ✅ 默认基线数据已补齐：`data/sessions/default/characters.json` 可直接支撑离线自检
@@ -28,6 +28,18 @@
 - ❌ 待重写/废弃
 
 ---
+
+## 模块化冒险系统
+
+
+| 文件 | 状态 | 说明 |
+|------|------|------|
+| `adventure/__init__.py` | ✅ | Adventure / Scene / NPC 数据模型，场景卡加载与 prompt 块生成 |
+| `adventure/variance.py` | ✅ | Roguelike 变异系统（RunSeed + 线索/NPC/氛围随机化） |
+| `adventure/module_composer.py` | ✅ | **多出口分支图组合引擎** — BFS 构建模块树，按 entry/exits 条件兼容性匹配，分支门控 via `exit_requires`，输出标准 Adventure |
+| `data/modules/` | ✅ | 4 个示例模块：foyer_investigation / library_research（双分支）/ basement_confrontation / escape_chase |
+| `tests/test_module_composer.py` | ✅ | 10 项组合引擎测试（加载/组合/分支/门控/可重现/前缀/难度过滤） |
+| `docs/module-templating-plan-b.md` | 📋 | B 方案文档：LLM 模板化生成（规划中） |
 
 ## Phase 1-2 完成
 
