@@ -96,6 +96,37 @@
     font-family:var(--font-mono); letter-spacing:0.1em;
   }
 
+  /* ═══ 物品弹出层 ═══ */
+  .item-popup {
+    position:absolute; left:32px; bottom:60px; z-index:12;
+    display:flex; align-items:center; gap:14px;
+    background:rgba(18,17,20,0.92);
+    border:1px solid rgba(201,168,76,0.2);
+    border-radius:4px; padding:12px 18px;
+    opacity:0; transform:translateY(20px);
+    transition:opacity 0.4s ease, transform 0.4s ease;
+    pointer-events:none; max-width:380px;
+  }
+  .item-popup.active { opacity:1; transform:translateY(0); }
+  .item-popup .item-thumb {
+    width:72px; height:72px; flex-shrink:0;
+    border-radius:2px; object-fit:cover;
+    border:1px solid rgba(201,168,76,0.15);
+  }
+  .item-popup .item-detail { display:flex; flex-direction:column; gap:4px; }
+  .item-popup .item-name {
+    font-family:var(--font-display); font-size:15px; font-weight:600;
+    color:var(--gold);
+  }
+  .item-popup .item-type {
+    font-family:var(--font-mono); font-size:9px;
+    color:var(--text-faint); letter-spacing:0.06em;
+  }
+  .item-popup .item-hook {
+    font-family:var(--font-body); font-size:13px; font-style:italic;
+    color:var(--text-dim); line-height:1.5; max-width:240px;
+  }
+
   /* ── 浮动旁白气泡 (绿框) ── */
   .narrative-overlay {
     position:absolute; left:40px; right:40px; bottom:100px;
@@ -209,9 +240,26 @@
   .dossier {
     background:var(--surface-alt);
     border:1px solid rgba(201,168,76,0.08);
-    border-radius:var(--radius); padding:14px 16px;
+    border-radius:var(--radius); padding:10px 14px;
     transition:border-color 0.5s, box-shadow 0.5s;
+    display:flex; align-items:center; gap:10px;
+    min-height:84px; height:84px; flex-shrink:0;
+    overflow:hidden;
   }
+  .dossier .portrait {
+    width:56px; height:56px; flex-shrink:0;
+    border-radius:2px; object-fit:cover;
+    border:1px solid rgba(201,168,76,0.2);
+  }
+  .dossier .portrait-placeholder {
+    width:56px; height:56px; flex-shrink:0;
+    border-radius:2px;
+    background:rgba(139,26,26,0.12);
+    border:1px solid rgba(201,168,76,0.06);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-size:22px; color:var(--blood);
+  }
+  .dossier .card-body { flex:1; min-width:0; }
   .dossier.active {
     border-color:rgba(201,168,76,0.25);
     box-shadow:0 0 16px rgba(201,168,76,0.06);
@@ -439,6 +487,16 @@
       <span class="stage-mood" id="scene-mood">—</span>
     </div>
 
+    <!-- 物品弹出层 -->
+    <div class="item-popup" id="item-popup">
+      <img class="item-thumb" id="item-thumb" src="" alt="" />
+      <div class="item-detail">
+        <span class="item-name" id="item-name">—</span>
+        <span class="item-type" id="item-type">—</span>
+        <span class="item-hook" id="item-hook">—</span>
+      </div>
+    </div>
+
     <!-- 浮动旁白气泡 -->
     <div class="narrative-overlay" id="narrative-overlay"></div>
 
@@ -507,6 +565,7 @@ function handleMessage(data) {
       updateNarrative(data.narrative);
       updateDice(data.dice);
       updateCharacters(data.characters);
+      updateItem(data.item);
       updateDanmaku(data.danmaku);
       updateVote(data.vote);
       break;
@@ -514,6 +573,7 @@ function handleMessage(data) {
     case 'narrative': updateNarrative(data.narrative); break;
     case 'dice': updateDice(data.dice); break;
     case 'characters': updateCharacters(data.characters); break;
+    case 'item': updateItem(data.item); break;
     case 'danmaku': updateDanmaku(data.danmaku); break;
     case 'vote': updateVote(data.vote); break;
   }
@@ -546,6 +606,24 @@ function updateScene(s) {
       currentStageImg = newImg;
     };
     document.getElementById('stage-bg').appendChild(newImg);
+  }
+}
+
+/* ── Item (物品弹出层) ── */
+function updateItem(it) {
+  if (!it) return;
+  const popup = document.getElementById('item-popup');
+  if (it.visible) {
+    document.getElementById('item-thumb').src = it.image ? `/images/items/${it.image}` : '';
+    document.getElementById('item-name').textContent = it.name || '—';
+    document.getElementById('item-type').textContent = it.item_type || '—';
+    document.getElementById('item-hook').textContent = it.narrative_hook || '—';
+    popup.classList.add('active');
+    // 6秒后自动隐藏
+    clearTimeout(popup._hideTimer);
+    popup._hideTimer = setTimeout(() => popup.classList.remove('active'), 6000);
+  } else {
+    popup.classList.remove('active');
   }
 }
 
@@ -687,24 +765,36 @@ function updateCharacters(chars) {
 
     const card = document.createElement('div');
     card.className = `dossier${c.active ? ' active' : ''}`;
+
+    // Portrait image or placeholder
+    let portraitHTML;
+    if (c.portrait) {
+      portraitHTML = `<img class="portrait" src="/images/characters/portraits/${c.portrait}" alt="${c.name}" />`;
+    } else {
+      portraitHTML = `<div class="portrait-placeholder">☥</div>`;
+    }
+
     card.innerHTML = `
-      <div class="dossier-header"><span class="mark"></span>${c.name} · ${c.role}</div>
-      <div class="stat-line">
-        <span class="stat-name">生命</span>
-        <div class="stat-track"><div class="stat-fill vitality" style="width:${hpPct}%"></div></div>
-        <span class="stat-num">${c.hp}/${c.hp_max}</span>
+      ${portraitHTML}
+      <div class="card-body">
+        <div class="dossier-header"><span class="mark"></span>${c.name} · ${c.role}</div>
+        <div class="stat-line">
+          <span class="stat-name">生命</span>
+          <div class="stat-track"><div class="stat-fill vitality" style="width:${hpPct}%"></div></div>
+          <span class="stat-num">${c.hp}/${c.hp_max}</span>
+        </div>
+        <div class="stat-line">
+          <span class="stat-name">理智</span>
+          <div class="stat-track"><div class="stat-fill sanity" style="width:${sanPct}%"></div></div>
+          <span class="stat-num">${c.san}/${c.san_max}</span>
+        </div>
+        <div class="stat-line">
+          <span class="stat-name">幸运</span>
+          <div class="stat-track"><div class="stat-fill fortune" style="width:${luckPct}%"></div></div>
+          <span class="stat-num">${c.luck}/${c.luck_max}</span>
+        </div>
+        ${c.status ? `<div class="dossier-note">${c.status}</div>` : ''}
       </div>
-      <div class="stat-line">
-        <span class="stat-name">理智</span>
-        <div class="stat-track"><div class="stat-fill sanity" style="width:${sanPct}%"></div></div>
-        <span class="stat-num">${c.san}/${c.san_max}</span>
-      </div>
-      <div class="stat-line">
-        <span class="stat-name">幸运</span>
-        <div class="stat-track"><div class="stat-fill fortune" style="width:${luckPct}%"></div></div>
-        <span class="stat-num">${c.luck}/${c.luck_max}</span>
-      </div>
-      ${c.status ? `<div class="dossier-note">${c.status}</div>` : ''}
     `;
     panel.appendChild(card);
   });

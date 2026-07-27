@@ -32,6 +32,7 @@ from .rules.combat import resolve_attack, ActionType
 from .rules.luck import spend_luck
 from .rules.pushing import push_roll, can_push
 from .adventure import Adventure, Scene
+from .scene_matcher import SceneMatcher, SceneMatch
 
 log = logging.getLogger(__name__)
 
@@ -152,6 +153,10 @@ class Session:
         # 自动加载角色卡（load_game 等场景可跳过，避免 DB 污染）
         if not skip_characters:
             self.load_characters()
+
+        # 场景卡匹配器（惰性加载）
+        self._scene_matcher: SceneMatcher | None = None
+        self._current_scene_image: str | None = None
 
     # ── 历史访问统一接口 ──────────────────────────
 
@@ -546,6 +551,51 @@ class Session:
 
         log.info("场景切换: → %s (%s)", scene_id, scene.title)
         return scene
+
+    # ── 场景图像匹配 ─────────────────────────────────
+
+    @property
+    def scene_matcher(self) -> SceneMatcher:
+        """获取场景匹配器（惰性初始化）。"""
+        if self._scene_matcher is None:
+            self._scene_matcher = SceneMatcher()
+            count = self._scene_matcher.load()
+            log.info("SceneMatcher 初始化: %d 个场景可用", count)
+        return self._scene_matcher
+
+    @property
+    def current_scene_image(self) -> str | None:
+        return self._current_scene_image
+
+    def resolve_scene_image(self, text: str) -> SceneMatch | None:
+        """根据 KP 叙述或场景描述匹配场景图。
+
+        如果匹配到与当前场景不同的图，自动更新 current_scene_image。
+        """
+        matches = self.scene_matcher.match(text, top_k=1)
+        if not matches:
+            return None
+
+        best = matches[0]
+        if best.filename != self._current_scene_image:
+            self._current_scene_image = best.filename
+            log.info("场景图切换: %s (score=%.1f)", best.filename, best.score)
+
+        return best
+
+    def get_scene_overlay(self) -> dict | None:
+        """获取当前场景图在 overlay 中所需的数据。"""
+        if not self._current_scene_image:
+            return None
+        tags = self.scene_matcher.get_scene(self._current_scene_image)
+        if not tags:
+            return None
+        mood = tags.get("mood", [])
+        return {
+            "image": self._current_scene_image,
+            "location": tags.get("location", ""),
+            "mood": mood[0] if mood else "",
+        }
 
     def resolve_element(self, element_id: str) -> bool:
         """标记元素为已解决。"""

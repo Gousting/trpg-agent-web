@@ -1,4 +1,5 @@
 """OBS overlay server — WebSocket 推送 COC 直播数据到浏览器覆盖层."""
+
 from __future__ import annotations
 
 import asyncio
@@ -14,6 +15,8 @@ from .scene_matcher import SceneMatcher
 
 OVERLAY_DIR = pathlib.Path(__file__).parent.parent / "docs"
 SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "Sceneimage"
+ITEMS_DIR = pathlib.Path(__file__).parent.parent / "data" / "items" / "Itemimage"
+CHARS_DIR = pathlib.Path(__file__).parent.parent / "data" / "characters" / "Userimage"
 
 # ── Scene matcher ──
 scene_matcher = SceneMatcher()
@@ -22,9 +25,9 @@ scene_matcher = SceneMatcher()
 
 @dataclass
 class SceneState:
-    image: str = ""          # 场景图片文件名 (16:9)
+    image: str = ""
     location: str = ""
-    mood: str = ""           # 氛围标签
+    mood: str = ""
 
 @dataclass
 class NarrativeState:
@@ -44,6 +47,7 @@ class DiceState:
 class CharacterState:
     name: str = ""
     role: str = ""
+    portrait: str = ""         # 角色头像文件名
     hp: int = 0
     hp_max: int = 0
     san: int = 0
@@ -54,14 +58,22 @@ class CharacterState:
     active: bool = False
 
 @dataclass
+class ItemState:
+    image: str = ""            # 物品图片文件名
+    name: str = ""
+    item_type: str = ""
+    narrative_hook: str = ""   # 叙事钩子
+    visible: bool = False      # 控制弹出/隐藏
+
+@dataclass
 class DanmakuState:
-    messages: list[dict] = field(default_factory=list)  # [{text, type}]
+    messages: list[dict] = field(default_factory=list)
 
 @dataclass
 class VoteState:
     visible: bool = False
     prompt: str = ""
-    options: list[dict] = field(default_factory=list)  # [{label, pct, leading}]
+    options: list[dict] = field(default_factory=list)
 
 # ── Global state ──
 
@@ -69,6 +81,7 @@ scene = SceneState()
 narrative = NarrativeState()
 dice = DiceState()
 characters: list[CharacterState] = []
+item = ItemState()
 danmaku = DanmakuState()
 vote = VoteState()
 
@@ -82,6 +95,7 @@ def build_state_message() -> dict:
         "narrative": asdict(narrative),
         "dice": asdict(dice),
         "characters": [asdict(c) for c in characters],
+        "item": asdict(item),
         "danmaku": asdict(danmaku),
         "vote": asdict(vote),
     }
@@ -108,17 +122,16 @@ async def ws_handler(request: web.Request) -> web.WebSocketResponse:
     ws = web.WebSocketResponse()
     await ws.prepare(request)
     connected_clients.add(ws)
-    # Send full sync on connect
     await ws.send_str(json.dumps(build_state_message()))
     try:
         async for _ in ws:
-            pass  # client can send pings, we respond
+            pass
     finally:
         connected_clients.discard(ws)
     return ws
 
 
-# ── REST API for external control ──
+# ── REST API ──
 
 async def api_scene(request: web.Request) -> web.Response:
     data = await request.json()
@@ -160,6 +173,23 @@ async def api_characters(request: web.Request) -> web.Response:
     return web.json_response({"ok": True})
 
 
+async def api_item(request: web.Request) -> web.Response:
+    """弹出/隐藏物品卡。visible=true 弹出，visible=false（或缺省）隐藏。
+
+    POST /api/item
+    {"image":"xxx.png", "name":"旧日支配者之书", "item_type":"古籍",
+     "narrative_hook":"书页间夹着一片干枯的鳞片", "visible":true}
+    """
+    data = await request.json()
+    item.image = data.get("image", item.image)
+    item.name = data.get("name", item.name)
+    item.item_type = data.get("item_type", item.item_type)
+    item.narrative_hook = data.get("narrative_hook", item.narrative_hook)
+    item.visible = data.get("visible", False)
+    await broadcast({"type": "item", "item": asdict(item)})
+    return web.json_response({"ok": True})
+
+
 async def api_danmaku(request: web.Request) -> web.Response:
     data = await request.json()
     if "messages" in data:
@@ -179,7 +209,6 @@ async def api_vote(request: web.Request) -> web.Response:
 
 
 async def api_push_line(request: web.Request) -> web.Response:
-    """推送一条旁白文本，自动追加并滚动到最新."""
     data = await request.json()
     text = data.get("text", "")
     narrative.lines.append(text)
@@ -189,7 +218,6 @@ async def api_push_line(request: web.Request) -> web.Response:
 
 
 async def api_roll_dice(request: web.Request) -> web.Response:
-    """快捷掷骰：发送 value/target/skill/character，自动显示骰子动画."""
     data = await request.json()
     dice.visible = True
     dice.value = data.get("value", 0)
@@ -202,12 +230,12 @@ async def api_roll_dice(request: web.Request) -> web.Response:
 
 
 async def api_reset(request: web.Request) -> web.Response:
-    """重置所有状态."""
-    global scene, narrative, dice, characters, danmaku, vote
+    global scene, narrative, dice, characters, item, danmaku, vote
     scene = SceneState()
     narrative = NarrativeState()
     dice = DiceState()
     characters = []
+    item = ItemState()
     danmaku = DanmakuState()
     vote = VoteState()
     await broadcast(build_state_message())
@@ -215,13 +243,6 @@ async def api_reset(request: web.Request) -> web.Response:
 
 
 async def api_scene_match(request: web.Request) -> web.Response:
-    """根据文本描述自动匹配场景图并推送。
-
-    POST /api/scene/match
-    {"text": "你们来到了昏暗的医院走廊..."}
-
-    自动匹配最佳场景图，推送给所有客户端。
-    """
     if not scene_matcher._loaded:
         scene_matcher.load()
 
@@ -264,26 +285,28 @@ def create_app() -> web.Application:
     app.router.add_get("/", index)
     app.router.add_get("/ws", ws_handler)
 
-    # REST API
     app.router.add_post("/api/scene", api_scene)
     app.router.add_post("/api/narrative", api_narrative)
     app.router.add_post("/api/push_line", api_push_line)
     app.router.add_post("/api/dice", api_dice)
     app.router.add_post("/api/roll", api_roll_dice)
     app.router.add_post("/api/characters", api_characters)
+    app.router.add_post("/api/item", api_item)
     app.router.add_post("/api/danmaku", api_danmaku)
     app.router.add_post("/api/vote", api_vote)
     app.router.add_post("/api/reset", api_reset)
     app.router.add_post("/api/scene/match", api_scene_match)
 
-    # Static files — serve scene images from data/ directory
     app.router.add_static("/images/scenes", SCENES_DIR)
+    app.router.add_static("/images/items", ITEMS_DIR)
+    app.router.add_static("/images/characters", CHARS_DIR)
 
-    # Pre-load scene matcher on startup
     n = scene_matcher.load()
     if n > 0:
         import logging
-        logging.getLogger(__name__).info("SceneMatcher 已加载 %d 个场景（%d 种类型）", n, len(scene_matcher.list_scene_types()))
+        logger = logging.getLogger(__name__)
+        logger.info("SceneMatcher 已加载 %d 个场景（%d 种类型）",
+                     n, len(scene_matcher.list_scene_types()))
 
     return app
 
