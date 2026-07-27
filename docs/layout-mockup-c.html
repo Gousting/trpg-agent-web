@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+<title>AI 跑团直播 — 变体C · 数据终端风</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #0A0E1A;
+    --surface-1: #0F1322;
+    --surface-2: #141A2C;
+    --surface-3: #1A2138;
+    --divider: rgba(42,48,80,0.6);
+    --amber: #FFA02F;
+    --amber-dim: rgba(255,160,47,0.08);
+    --positive: #00B96B;
+    --positive-dim: rgba(0,185,107,0.08);
+    --negative: #F23645;
+    --negative-dim: rgba(242,54,69,0.08);
+    --text-primary: #E8ECF4;
+    --text-secondary: #8892A8;
+    --text-muted: #5E6680;
+    --font: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1920px; height: 1080px;
+    background: var(--ground);
+    color: var(--text-secondary);
+    font-family: var(--font);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 24px 1fr 1fr 56px;
+    gap: 1px;
+    background-image:
+      linear-gradient(to right, var(--divider) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--divider) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--divider) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--divider) 1px, transparent 1px);
+    background-size:
+      50% 100%,
+      100% 24px,
+      100% 50%,
+      100% 50%;
+    background-position:
+      0 0,
+      0 0,
+      0 24px,
+      0 calc(24px + 50%);
+    background-repeat: no-repeat;
+  }
+
+  /* ── TICKER BAR ── */
+  .ticker-bar {
+    grid-row: 1; grid-column: 1 / -1;
+    background: var(--surface-1);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 0;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    overflow: hidden;
+    border-bottom: 1px solid var(--divider);
+  }
+  .ticker-item {
+    white-space: nowrap;
+    padding: 0 16px;
+    border-right: 1px solid var(--divider);
+  }
+  .ticker-item .up { color: var(--positive); }
+  .ticker-item .down { color: var(--negative); }
+  .ticker-item .hl { color: var(--amber); }
+  .ticker-item .sig { color: var(--text-primary); }
+
+  /* ── PANEL: Scene ── */
+  .scene-panel {
+    grid-row: 2 / 4; grid-column: 1;
+    background: var(--surface-1);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--divider);
+  }
+  .scene-header {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--divider);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    justify-content: space-between;
+  }
+  .scene-header .title { color: var(--text-primary); }
+  .scene-header .addr { color: var(--amber); }
+  .scene-body {
+    flex: 1;
+    background: radial-gradient(ellipse at 30% 60%, #14172a 0%, #0A0E1A 80%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .scene-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(42,48,80,0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(42,48,80,0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .scene-placeholder {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    opacity: 0.25;
+  }
+  .scene-placeholder .coord {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    border: 1px solid var(--divider);
+    padding: 12px 24px;
+  }
+  .scene-placeholder .coord em {
+    font-style: normal;
+    color: var(--amber);
+  }
+
+  /* ── PANEL: Narrative ── */
+  .narrative-panel {
+    grid-row: 2; grid-column: 2;
+    background: var(--surface-1);
+    display: flex;
+    flex-direction: column;
+  }
+  .narr-header {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--divider);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    justify-content: space-between;
+  }
+  .narr-header .mode { color: var(--positive); }
+  .narr-body {
+    flex: 1;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .narr-line {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    padding-left: 12px;
+    border-left: 2px solid var(--divider);
+  }
+  .narr-line.current {
+    border-left-color: var(--amber);
+  }
+  .narr-line.old {
+    color: var(--text-muted);
+  }
+
+  /* ── PANEL: Dice & Status ── */
+  .dice-panel {
+    grid-row: 3; grid-column: 2;
+    background: var(--surface-1);
+    display: flex;
+    flex-direction: column;
+  }
+  .dice-header {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--divider);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    justify-content: space-between;
+  }
+  .dice-header .status { color: var(--negative); animation: blink-slow 2s step-end infinite; }
+  @keyframes blink-slow { 50% { opacity: 0; } }
+  .dice-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 24px;
+  }
+  /* Dice display */
+  .dice-display {
+    text-align: center;
+  }
+  .dice-box {
+    width: 140px; height: 140px;
+    border: 2px solid var(--negative);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    background: rgba(242,54,69,0.04);
+  }
+  .dice-num {
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--negative);
+    letter-spacing: -0.04em;
+  }
+  .dice-tag {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .dice-skill {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .dice-result {
+    font-size: 10px;
+    color: var(--negative);
+    margin-top: 4px;
+    letter-spacing: 0.06em;
+  }
+  /* Investigator table */
+  .inv-table {
+    font-size: 11px;
+    border-collapse: collapse;
+  }
+  .inv-table th {
+    text-align: left;
+    padding: 4px 14px;
+    color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--divider);
+    font-size: 10px;
+  }
+  .inv-table td {
+    padding: 5px 14px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(42,48,80,0.3);
+  }
+  .inv-table .name { color: var(--text-primary); font-weight: 500; }
+  .inv-table .name.active { color: var(--amber); }
+  .inv-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .inv-table .bar-cell { width: 100px; }
+  .bar-track {
+    height: 3px;
+    background: var(--surface-3);
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    position: absolute;
+    left: 0; top: 0;
+  }
+  .bar-fill.hp { background: var(--negative); }
+  .bar-fill.san { background: var(--text-muted); }
+  .bar-fill.luck { background: var(--amber); }
+
+  /* ── BOTTOM: Danmaku + Vote ── */
+  .bottom-bar {
+    grid-row: 4; grid-column: 1 / -1;
+    background: var(--surface-1);
+    border-top: 1px solid var(--divider);
+    display: flex;
+    flex-direction: column;
+  }
+  .danmaku-row {
+    height: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    overflow: hidden;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--divider);
+  }
+  .danmaku-msg {
+    font-size: 10px;
+    white-space: nowrap;
+    color: var(--text-muted);
+    animation: scroll 20s linear infinite;
+    padding: 0 16px;
+  }
+  .danmaku-msg.gift { color: var(--amber); }
+  @keyframes scroll {
+    0% { transform: translateX(1920px); }
+    100% { transform: translateX(-100%); }
+  }
+  .vote-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+  }
+  .vote-prefix {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+  .vote-choice {
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding: 2px 10px;
+    border: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .vote-choice.lead {
+    border-color: var(--amber);
+    color: var(--text-primary);
+    background: var(--amber-dim);
+  }
+  .vote-pct {
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .vote-gauge {
+    flex: 1;
+    height: 2px;
+    background: var(--surface-3);
+    display: flex;
+    gap: 2px;
+  }
+  .vote-gauge .a { background: var(--amber); width: 44%; }
+  .vote-gauge .b { background: var(--text-muted); width: 33%; }
+  .vote-gauge .c { background: var(--surface-3); width: 23%; }
+
+  /* ── Keyboard shortcuts ── */
+  .shortcuts {
+    position: absolute;
+    bottom: 8px; right: 12px;
+    font-size: 9px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 16px;
+    z-index: 10;
+  }
+  .shortcuts span {
+    padding: 2px 6px;
+    border: 1px solid var(--divider);
+  }
+  .shortcuts .key { color: var(--amber); }
+</style>
+</head>
+<body>
+
+  <!-- TICKER -->
+  <div class="ticker-bar">
+    <span class="ticker-item"><span class="sig">AKHM-L2</span> SESSION-ACTIVE <span class="up">▲ 2,483</span></span>
+    <span class="ticker-item">TURN:<span class="hl">003</span></span>
+    <span class="ticker-item">TIME:<span class="hl">22:47:12</span></span>
+    <span class="ticker-item">THREAT:<span class="down">ELEVATED</span></span>
+    <span class="ticker-item">DICE:<span class="down">72 ▾ FAIL</span></span>
+    <span class="ticker-item">LAST:<span class="hl">@暗夜行者</span> CAST <span class="hl">命运之骰</span></span>
+    <span class="ticker-item">VOTE: A <span class="up">44%</span> | B 33% | C 23%</span>
+  </div>
+
+  <!-- SCENE PANEL -->
+  <div class="scene-panel">
+    <div class="scene-header">
+      <span class="title">SCENE-MAP</span>
+      <span class="addr">B2F::CORRIDOR::E</span>
+    </div>
+    <div class="scene-body">
+      <div class="scene-grid"></div>
+      <div class="scene-placeholder">
+        <div class="coord">SECTOR <em>B2-E7</em><br>阿卡姆疗养院 · 地下走廊</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NARRATIVE PANEL -->
+  <div class="narrative-panel">
+    <div class="narr-header">
+      <span>NARRATIVE::KP-OUTPUT</span>
+      <span class="mode">● STREAMING</span>
+    </div>
+    <div class="narr-body">
+      <div class="narr-line old">◆ 你们沿着走廊走了约两分钟，灯光越来越暗。</div>
+      <div class="narr-line old">◆ 空气里有一股说不清的甜腥味。</div>
+      <div class="narr-line current">▸ 走廊尽头，一扇铁门虚掩着。门缝里透出暗黄色的光。</div>
+    </div>
+  </div>
+
+  <!-- DICE + STATUS PANEL -->
+  <div class="dice-panel">
+    <div class="dice-header">
+      <span>DICE::ROLL</span>
+      <span class="status">● SETTLED</span>
+    </div>
+    <div class="dice-body">
+      <div class="dice-display">
+        <div class="dice-tag">侦查检定 · 65%</div>
+        <div class="dice-box">
+          <div class="dice-num">72</div>
+        </div>
+        <div class="dice-skill">林晓梧 · 黑暗中摸索</div>
+        <div class="dice-result">65 → 72 · 失败</div>
+      </div>
+
+      <table class="inv-table">
+        <thead><tr><th>调查员</th><th>职阶</th><th>HP</th><th>SAN</th><th>LCK</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="name active">◆ 林晓梧</td><td>记者</td>
+            <td class="num">11/14</td>
+            <td class="num" style="color:var(--negative)">27/60</td>
+            <td class="num">31/60</td>
+            <td class="bar-cell"><div class="bar-track"><div class="bar-fill hp" style="width:78%"></div></div></td>
+          </tr>
+          <tr>
+            <td class="name"> 陈远山</td><td>医生</td><td class="num">12/13</td><td class="num">41/60</td><td class="num">55/60</td>
+            <td class="bar-cell"><div class="bar-track"><div class="bar-fill san" style="width:68%"></div></div></td>
+          </tr>
+          <tr>
+            <td class="name"> 方静姝</td><td>古董商</td><td class="num">9/9</td><td class="num">51/60</td><td class="num">42/60</td>
+            <td class="bar-cell"><div class="bar-track"><div class="bar-fill luck" style="width:85%"></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="font-size:10px;color:var(--text-muted);border:1px solid var(--divider);padding:8px 12px">
+        <div style="color:var(--amber)">⌘ 礼物事件</div>
+        <div style="margin-top:4px">旧印护符 · 解锁隐藏回忆</div>
+        <div>混沌之书 · 召唤未知存在</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="danmaku-row">
+      <div class="danmaku-msg gift">◆ @暗夜行者 施放 命运之骰</div>
+      <div class="danmaku-msg">别开门!!!</div>
+      <div class="danmaku-msg">SAN值要炸了</div>
+      <div class="danmaku-msg gift">◆ @橘猫探长 施放 旧印护符</div>
+      <div class="danmaku-msg">林晓梧撑住啊</div>
+      <div class="danmaku-msg">这KP配音绝了</div>
+    </div>
+    <div class="vote-row">
+      <span class="vote-prefix">VOTE::ACTION</span>
+      <div class="vote-choice lead">[A] 推门进去 <span class="vote-pct">44%</span></div>
+      <div class="vote-choice">[B] 听动静 <span class="vote-pct">33%</span></div>
+      <div class="vote-choice">[C] 找退路 <span class="vote-pct">23%</span></div>
+      <div class="vote-gauge"><div class="a"></div><div class="b"></div><div class="c"></div></div>
+    </div>
+  </div>
+
+  <div class="shortcuts">
+    <span><span class="key">1</span> VOTE-A</span>
+    <span><span class="key">2</span> VOTE-B</span>
+    <span><span class="key">3</span> VOTE-C</span>
+    <span><span class="key">R</span> RELOAD</span>
+    <span><span class="key">G</span> GIFT</span>
+  </div>
+
+</body>
+</html>

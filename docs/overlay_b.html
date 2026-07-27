@@ -538,6 +538,14 @@
 
   <div class="conn-status disconnected" id="conn-status">● 离线</div>
 
+  <!-- 点击启动音频（Chrome autoplay 限制） -->
+  <div id="audio-unlock" style="position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+    <div style="text-align:center;color:var(--gold);font-family:var(--font-display);">
+      <div style="font-size:48px;margin-bottom:16px;">▶</div>
+      <div style="font-size:18px;letter-spacing:0.08em;">点击开始直播</div>
+    </div>
+  </div>
+
 <script>
 const STATUS = document.getElementById('conn-status');
 let ws = null, reconnectTimer = null;
@@ -568,6 +576,7 @@ function handleMessage(data) {
       updateItem(data.item);
       updateDanmaku(data.danmaku);
       updateVote(data.vote);
+      updateBgm(data.bgm);
       break;
     case 'scene': updateScene(data.scene); break;
     case 'narrative': updateNarrative(data.narrative); break;
@@ -576,6 +585,7 @@ function handleMessage(data) {
     case 'item': updateItem(data.item); break;
     case 'danmaku': updateDanmaku(data.danmaku); break;
     case 'vote': updateVote(data.vote); break;
+    case 'bgm': updateBgm(data.bgm); break;
   }
 }
 
@@ -832,6 +842,65 @@ function updateVote(v) {
     ),
     `<div class="vote-gauge">${v.options.map((opt, i) => `<div class="gauge-seg ${segs[i]}" style="width:${opt.pct}%"></div>`).join('')}</div>`
   ].join('');
+}
+
+/* ── BGM (背景音乐) ── */
+let bgmAudio = null, bgmFadeTimer = null, currentBgmTrack = '', audioUnlocked = false;
+
+// Audio unlock on first user interaction
+document.getElementById('audio-unlock').addEventListener('click', () => {
+  document.getElementById('audio-unlock').style.display = 'none';
+  audioUnlocked = true;
+  // Create a silent audio context to unlock Web Audio
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  ctx.resume();
+  // If there's a pending BGM track, play it now
+  if (bgmAudio) bgmAudio.play().catch(() => {});
+});
+
+function updateBgm(b) {
+  if (!b) return;
+  if (b.track === currentBgmTrack && bgmAudio && !bgmAudio.paused === b.playing) {
+    // Same track, just update volume
+    if (bgmAudio) bgmAudio.volume = (b.volume || 0.3) * (b.playing ? 1 : 0);
+    return;
+  }
+
+  if (bgmAudio) {
+    // Crossfade: fade out old, fade in new
+    clearInterval(bgmFadeTimer);
+    let vol = bgmAudio.volume;
+    bgmFadeTimer = setInterval(() => {
+      vol = Math.max(0, vol - 0.02);
+      bgmAudio.volume = vol;
+      if (vol <= 0) {
+        clearInterval(bgmFadeTimer);
+        bgmAudio.pause();
+        bgmAudio = null;
+        startNewBgm(b);
+      }
+    }, 50);
+  } else {
+    startNewBgm(b);
+  }
+}
+
+function startNewBgm(b) {
+  if (!b.track || !b.playing) return;
+  currentBgmTrack = b.track;
+  bgmAudio = new Audio(`/audio/bgm/${b.track}.mp3`);
+  bgmAudio.loop = true;
+  bgmAudio.volume = 0;
+  if (audioUnlocked) bgmAudio.play().catch(() => {});
+
+  // Fade in
+  let vol = 0;
+  const target = b.volume || 0.3;
+  bgmFadeTimer = setInterval(() => {
+    vol = Math.min(target, vol + 0.02);
+    if (bgmAudio) bgmAudio.volume = vol;
+    if (vol >= target) clearInterval(bgmFadeTimer);
+  }, 50);
 }
 
 connect();

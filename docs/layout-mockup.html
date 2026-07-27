@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+<title>AI 跑团直播 — 设计稿</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;600&family=Noto+Serif+SC:wght@600;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #08090A;
+    --surface-1: #0F1117;
+    --surface-2: #161920;
+    --surface-3: #1C1F29;
+    --hairline: rgba(255,255,255,0.05);
+    --hairline-strong: rgba(255,255,255,0.08);
+    --text-primary: #EDEEF0;
+    --text-secondary: #8E929A;
+    --text-muted: #5B5F68;
+    --accent: #5E6AD2;
+    --accent-glow: rgba(94,106,210,0.2);
+    --gold: #F0B429;
+    --gold-glow: rgba(240,180,41,0.25);
+    --red: #E5484D;
+    --red-glow: rgba(229,72,77,0.25);
+    --green: #30A46C;
+    --green-glow: rgba(48,164,108,0.2);
+    --amber: #FFA02F;
+    --san-mad: #7C3AED;
+    --san-mad-glow: rgba(124,58,237,0.3);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font-display: 'Inter Tight', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-cn: 'Noto Serif SC', serif;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1920px; height: 1080px;
+    background: var(--ground);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-columns: 720px 1fr 340px;
+    grid-template-rows: 1fr 64px;
+    gap: 1px;
+    background-image:
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px);
+    background-size: 720px 100%, 1080px 100%;
+    background-position: 720px 0, 1420px 0;
+    background-repeat: no-repeat;
+  }
+
+  /* ── LEFT: Scene Art ── */
+  .scene-panel {
+    grid-row: 1; grid-column: 1;
+    background: var(--surface-1);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--hairline);
+    overflow: hidden;
+  }
+  .scene-art {
+    flex: 1;
+    background: radial-gradient(ellipse at 30% 60%, #1a1520 0%, #0d0f14 70%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scene-art-placeholder {
+    text-align: center;
+    opacity: 0.3;
+  }
+  .scene-art-placeholder .icon {
+    font-size: 64px;
+    margin-bottom: 12px;
+    filter: grayscale(0.5);
+  }
+  .scene-art-placeholder .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .scene-context {
+    height: 48px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--hairline);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .scene-context .location {
+    font-family: var(--font-mono);
+    color: var(--amber);
+    font-size: 11px;
+  }
+  .scene-context .tone {
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: rgba(229,72,77,0.1);
+    color: var(--red);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  /* ── CENTER: Narrative + Dice ── */
+  .center-panel {
+    grid-row: 1; grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .narrative-area {
+    flex: 1;
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+  .narrative-line {
+    font-family: var(--font-cn);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    opacity: 0;
+    animation: fadeIn 2s var(--ease-out) forwards;
+  }
+  .narrative-line:nth-child(2) { animation-delay: 1.5s; }
+  .narrative-line:nth-child(3) { animation-delay: 3s; opacity: 0.6; font-size: 18px; color: var(--text-secondary); }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .narrative-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  /* ── DICE OVERLAY ── */
+  .dice-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .dice-overlay.active {
+    opacity: 1;
+  }
+  .dice-container {
+    text-align: center;
+  }
+  .dice-slot {
+    width: 180px; height: 180px;
+    border: 2px solid var(--hairline-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    position: relative;
+    box-shadow: 0 0 60px var(--gold-glow), inset 0 0 40px rgba(0,0,0,0.3);
+  }
+  .dice-face {
+    font-size: 72px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--gold);
+    animation: diceShake 0.15s ease-in-out infinite;
+  }
+  @keyframes diceShake {
+    0%, 100% { transform: rotate(-3deg) scale(1); }
+    50% { transform: rotate(3deg) scale(1.05); }
+  }
+  .dice-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .dice-action {
+    font-family: var(--font-cn);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .dice-skill {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .dice-glow {
+    position: absolute;
+    inset: -20px;
+    border-radius: var(--radius-lg);
+    background: radial-gradient(ellipse at center, var(--gold-glow) 0%, transparent 70%);
+  }
+
+  /* ── RIGHT: Character Cards ── */
+  .status-panel {
+    grid-row: 1; grid-column: 3;
+    background: var(--surface-1);
+    border-left: 1px solid var(--hairline);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+  .status-header {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .char-card {
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    padding: 14px;
+  }
+  .char-card.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .char-name {
+    font-family: var(--font-cn);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+  }
+  .char-name .icon {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 6px;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+  .stat-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    margin: 0 10px;
+    overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s var(--ease-out);
+  }
+  .stat-bar-fill.hp { background: var(--red); }
+  .stat-bar-fill.san { background: var(--san-mad); }
+  .stat-bar-fill.luck { background: var(--amber); }
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+    min-width: 32px;
+    text-align: right;
+  }
+  .char-status {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 6px 8px;
+    background: var(--surface-3);
+    border-radius: var(--radius-sm);
+    border-left: 2px solid var(--accent);
+  }
+
+  /* ── BOTTOM BAR: Danmaku + Voting ── */
+  .bottom-bar {
+    grid-row: 2; grid-column: 1 / -1;
+    background: var(--surface-1);
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .danmaku-row {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    border-bottom: 1px solid var(--hairline);
+    overflow: hidden;
+    position: relative;
+  }
+  .danmaku-item {
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    animation: danmakuScroll 15s linear infinite;
+  }
+  .danmaku-item.highlight {
+    color: var(--gold);
+    font-weight: 500;
+  }
+  @keyframes danmakuScroll {
+    0% { transform: translateX(1920px); }
+    100% { transform: translateX(-100%); }
+  }
+  .voting-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+  }
+  .vote-prompt {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+  .vote-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--hairline);
+    font-size: 13px;
+    font-family: var(--font-cn);
+    font-weight: 500;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+  .vote-option.leading {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    background: rgba(94,106,210,0.08);
+  }
+  .vote-pct {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .vote-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    gap: 2px;
+  }
+  .vote-bar-seg { height: 100%; border-radius: 2px; }
+  .vote-bar-seg.a { background: var(--accent); width: 42%; }
+  .vote-bar-seg.b { background: var(--text-muted); width: 35%; }
+  .vote-bar-seg.c { background: var(--surface-3); width: 23%; }
+
+  /* ── TOP HUD ── */
+  .top-hud {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .round-info {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 16px;
+  }
+  .round-info span {
+    color: var(--amber);
+  }
+  .stream-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--green);
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── DICE RESULT OVERLAY ── */
+  .result-banner {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .result-value {
+    font-family: var(--font-mono);
+    font-size: 96px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--gold);
+    text-shadow: 0 0 40px var(--gold-glow);
+  }
+  .result-label {
+    font-family: var(--font-cn);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top HUD -->
+  <div class="top-hud">
+    <div class="round-info">
+      第 <span>3</span> 轮 · 1928年 <span>10:47 PM</span> · 阿卡姆疗养院
+    </div>
+    <div class="stream-status">
+      <div class="live-dot"></div>
+      2,483 在线
+    </div>
+  </div>
+
+  <!-- LEFT: Scene Art -->
+  <div class="scene-panel">
+    <div class="scene-art">
+      <div class="scene-art-placeholder">
+        <div class="icon">🏚️</div>
+        <div class="label">SCENE ILLUSTRATION<br>ComfyUI · 预生成</div>
+      </div>
+    </div>
+    <div class="scene-context">
+      <span class="location">B2 层 · 走廊尽头</span>
+      <span class="tone">紧张</span>
+    </div>
+  </div>
+
+  <!-- CENTER: Narrative + Dice -->
+  <div class="center-panel">
+    <div class="narrative-area">
+      <div class="narrative-label">KP 旁白</div>
+      <div class="narrative-line">走廊尽头，一扇铁门虚掩着。</div>
+      <div class="narrative-line">门缝里透出暗黄色的光，和一股说不清的甜腥味。</div>
+      <div class="narrative-line">林晓梧把手按在门板上，回头看了你们一眼。</div>
+    </div>
+
+    <!-- Dice Overlay -->
+    <div class="dice-overlay active">
+      <div class="dice-container">
+        <div class="dice-label">侦查检定 · 技能值 65%</div>
+        <div class="dice-slot">
+          <div class="dice-glow"></div>
+          <div class="dice-face">72</div>
+        </div>
+        <div class="dice-action">林晓梧 在黑暗中摸索</div>
+        <div class="dice-skill">侦查 65 → 出目 72 · 失败</div>
+      </div>
+    </div>
+
+    <!-- Dice Result Banner (static preview) -->
+    <div class="result-banner" style="top:72%">
+      <div class="result-value" style="color:var(--red); text-shadow: 0 0 40px var(--red-glow);">72</div>
+      <div class="result-label" style="color: var(--red);">失败</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Character Cards -->
+  <div class="status-panel">
+    <div class="status-header">调查员</div>
+
+    <div class="char-card active">
+      <div class="char-name"><span class="icon"></span>林晓梧 · 记者</div>
+      <div class="stat-row">
+        <span class="stat-label">HP</span>
+        <div class="stat-bar-wrap"><div class="stat-bar-fill hp" style="width:78%"></div></div>
+        <span class="stat-value">11/14</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">SAN</span>
+        <div class="stat-bar-wrap"><div class="stat-bar-fill san" style="width:45%"></div></div>
+        <span class="stat-value" style="color:var(--san-mad)">27/60</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">LUCK</span>
+        <div class="stat-bar-wrap"><div class="stat-bar-fill luck" style="width:52%"></div></div>
+        <span class="stat-value">31/60</span>
+      </div>
+      <div class="char-status">紧张不安，手指微微发抖</div>
+    </div>
+
+    <div class="char-card">
+      <div class="char-name"><span class="icon" style="background:var(--green)"></span>陈远山 · 医生</div>
+      <div class="stat-row">
+        <span class="stat-label">HP</span>
+        <div class="stat-bar-wrap"><div class="stat-bar-fill hp" style="width:92%"></div></div>
+        <span class="stat-value">12/13</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">SAN</span>
+        <div class="stat-bar-wrap"><div class="stat-bar-fill san" style="width:68%"></div></div>
+        <span class="stat-value">41/60</span>
+      </div>
+      <div class="char-status">冷静观察，手里紧握着医疗包</div>
+    </div>
+
+    <div class="char-card">
+      <div class="char-name"><span class="icon" style="background:var(--amber)"></span>方静姝 · 古董商</div>
+      <div class="stat-row">
+        <span class="stat-label">HP</span>
+        <div class="stat-bar-wrap"><div class="stat-bar-fill hp" style="width:100%"></div></div>
+        <span class="stat-value">9/9</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">SAN</span>
+        <div class="stat-bar-wrap"><div class="stat-bar-fill san" style="width:85%"></div></div>
+        <span class="stat-value">51/60</span>
+      </div>
+      <div class="char-status">被墙上的铭文吸引了注意力</div>
+    </div>
+
+    <div class="status-header" style="margin-top:8px">礼物事件</div>
+    <div style="font-size:12px;color:var(--text-muted);padding:8px;background:var(--surface-2);border-radius:var(--radius-sm);line-height:1.6">
+      <div style="color:var(--gold);font-weight:500">🎲 命运检定</div>
+      <div style="font-size:11px;margin-top:4px">送 "旧印护符" 解锁隐藏回忆<br>送 "混沌之书" 召唤随机NPC</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Danmaku + Voting -->
+  <div class="bottom-bar">
+    <div class="danmaku-row">
+      <div class="danmaku-item highlight">🎁 暗夜行者 砸了 命运检定</div>
+      <div class="danmaku-item">别开门别开门别开门</div>
+      <div class="danmaku-item">SAN值要没了啊啊啊</div>
+      <div class="danmaku-item highlight">🎁 橘猫探长 砸了 灵感药水</div>
+      <div class="danmaku-item">林晓梧撑住啊</div>
+      <div class="danmaku-item">这个KP配音绝了</div>
+    </div>
+    <div class="voting-row">
+      <span class="vote-prompt">⌘ 弹幕投票</span>
+      <div class="vote-option leading">
+        A. 推门进去
+        <span class="vote-pct">42%</span>
+      </div>
+      <div class="vote-option">
+        B. 先听一下动静
+        <span class="vote-pct">35%</span>
+      </div>
+      <div class="vote-option">
+        C. 绕回去找另一条路
+        <span class="vote-pct">23%</span>
+      </div>
+      <div class="vote-bar-wrap">
+        <div class="vote-bar-seg a"></div>
+        <div class="vote-bar-seg b"></div>
+        <div class="vote-bar-seg c"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -17,6 +17,7 @@ OVERLAY_DIR = pathlib.Path(__file__).parent.parent / "docs"
 SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "Sceneimage"
 ITEMS_DIR = pathlib.Path(__file__).parent.parent / "data" / "items" / "Itemimage"
 CHARS_DIR = pathlib.Path(__file__).parent.parent / "data" / "characters" / "Userimage"
+BGM_DIR = pathlib.Path(__file__).parent.parent / "data" / "bgm"
 
 # ── Scene matcher ──
 scene_matcher = SceneMatcher()
@@ -75,6 +76,12 @@ class VoteState:
     prompt: str = ""
     options: list[dict] = field(default_factory=list)
 
+@dataclass
+class BgmState:
+    track: str = ""            # 当前播放的 BGM 文件名
+    volume: float = 0.3        # 音量 0.0-1.0
+    playing: bool = True
+
 # ── Global state ──
 
 scene = SceneState()
@@ -84,8 +91,13 @@ characters: list[CharacterState] = []
 item = ItemState()
 danmaku = DanmakuState()
 vote = VoteState()
+bgm = BgmState()
 
 connected_clients: set[web.WebSocketResponse] = set()
+
+# ── BGM mood mapping ──
+_bgm_mappings: dict[str, str] = {}
+_bgm_default = "exploration"
 
 
 def build_state_message() -> dict:
@@ -98,6 +110,7 @@ def build_state_message() -> dict:
         "item": asdict(item),
         "danmaku": asdict(danmaku),
         "vote": asdict(vote),
+        "bgm": asdict(bgm),
     }
 
 
@@ -229,8 +242,28 @@ async def api_roll_dice(request: web.Request) -> web.Response:
     return web.json_response({"ok": True})
 
 
+async def api_bgm(request: web.Request) -> web.Response:
+    """设置/切换 BGM 音轨。
+    POST /api/bgm  {"track": "horror", "volume": 0.3, "playing": true}
+    可选 mood 字段自动匹配音轨：{"mood": "恐怖"}
+    """
+    data = await request.json()
+    
+    # mood → track 自动匹配
+    if "mood" in data and not data.get("track"):
+        mood = data["mood"]
+        track = _bgm_mappings.get(mood, _bgm_default)
+        data["track"] = track
+    
+    bgm.track = data.get("track", bgm.track)
+    bgm.volume = data.get("volume", bgm.volume)
+    bgm.playing = data.get("playing", bgm.playing)
+    await broadcast({"type": "bgm", "bgm": asdict(bgm)})
+    return web.json_response({"ok": True})
+
+
 async def api_reset(request: web.Request) -> web.Response:
-    global scene, narrative, dice, characters, item, danmaku, vote
+    global scene, narrative, dice, characters, item, danmaku, vote, bgm
     scene = SceneState()
     narrative = NarrativeState()
     dice = DiceState()
@@ -238,6 +271,7 @@ async def api_reset(request: web.Request) -> web.Response:
     item = ItemState()
     danmaku = DanmakuState()
     vote = VoteState()
+    bgm = BgmState()
     await broadcast(build_state_message())
     return web.json_response({"ok": True})
 
@@ -261,6 +295,14 @@ async def api_scene_match(request: web.Request) -> web.Response:
     scene.location = best.location
     scene.mood = best.mood
 
+    # Auto-match BGM from scene mood
+    if best.mood:
+        b_track = _bgm_mappings.get(best.mood, _bgm_default)
+        if b_track != bgm.track:
+            bgm.track = b_track
+            bgm.playing = True
+            await broadcast({"type": "bgm", "bgm": asdict(bgm)})
+
     await broadcast({"type": "scene", "scene": asdict(scene)})
 
     return web.json_response({
@@ -276,6 +318,21 @@ async def api_scene_match(request: web.Request) -> web.Response:
             for m in matches[1:]
         ],
     })
+
+
+def _load_bgm_mappings():
+    """加载 BGM mood→track 映射表。"""
+    global _bgm_mappings, _bgm_default
+    import json as _json
+    mappings_file = pathlib.Path(__file__).parent.parent / "data" / "bgm_mappings.json"
+    try:
+        with open(mappings_file) as f:
+            data = _json.load(f)
+        _bgm_mappings = data.get("mappings", {})
+        _bgm_default = data.get("default", "exploration")
+    except Exception:
+        _bgm_mappings = {}
+        _bgm_default = "exploration"
 
 
 # ── App factory ──
@@ -296,10 +353,12 @@ def create_app() -> web.Application:
     app.router.add_post("/api/vote", api_vote)
     app.router.add_post("/api/reset", api_reset)
     app.router.add_post("/api/scene/match", api_scene_match)
+    app.router.add_post("/api/bgm", api_bgm)
 
     app.router.add_static("/images/scenes", SCENES_DIR)
     app.router.add_static("/images/items", ITEMS_DIR)
     app.router.add_static("/images/characters", CHARS_DIR)
+    app.router.add_static("/audio/bgm", BGM_DIR)
 
     n = scene_matcher.load()
     if n > 0:
@@ -307,6 +366,9 @@ def create_app() -> web.Application:
         logger = logging.getLogger(__name__)
         logger.info("SceneMatcher 已加载 %d 个场景（%d 种类型）",
                      n, len(scene_matcher.list_scene_types()))
+
+    # Load BGM mood mappings
+    _load_bgm_mappings()
 
     return app
 

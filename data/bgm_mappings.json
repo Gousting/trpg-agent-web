@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "description": "场景mood → BGM音轨映射，COC跑团直播用",
+  "mappings": {
+    "悬疑": "exploration",
+    "神秘": "exploration",
+    "压抑": "exploration",
+    "诡异": "suspense",
+    "恐怖": "horror",
+    "紧张": "suspense",
+    "危险": "suspense",
+    "混乱": "horror",
+    "绝望": "horror",
+    "孤独": "safe_house",
+    "复古": "safe_house",
+    "颓废": "safe_house",
+    "专注": "safe_house",
+    "惊悚": "horror",
+    "邪恶": "suspense",
+    "破败": "exploration",
+    "亵渎": "horror",
+    "阴郁": "exploration",
+    "崩坏": "horror",
+    "疯狂": "horror"
+  },
+  "default": "exploration"
+}
