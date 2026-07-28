@@ -28,6 +28,8 @@ from trpg_agent.llm.client import OllamaClient
 from trpg_agent.memory.game_state import Investigator
 from trpg_agent.mapgen import DungeonMap
 from trpg_agent.scene_matcher import SceneMatcher
+from trpg_agent.adventure.module_composer import ModuleComposer
+from trpg_agent.adventure import Adventure
 
 # ═══════════════════════════════════════════════════════
 # 配置
@@ -59,11 +61,13 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 SCENES_DIR = DATA_DIR / "scenes" / "Sceneimage"
+MODULES_DIR = DATA_DIR / "modules"
 BGM_DIR = DATA_DIR / "bgm"
 CHARS_DIR = DATA_DIR / "characters" / "Userimage"
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/images/scenes", StaticFiles(directory=str(SCENES_DIR)), name="scenes")
+app.mount("/images/scenes/modules", StaticFiles(directory=str(MODULES_DIR)), name="module_scenes")
 app.mount("/images/characters", StaticFiles(directory=str(CHARS_DIR)), name="characters")
 app.mount("/audio/bgm", StaticFiles(directory=str(BGM_DIR)), name="bgm")
 
@@ -275,8 +279,20 @@ def _dice_consequence(dice_context: str, inv_state) -> dict | None:
 
 
 async def event_stream(host: str, kp_model: str, player_model: str,
-                       turns: int, seed: int | None, mode: str):
+                       turns: int, seed: int | None, mode: str,
+                       compose_modules: bool = False):
     """SSE 事件流 — 完整的游戏循环。"""
+    
+    # ── 模块组合模式 ──────────────────────────
+    adventure: Adventure | None = None
+    if compose_modules:
+        yield _sse("status", {"text": "组合模块剧情..."})
+        composer = ModuleComposer(Path(__file__).resolve().parent.parent / "data" / "modules")
+        composer.load_all()
+        bundle = composer.compile(seed=seed, max_depth=5)
+        adventure = bundle.adventure
+        yield _sse("status", {"text": f"已组合 {len(bundle.module_ids)} 个模块, {len(adventure._scenes)} 个场景"})
+    
     yield _sse("status", {"text": "生成地图..."})
 
     # ── 地图 ──────────────────────────────────
@@ -320,22 +336,50 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         session.state.investigators.append(inv)
     session.state.location = current_room.name if current_room else ""
 
+    # ── 模块模式：注入冒险上下文 ──────────────
+    opening_text = OPENING
+    if adventure is not None:
+        start_scene = adventure.get_scene(adventure.start_scene)
+        if start_scene is not None:
+            opening_text = start_scene.description
+            session.state.scene_id = adventure.start_scene
+            session.state.location = start_scene.title
+            session.state.adventure_id = adventure.id
+            # 注入模块 NPC
+            from trpg_agent.memory.game_state import Npc
+            for npc_name in adventure.npc_names():
+                if not session.state.find_npc(npc_name):
+                    nd = adventure.get_npc(npc_name)
+                    if nd:
+                        session.state.npcs.append(Npc(
+                            name=nd.name, attitude=nd.attitude,
+                            description=nd.description,
+                            location=adventure.start_scene,
+                        ))
+
     yield _sse("init", {
         "investigators": INVESTIGATORS,
         "kp_model": kp_model, "player_model": player_model,
-        "opening": OPENING, "room": rc, "mode": mode,
+        "opening": opening_text, "room": rc, "mode": mode,
+        "compose_modules": compose_modules,
     })
 
     # ── KP 开场（流式）────────────────────────
     # 根据初始房间类型选场景图
     initial_room_type = current_room.room_type if current_room else "entrance"
     scene_info = _scene_for_room(initial_room_type)
+    # 模块模式：用模块场景图覆盖
+    if adventure is not None:
+        start_scene2 = adventure.get_scene(adventure.start_scene)
+        if start_scene2 and start_scene2.image:
+            scene_info = {**scene_info, "image": start_scene2.image} if scene_info else {"image": start_scene2.image, "mood": "dread"}
     bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else _bgm_default
     
-    system_prompt = session.build_system_prompt()
+    system_prompt = session.build_system_prompt(adventure=adventure)
     # 注入 COC 恐怖氛围指令
+    scene_context = start_scene.description if (adventure and (start_scene := adventure.get_scene(adventure.start_scene))) else OPENING
     coc_directive = (
-        f"当前场景：{OPENING}\n"
+        f"当前场景：{scene_context}\n"
         f"位置：{rc['name']} — {rc['desc']}\n"
         f"调查员：{', '.join(i['name'] for i in INVESTIGATORS)}\n"
         f"线索：{rc.get('clues', '暂无')}\n"
@@ -638,13 +682,14 @@ async def stream(
     turns: int = 12,
     seed: str = "",
     mode: str = "ai",
+    compose_modules: bool = False,
 ):
     try:
         seed_val = int(seed) if seed else None
     except ValueError:
         seed_val = None
     return StreamingResponse(
-        event_stream(host, kp, player, turns, seed_val, mode),
+        event_stream(host, kp, player, turns, seed_val, mode, compose_modules),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
