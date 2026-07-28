@@ -1,0 +1,30 @@
+{
+  "id": "hospital_morgue", "title": "圣玛丽医院停尸间", "genre": ["horror", "body_horror"], "difficulty": 2, "duration_estimate": "2-3 turns",
+  "entry": {"location_types": ["indoor"], "required_clues": ["missing_persons_known"], "forbidden_clues": [], "mood": null},
+  "exits": [{"id": "morgue_done", "label": "离开停尸间", "provides_clues": ["autopsy_findings", "stone_effect_known"]}],
+  "scenes": [
+    {"id": "morgue_hall", "title": "停尸间走廊", "part": 1, "scene_type": "医院",
+      "image_prompt": "1920s hospital basement corridor leading to morgue, white tiled walls with green trim, flickering fluorescent lights, a gurney abandoned in the middle of the hallway with a sheet covering something that isn't human shaped, water dripping from ceiling pipes, the morgue door at the end with a small window showing only darkness, institutional horror, Ink Frenzy style",
+      "description": "地下走廊的灯光不稳定地闪灭。走廊中间停着一辆轮床，白布盖着什么东西——轮廓不像人。水管在天花板上滴水。走廊尽头的停尸间门上有扇小窗——里面一片漆黑，但你们能听到里面有什么东西在金属台面上爬动。",
+      "npcs_here": [], "opportunities": [{"id": "mh1", "text": "掀开轮床上的白布（勇气检定）——布下不是尸体。是一堆已经冷却但仍在缓慢蠕动的黑色石头碎片"}],
+      "secrets": [{"id": "mhs1", "text": "碎片在模仿人体——它们感知到了附近有过的尸体形态，试图复制"}],
+      "leads_to": ["morgue_autopsy"], "guidance": "进入停尸间前先做好心理准备。"
+    },
+    {"id": "morgue_autopsy", "title": "验尸台", "part": 1, "scene_type": "停尸间",
+      "image_prompt": "1920s hospital autopsy room, a single operating light illuminating a metal table, medical instruments scattered on the floor as if dropped in panic, an open body drawer with a corpse whose mouth is filled with small black stone fragments, the coroner's notes pinned to the wall describing impossible anatomical findings, clinical body horror, Ink Frenzy style",
+      "description": "验尸台上空着。但拉开的冷藏抽屉里有一具尸体——嘴里塞满了黑色碎石，像是被强行喂下去的。钉在墙上的验尸报告写着令人毛骨悚然的内容：'死者大脑皮层显示记忆中枢完全空白。不是受损——是消失了。仿佛被吸走了。胃内容物为未知黑色矿物碎片。碎片在显微镜下有自主运动。'报告签名处只有半个名字——验尸官没有写完就离开了。",
+      "npcs_here": [], "opportunities": [
+        {"id": "ma1", "text": "阅读完整验尸报告（医学）——石板碎片在人体内会主动向大脑迁移，优先吞噬海马体——记忆和身份的核心区域"}
+      ],
+      "secrets": [{"id": "mas1", "text": "这不是第一具这样的尸体。报告角落注明了归档编号——至少有五具相同症状的尸体被运到了不同医院。"}],
+      "leads_to": ["morgue_converge"], "guidance": "停尸间提供石板物理影响的医学证据。"
+    },
+    {"id": "morgue_converge", "title": "医院后门", "part": 1, "scene_type": "过渡",
+      "description": "这些人不是被杀的。石板碎片进入了他们的体内，吃了他们的记忆，然后离开——寻找下一个宿主。七名失踪者中的五个已经确认死亡。碎片去哪了？",
+      "npcs_here": [], "opportunities": [], "secrets": [],
+      "vote_prompt": "碎片在流动。去哪追？",
+      "leads_to": [], "exit_labels": {"foyer_investigation::foyer": "碎片在往山上集中——去老宅", "docks_warehouse::warehouse_ext": "去码头查货运记录", "sanitarium_visit::ward14": "唯一的幸存者在疯人院"}
+    }
+  ],
+  "npcs": [], "variance": {}
+}

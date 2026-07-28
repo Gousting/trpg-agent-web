@@ -1,0 +1,22 @@
+{
+  "id": "ritual_grounds", "title": "山顶祭坛", "genre": ["horror", "supernatural"], "difficulty": 3, "duration_estimate": "2-3 turns",
+  "entry": {"location_types": ["outdoor", "ritual"], "required_clues": ["ritual_date_known"], "forbidden_clues": [], "mood": null},
+  "exits": [{"id": "ritual_done", "label": "下山", "provides_clues": ["first_ritual_witnessed", "summoning_mechanics_known"]}],
+  "scenes": [
+    {"id": "ritual_stones", "title": "立石圈", "part": 1, "scene_type": "室外仪式",
+      "image_prompt": "hilltop clearing at dusk, ancient weathered standing stones arranged in a circle covered in moss and lichen, the stones are NOT prehistoric but clearly carved with symbols from multiple eras layered on top of each other, the ground inside the circle is blackened and dead unlike the grass outside, a cold wind that only blows inside the circle, the sky above the stones seems darker than the surrounding sky, Lovecraftian outdoor horror, Ink Frenzy style",
+      "description": "山顶的立石圈比镇上任何建筑都老。石头上刻着各个时代的符号——苏美尔楔形文字叠在殖民时期的拉丁文上面，再叠着更新的刻痕。走进石圈，空气冷了好几度。风只在圈内吹。圈内的地面是黑色的——不是烧的，是什么东西反复出现把草压死了。天上的云在圈顶形成了一个完美的圆形缺口，像什么在往下看。",
+      "npcs_here": [], "opportunities": [{"id": "rs1", "text": "辨认所有时代的刻痕（知识/历史）——从公元前到三周前，不同的人反复在同一组石头上刻下召唤咒语"}],
+      "secrets": [{"id": "rss1", "text": "这组石头不是人造的。是深渊之物在几千年前从地下推出来的——像牙齿一样。"}],
+      "leads_to": ["ritual_aftermath"], "guidance": "立石圈是老宅地下室石板的上游——石碑碎片在寻找母体，母体在山顶下面。"
+    },
+    {"id": "ritual_aftermath", "title": "仪式残迹", "part": 1, "scene_type": "室外",
+      "image_prompt": "disturbed ritual site at the base of standing stones, a recently burned campfire with strange colored ashes, a discarded coat with Whitley's name stitched inside, pages torn from a journal scattered in the wind caught on thorny bushes, a single intact page showing a drawing of seven figures standing in a circle with arrows pointing from them to a central black rectangle, forensic horror, Ink Frenzy style",
+      "description": "石圈基部有一处最近使用过的营火——灰烬颜色不对，蓝绿色的粉末混在黑灰里。一件被丢弃的外套挂在灌木上，内侧绣着'惠特利'。几页日记在风中被荆棘挂住。完整的一页上画着七个小人围着中心方块站着——箭头从小人指向方块，下面写了一行字：'七个人，七个锚点，一扇门。'",
+      "npcs_here": [], "opportunities": [{"id": "ra1", "text": "检查营火残余（化学/神秘学）——绿色粉末是碾碎的石板碎片与骨灰的混合物。惠特利在这里做了一次小型召唤——用动物"}],
+      "secrets": [{"id": "ras1", "text": "日记最后一页画的是老宅地下室——箭头指向的不是方块，是地下室中央的石板。山顶的仪式只是预演"}],
+      "leads_to": [], "exit_labels": {"basement_confrontation::basement": "去老宅地下室——仪式的主场地", "underground_tunnels::tunnel_entrance": "山顶有隐蔽的入口通往地下"}
+    }
+  ],
+  "npcs": [], "variance": {}
+}

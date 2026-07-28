@@ -1,0 +1,88 @@
+{
+  "id": "police_station",
+  "title": "阿卡姆警局",
+  "genre": ["horror", "investigation"],
+  "difficulty": 2,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": ["indoor", "urban"],
+    "required_clues": ["town_arrived"],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {"id": "police_done", "label": "调查完毕", "provides_clues": ["police_records_found", "chief_missing"], "mood": "dread", "next_location_type": "indoor"}
+  ],
+  "scenes": [
+    {
+      "id": "police_front",
+      "title": "警局前台",
+      "part": 1,
+      "scene_type": "警局",
+      "image_prompt": "1920s small town police station front desk at night, empty desk with a half-eaten sandwich and cold coffee, wanted posters on wall with dates all from three weeks ago, a lone duty officer nervously chain-smoking, filing cabinets with drawers pulled open and folders scattered, single bare bulb flickering overhead, oppressive tension, noir atmosphere, Ink Frenzy style",
+      "description": "阿卡姆警局的值班室空着。桌上的三明治吃了一半，咖啡凉了。墙上贴的悬赏令全部都是三周前的日期。唯一在场的值班警员在不停抽烟，烟灰缸快溢出来了。他看到你们问失踪案，苦笑一声：'局长上周失踪了。现在整个警局就我一个人——其他人都请病假了。你要查档案随便查，反正也没人管了。'",
+      "npcs_here": ["值班警员"],
+      "opportunities": [
+        {"id": "p1", "text": "翻阅失踪人员档案（图书馆使用）——七名失踪者的完整档案。共同点：全部独居，全部在失踪前收到过惠特利寄出的信"},
+        {"id": "p2", "text": "询问局长失踪细节（交涉）——警员低声说：局长失踪前去了一趟山上老宅。回来后就变了个人，三天后不见了"}
+      ],
+      "secrets": [{"id": "ps1", "text": "局长不是失踪了——他走了。他的办公桌抽屉里留了一张纸条：'我去山上了。别来找我。石板叫我。'"}],
+      "vote_prompt": "先去局长办公室还是证据室？",
+      "leads_to": ["police_office", "police_evidence"],
+      "exit_labels": {"police_office": "去看局长办公室", "police_evidence": "去证据保管室"},
+      "guidance": "二者都是可选的。局长办公室=个人线，证据室=物证线。"
+    },
+    {
+      "id": "police_office",
+      "title": "局长办公室",
+      "part": 1,
+      "scene_type": "办公室",
+      "image_prompt": "1920s police chief's office abandoned in haste, oak desk with a half-written report and a coffee cup knocked over staining the papers brown, window blinds half-drawn casting striped shadows, a framed photograph on the desk showing the chief with his family but his face in the photo is smudged as if someone tried to erase it, coat still hanging on the rack, oppressive silence, noir horror, Ink Frenzy style",
+      "description": "局长办公室的门虚掩着。桌上摊着一份写了一半的报告——关于山上老宅的噪音投诉。墨迹在'建议封锁山道'之后戛然而止，变成了一串不认识的符号。咖啡杯打翻了，染透了报告的边缘。桌上的相框里——局长的全家福照片——他的脸被从照片上擦掉了。不是撕掉，是擦掉了。只剩下一片灰白色的模糊。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "po1", "text": "尝试阅读最后几行符号（克苏鲁神话）——不是疯子的涂鸦，是深渊语的初级形态。局长在尝试写下'它'让他写的东西"},
+        {"id": "po2", "text": "检查相框（侦查）——照片后面夹着一张纸：'石板会叫人。先是小声，后是大声。听到第三次就必须去。我已经听到第二次了。'"}
+      ],
+      "secrets": [{"id": "pos1", "text": "局长是第八个失踪者。但他和其他七人不同——他没有收到信。他听到了声音。石板在进化"}],
+      "leads_to": ["police_converge"],
+      "guidance": "局长办公室揭示了石板能力的进化——从寄信召唤→直接声音召唤。"
+    },
+    {
+      "id": "police_evidence",
+      "title": "证据保管室",
+      "part": 1,
+      "scene_type": "仓库",
+      "image_prompt": "1920s police evidence room in basement, metal shelves lined with tagged evidence bags covered in dust, a single evidence box labeled WHITLEY with the label written in increasingly erratic handwriting, a crowbar on the floor next to a smashed lock, dim bare bulb casting harsh shadows, institutional neglect and creeping horror, Ink Frenzy style",
+      "description": "地下室的证据室积满了灰尘——大部分架子上的东西已经放了十几年。角落里有一个贴着'惠特利'标签的铁盒子。标签上的字迹从工整的印刷体逐渐变成狂乱的草书——写标签的警员在写的过程中精神崩溃了。盒子上的锁被撬开了，不是小偷——是警局的人。里面只剩下一张泛黄的照片：惠特利在中东挖掘现场，背后是一块两人高的黑色石碑。石碑表面——正在张嘴。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "pe1", "text": "仔细查看照片（侦查/摄影）——照片是去年拍的。石碑的状态和惠特利带回的小石板完全不同。它在变小——或者它在分裂"},
+        {"id": "pe2", "text": "收集标签上的笔迹样本（心理学）——笔迹专家分析表明：写标签的警员在写出'惠特利'这个名字的过程中经历了记忆丧失"}
+      ],
+      "secrets": [{"id": "pes1", "text": "惠特利从中东带回的不是石板——是石碑的碎片。完整的石碑还在沙漠里。碎片被带回阿卡姆后仍在与母体通信"}],
+      "leads_to": ["police_converge"],
+      "guidance": "证据室揭示石板只是碎片的事实——深渊之物真正想传送过来的是完整石碑。"
+    },
+    {
+      "id": "police_converge",
+      "title": "警局门口",
+      "part": 1,
+      "scene_type": "过渡",
+      "description": "警局的档案拼出了更大的图景。惠特利带回的石板是某个巨大石碑的碎片——它在变小，在分裂，在繁殖。七个人被它寄信召唤上山。局长听到了它的声音。无论它想要什么，满月之夜就是最后期限。",
+      "npcs_here": [],
+      "opportunities": [],
+      "secrets": [],
+      "vote_prompt": "警局调查完毕。下一步？",
+      "leads_to": [],
+      "exit_labels": {
+        "foyer_investigation::foyer": "直接去山上老宅",
+        "university_campus::campus_quad": "去密斯卡托尼克大学找专家",
+        "hospital_morgue::morgue_hall": "去验尸官办公室查失踪者"
+      },
+      "guidance": "警局线提供法律/官方视角。三条出口给不同方向。"
+    }
+  ],
+  "npcs": [{"name": "值班警员", "attitude": "terrified", "description": "警局最后一个还在上班的人。他留下来不是因为勇敢——是因为他也收到了信，但他把信烧了。", "secret": "他烧了信。但昨晚他听到了声音。第一次。"}],
+  "variance": {}
+}

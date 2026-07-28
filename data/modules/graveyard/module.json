@@ -1,0 +1,21 @@
+{
+  "id": "graveyard", "title": "老墓地", "genre": ["horror", "supernatural"], "difficulty": 2, "duration_estimate": "2-3 turns",
+  "entry": {"location_types": ["outdoor", "graveyard"], "required_clues": [], "forbidden_clues": [], "mood": null},
+  "scenes": [
+    {"id": "graveyard_gate", "title": "墓园铁门", "part": 1, "scene_type": "室外",
+      "image_prompt": "old New England graveyard at night, wrought iron gate hanging askew on broken hinges, weathered headstones dating back to the 1700s tilting at impossible angles, heavy fog clinging to the ground, a single crow perched on the tallest obelisk watching silently, fresh dirt disturbed on several recent graves, the Whitley family mausoleum visible in the distance with its door cracked open, gothic horror, Ink Frenzy style",
+      "description": "墓园的铁门斜挂在生锈的铰链上。墓碑歪斜的角度不像自然沉降——像有什么东西从下面推过。几个最近的坟墓泥土被翻开了，但方向不对——土是从里面往外翻的。惠特利家的陵墓在墓园深处，石门开了一条缝，里面亮着绿色的光。",
+      "npcs_here": [], "opportunities": [{"id": "gg1", "text": "检查翻开的坟墓（侦查）——棺材是空的。里面的尸体不是被挖出来的——是腐烂得太快了"}],
+      "secrets": [{"id": "ggs1", "text": "石板碎片被埋在墓地里——利用地下尸体的有机物来生长"}],
+      "vote_prompt": "进惠特利陵墓吗？", "leads_to": ["graveyard_crypt"], "guidance": "墓地线揭示碎片利用有机物的寄生特性。"
+    },
+    {"id": "graveyard_crypt", "title": "惠特利家族陵墓", "part": 1, "scene_type": "地下墓室",
+      "image_prompt": "Whitley family mausoleum interior, stone sarcophagi lining the walls with names dating back centuries, one sarcophagus in the center broken open from the inside revealing not bones but dozens of black stone fragments arranged in the shape of a human skeleton, moss and fungus growing in patterns that mirror the stone's symbols, green bioluminescent glow from within the open sarcophagus, ancestral horror, Ink Frenzy style",
+      "description": "陵墓里排列着惠特利家族历代成员的棺椁。最中央的那口——惠特利的祖父，家族第一个接触超自然力量的人——是从内部被破开的。里面没有骸骨。几十块黑色碎片拼成了一具人体骨架的形状，正在微微脉动。苔藓和菌类在石墙上长出了石板上的同款符号。",
+      "npcs_here": [], "opportunities": [{"id": "gc1", "text": "检查碎片骨架（克苏鲁神话/知识）——碎片在利用死者的遗传记忆来构建一个能容纳深渊之物的'容器'"}],
+      "secrets": [{"id": "gcs1", "text": "惠特利家族三代人都在被同一块石板召唤——从祖父到父亲到阿瑟。血缘是碎片追踪目标的方式"}],
+      "leads_to": [], "exit_labels": {"foyer_investigation::foyer": "去老宅——碎片在找惠特利本人", "basement_confrontation::basement": "去地下室——碎片集中点"}
+    }
+  ],
+  "npcs": [], "variance": {}
+}
