@@ -119,26 +119,63 @@ class TestModuleComposer:
         assert adv.start_scene.startswith("foyer_investigation::")
 
     def test_branch_gating(self):
-        """验证分支门控：解决 l2 才能去 trusted_path，解决 l1 才能去 alone_path。"""
+        """验证显式剧情出口仍保留门控。"""
         composer = ModuleComposer(MODULES_DIR)
         composer.load_all()
 
-        adv, seed = composer.compose(seed=42, max_depth=3)
-        lib = adv.get_scene("library_research::library")
+        adv, _seed = composer.compose(
+            seed=42, max_depth=4, start_module="library_research",
+        )
+        scene_id = "library_research::library_converge"
+        lib = adv.get_scene(scene_id)
         assert lib is not None
 
-        # 门控键格式: {transition_scene_id: element_id}
-        for trans_id, required in lib.exit_requires.items():
-            assert required in ("l1", "l2"), (
-                f"门控元素应为 l1 或 l2，实际: {required}"
-            )
+        exits = adv.scene_exits(scene_id, include_locked=True)
+        targets = {
+            adv.get_scene(e.target_id).leads_to[0]
+            for e in exits
+            if adv.get_scene(e.target_id) is not None and adv.get_scene(e.target_id).leads_to
+        }
+        assert targets == {
+            "basement_confrontation::basement",
+            "museum_archives::archive_room",
+            "sanitarium_visit::ward14",
+        }
+
+        required_ids = {e.required_element for e in exits if e.required_element}
+        assert required_ids == {"l1", "l2"}
+
+        for exit_info in exits:
+            required = exit_info.required_element
+            if not required:
+                continue
             # 未解决门控元素时不可通过
-            assert not adv.can_move_to("library_research::library", trans_id)
+            assert not adv.can_move_to(scene_id, exit_info.target_id)
             # 解决后可通过
             assert adv.can_move_to(
-                "library_research::library", trans_id,
+                scene_id, exit_info.target_id,
                 resolved_ids={required},
             )
+
+    def test_authored_external_destinations_are_preserved(self):
+        composer = ModuleComposer(MODULES_DIR)
+        composer.load_all()
+
+        adv, _seed = composer.compose(
+            seed=42, max_depth=3, start_module="hospital_morgue",
+        )
+
+        exits = adv.scene_exits("hospital_morgue::morgue_converge", include_locked=True)
+        targets = {
+            adv.get_scene(e.target_id).leads_to[0]
+            for e in exits
+            if adv.get_scene(e.target_id) is not None and adv.get_scene(e.target_id).leads_to
+        }
+        assert targets == {
+            "foyer_investigation::foyer",
+            "docks_warehouse::warehouse_ext",
+            "sanitarium_visit::ward14",
+        }
 
     def test_starting_branch_module_keeps_both_exits(self):
         composer = ModuleComposer(MODULES_DIR)

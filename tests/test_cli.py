@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 
 import trpg_agent
 import trpg_agent.__main__ as cli
+from trpg_agent.session import Session
 
 
 class DummySession:
@@ -195,6 +198,43 @@ def test_run_cli_can_load_compiled_modules(monkeypatch, capsys):
     assert DummySession("x", max_context=1).compiled_loaded is None
     out = capsys.readouterr().out
     assert "模组: 模块化冒险 (composed_library)" in out
+
+
+def test_load_requested_adventure_smoke_uses_real_module_composition():
+    with TemporaryDirectory() as td:
+        session = Session(
+            "smoke_compose",
+            max_context=4096,
+            data_dir=Path(td),
+            skip_characters=True,
+        )
+        args = _args(
+            adventure=None,
+            compose_modules=True,
+            module_start="library_research",
+            module_max_depth=4,
+            module_seed=42,
+        )
+
+        adventure = cli._load_requested_adventure(session, args)
+
+        assert adventure is not None
+        assert adventure.id.startswith("composed_library_research_")
+        assert session.state.adventure_id == adventure.id
+        assert session.state.scene_id == "library_research::library"
+
+        exits = adventure.scene_exits("library_research::library_converge", include_locked=True)
+        targets = {
+            adventure.get_scene(exit_info.target_id).leads_to[0]
+            for exit_info in exits
+            if adventure.get_scene(exit_info.target_id) is not None
+            and adventure.get_scene(exit_info.target_id).leads_to
+        }
+        assert targets == {
+            "basement_confrontation::basement",
+            "museum_archives::archive_room",
+            "sanitarium_visit::ward14",
+        }
 
 
 def test_run_cli_resumes_saved_adventure(monkeypatch, capsys):

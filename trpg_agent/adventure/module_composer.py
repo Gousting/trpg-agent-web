@@ -305,8 +305,19 @@ def _exit_context(module: Module, exit_state: ExitState) -> ExitContext:
 class ModuleNode:
     """分支图中的一个节点——模块实例 + 其出口匹配的下游节点。"""
     module: Module
-    # {exit_index: [(next_node, transition_scene_id), ...]}
-    edges: dict[int, list[tuple["ModuleNode", str]]] = field(default_factory=dict)
+    # {exit_index: [ModuleEdge, ...]}
+    edges: dict[int, list["ModuleEdge"]] = field(default_factory=dict)
+
+
+@dataclass
+class ModuleEdge:
+    """模块间的一条过渡边。"""
+
+    next_node: ModuleNode
+    transition_scene_id: str
+    target_hint: str = ""
+    label: str = ""
+    required_element: str | None = None
 
 
 @dataclass
@@ -483,15 +494,53 @@ class ModuleComposer:
             if not exits:
                 continue
 
+            used_ids = {n.meta.id for n in self._collect_nodes(root)}
+            exit_contexts: list[tuple[int, ExitState, set[str], list[Module]]] = []
             for exit_idx, exit_state in enumerate(exits):
                 ctx = _exit_context(mod, exit_state)
-                # 合并池线索
                 full_clues = pool_clues | set(exit_state.provides_clues)
-
                 candidates = self._find_compatible(
-                    ctx, full_clues, {n.meta.id for n in self._collect_nodes(root)},
-                    difficulty_range,
+                    ctx, full_clues, used_ids, difficulty_range,
                 )
+                exit_contexts.append((exit_idx, exit_state, full_clues, candidates))
+
+            authored_targets = self._authored_external_targets(mod)
+            if authored_targets:
+                claimed_exits: set[int] = set()
+                for target_id in authored_targets:
+                    child_mod = self._resolve_explicit_target(target_id, difficulty_range)
+                    if child_mod is None or child_mod.meta.id in used_ids:
+                        continue
+
+                    exit_idx, exit_state, full_clues = self._pick_exit_for_target(
+                        mod,
+                        target_id,
+                        exit_contexts,
+                        claimed_exits,
+                    )
+                    claimed_exits.add(exit_idx)
+
+                    if child_mod.meta.id in node_map:
+                        child = node_map[child_mod.meta.id]
+                    else:
+                        child = ModuleNode(module=child_mod)
+                        node_map[child_mod.meta.id] = child
+                        queue.append((child, depth + 1, full_clues))
+
+                    trans_scene_id = f"__trans__{mod.meta.id}_{exit_idx}_to_{child_mod.meta.id}"
+                    node.edges.setdefault(exit_idx, []).append(ModuleEdge(
+                        next_node=child,
+                        transition_scene_id=trans_scene_id,
+                        target_hint=target_id,
+                        label=mod.scenes[-1].exit_labels.get(target_id, "") if mod.scenes else "",
+                        required_element=(
+                            mod.scenes[-1].exit_requires.get(target_id)
+                            if mod.scenes else None
+                        ) or exit_state.requires_element,
+                    ))
+                continue
+
+            for exit_idx, exit_state, full_clues, candidates in exit_contexts:
                 if not candidates:
                     continue
 
@@ -505,9 +554,115 @@ class ModuleComposer:
                         queue.append((child, depth + 1, full_clues))
 
                     trans_scene_id = f"__trans__{mod.meta.id}_{exit_idx}_to_{candidate_mod.meta.id}"
-                    node.edges.setdefault(exit_idx, []).append((child, trans_scene_id))
+                    node.edges.setdefault(exit_idx, []).append(ModuleEdge(
+                        next_node=child,
+                        transition_scene_id=trans_scene_id,
+                    ))
 
         return root
+
+    def _authored_external_targets(self, module: Module) -> list[str]:
+        """返回模块最后场景里作者显式声明的外部目标场景。"""
+        if not module.scenes:
+            return []
+
+        last_scene = module.scenes[-1]
+        ordered: list[str] = []
+        seen: set[str] = set()
+        for mapping in (last_scene.exit_labels, last_scene.exit_requires):
+            for target_id in mapping:
+                module_id = self._target_module_id(target_id)
+                if not module_id or module_id == module.meta.id or module_id not in self._modules:
+                    continue
+                if target_id in seen:
+                    continue
+                seen.add(target_id)
+                ordered.append(target_id)
+        return ordered
+
+    def _target_module_id(self, target_id: str) -> str | None:
+        target = (target_id or "").strip()
+        if not target:
+            return None
+        if "::" in target:
+            return target.split("::", 1)[0]
+        if target in self._modules:
+            return target
+        return None
+
+    def _resolve_explicit_target(
+        self,
+        target_id: str,
+        difficulty_range: tuple[int, int] | None,
+    ) -> Module | None:
+        module_id = self._target_module_id(target_id)
+        if not module_id:
+            return None
+        module = self._modules.get(module_id)
+        if module is None:
+            return None
+        if difficulty_range is None:
+            return module
+        lo, hi = difficulty_range
+        if lo <= module.meta.difficulty <= hi:
+            return module
+        return None
+
+    def _pick_exit_for_target(
+        self,
+        module: Module,
+        target_id: str,
+        exit_contexts: list[tuple[int, ExitState, set[str], list[Module]]],
+        claimed_exits: set[int],
+    ) -> tuple[int, ExitState, set[str]]:
+        """为显式目标挑选最合适的出口状态。"""
+        target_module_id = self._target_module_id(target_id)
+        if target_module_id is None:
+            return exit_contexts[0][0], exit_contexts[0][1], exit_contexts[0][2]
+
+        exact_matches = [
+            (exit_idx, exit_state, full_clues)
+            for exit_idx, exit_state, full_clues, candidates in exit_contexts
+            if any(candidate.meta.id == target_module_id for candidate in candidates)
+        ]
+        if len(exact_matches) == 1:
+            return exact_matches[0]
+
+        clue_only_matches = [
+            (exit_idx, exit_state, full_clues)
+            for exit_idx, exit_state, full_clues, _candidates in exit_contexts
+            if self._matches_required_clues_only(full_clues, target_module_id)
+        ]
+        if len(clue_only_matches) == 1:
+            return clue_only_matches[0]
+
+        remaining = [
+            (exit_idx, exit_state, full_clues)
+            for exit_idx, exit_state, full_clues, _candidates in exit_contexts
+            if exit_idx not in claimed_exits
+        ]
+        if len(remaining) == 1:
+            return remaining[0]
+
+        target_required = module.scenes[-1].exit_requires.get(target_id) if module.scenes else None
+        if target_required:
+            for exit_idx, exit_state, full_clues, _candidates in exit_contexts:
+                if exit_state.requires_element == target_required:
+                    return exit_idx, exit_state, full_clues
+
+        return exit_contexts[0][0], exit_contexts[0][1], exit_contexts[0][2]
+
+    def _matches_required_clues_only(self, pool_clues: set[str], target_module_id: str) -> bool:
+        module = self._modules.get(target_module_id)
+        if module is None:
+            return False
+        for clue in module.meta.entry_required_clues:
+            if clue not in pool_clues:
+                return False
+        for clue in module.meta.entry_forbidden_clues:
+            if clue in pool_clues:
+                return False
+        return True
 
     def _collect_nodes(self, root: ModuleNode) -> list[Module]:
         """BFS 收集所有不重复的模块节点。"""
@@ -520,8 +675,8 @@ class ModuleComposer:
                 seen.add(node.module.meta.id)
                 result.append(node.module)
                 for exits in node.edges.values():
-                    for child, _ in exits:
-                        queue.append(child)
+                    for edge in exits:
+                        queue.append(edge.next_node)
         return result
 
     def _pick_start(
@@ -627,7 +782,9 @@ class ModuleComposer:
 
                 for exit_idx, exit_edges in node.edges.items():
                     exit_state = node.module.meta.exits[exit_idx] if exit_idx < len(node.module.meta.exits) else None
-                    for child_node, trans_id in exit_edges:
+                    for edge in exit_edges:
+                        child_node = edge.next_node
+                        trans_id = edge.transition_scene_id
                         child_first = translate.get(_first_scene_id(child_node.module), "")
                         child_module_id = child_node.module.meta.id
                         trans = _make_transition_scene(
@@ -644,13 +801,17 @@ class ModuleComposer:
                         new_leads.append(trans.id)
 
                         # 标签：优先用手写的 exit_labels，回退到出口状态标签
-                        label = authored_labels.get(child_module_id) or authored_labels.get(child_first)
+                        label = edge.label or authored_labels.get(edge.target_hint)
+                        if not label:
+                            label = authored_labels.get(child_module_id) or authored_labels.get(child_first)
                         if not label and exit_state and exit_state.label:
                             label = exit_state.label
                         if label:
                             new_labels[trans.id] = label
                         # 门控：优先手写的，回退到出口状态
-                        req = authored_exits.get(child_module_id) or authored_exits.get(child_first)
+                        req = edge.required_element or authored_exits.get(edge.target_hint)
+                        if not req:
+                            req = authored_exits.get(child_module_id) or authored_exits.get(child_first)
                         if not req and exit_state and exit_state.requires_element:
                             req = exit_state.requires_element
                         if req:
@@ -662,8 +823,8 @@ class ModuleComposer:
 
                 # 递归处理所有子节点
                 for exit_edges in node.edges.values():
-                    for child_node, _ in exit_edges:
-                        _process_node(child_node, processed)
+                    for edge in exit_edges:
+                        _process_node(edge.next_node, processed)
 
         processed: set[str] = set()
         _process_node(root, processed)
@@ -705,6 +866,6 @@ class ModuleComposer:
             seen.add(node.module.meta.id)
             result.append(node)
             for exits in node.edges.values():
-                for child, _ in exits:
-                    queue.append(child)
+                for edge in exits:
+                    queue.append(edge.next_node)
         return result
