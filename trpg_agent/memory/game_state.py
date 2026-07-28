@@ -263,6 +263,8 @@ class GameState:
                 if inv.conditions:
                     status += f", {' '.join(inv.conditions)}"
                 lines.append(f"  {inv.name} — {status}")
+                if inv.inventory:
+                    lines.append(f"    持有：{', '.join(inv.inventory)}")
 
         if self.npcs:
             present = [n for n in self.npcs if n.location == active_scene_ref]
