@@ -25,6 +25,7 @@
       "title": "地下室祭坛",
       "part": 2,
       "scene_type": "地下密室",
+      "image_prompt": "underground ritual chamber, twisted altar made of human bones and rotting flesh, black stone slab with glowing Cthulhu runes embedded in the altar, boiling green liquid surrounding the altar, tentacles emerging from dimensional rift, green candlelight, stone walls covered in spiraling occult symbols, cosmic horror, photorealistic",
       "description": "石阶盘绕而下，空气越来越潮湿、腥甜。地下室的中央，一根根人类的肋骨和早已无法辨认的腐烂组织堆砌成一座扭曲的祭坛。祭坛顶部嵌着一块黑色石板，表面闪烁着不祥的暗光。祭坛周围的液体正在自行沸腾，某种巨大的、不属于这个维度的存在正挣扎着从中成型。",
       "npcs_here": ["深渊之子"],
       "opportunities": [

@@ -17,6 +17,7 @@ OVERLAY_DIR = pathlib.Path(__file__).parent.parent / "docs"
 SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "Sceneimage"
 ITEMS_DIR = pathlib.Path(__file__).parent.parent / "data" / "items" / "Itemimage"
 CHARS_DIR = pathlib.Path(__file__).parent.parent / "data" / "characters" / "Userimage"
+MODULE_SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "modules"
 BGM_DIR = pathlib.Path(__file__).parent.parent / "data" / "bgm"
 TTS_CACHE = pathlib.Path(__file__).parent.parent / "data" / "tts_cache"
 
@@ -386,6 +387,7 @@ def create_app() -> web.Application:
     app.router.add_post("/api/bgm", api_bgm)
 
     app.router.add_static("/images/scenes", SCENES_DIR)
+    app.router.add_static("/images/scenes/modules", MODULE_SCENES_DIR)
     app.router.add_static("/images/items", ITEMS_DIR)
     app.router.add_static("/images/characters", CHARS_DIR)
     app.router.add_static("/audio/bgm", BGM_DIR)

@@ -66,6 +66,8 @@ class Scene:
     exit_requires: dict[str, str] = field(default_factory=dict)  # {target_id: required_element_id}
     exit_labels: dict[str, str] = field(default_factory=dict)    # {target_id: semantic label}
     guidance: str = ""
+    image: str = ""          # 运行时图片 URL（composer 自动回链）
+    image_prompt: str = ""   # 用于生图的提示词（模块作者填写）
     # COC 特有触发器
     san_check: dict | None = None   # {"trigger": "...", "level": "MAJOR"}
     combat: dict | None = None      # {"trigger": "...", "enemy": "...", "hp": N, "armor": N}
@@ -98,6 +100,8 @@ class Scene:
             exit_requires=exit_requires,
             exit_labels=exit_labels,
             guidance=str(d.get("guidance", "") or ""),
+            image=str(d.get("image", "") or ""),
+            image_prompt=str(d.get("image_prompt", "") or ""),
             san_check=d.get("san_check") if isinstance(d.get("san_check"), dict) else None,
             combat=d.get("combat") if isinstance(d.get("combat"), dict) else None,
         )
@@ -300,6 +304,11 @@ class Adventure:
             lines.append("")
             lines.append(f"## 当前场景：{scene.title}（第 {scene.part} 幕）")
             lines.append(scene.description)
+
+            if scene.image:
+                lines.append(f"场景图片：{scene.image}")
+            elif scene.image_prompt:
+                lines.append(f"待生图 prompt：{scene.image_prompt}")
 
             if scene.npcs_here:
                 lines.append(f"在场 NPC：{', '.join(scene.npcs_here)}")

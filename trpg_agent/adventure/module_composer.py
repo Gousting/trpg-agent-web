@@ -26,6 +26,24 @@ from .variance import (
 
 log = logging.getLogger(__name__)
 
+# ── 模块图片路径 ─────────────────────────────────────
+
+_MODULES_IMAGES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "scenes" / "modules"
+_MODULES_IMAGE_PREFIX = "/images/scenes/modules/"
+
+
+def _resolve_module_image(module_id: str, scene_original_id: str) -> str:
+    """检查模块场景图片是否存在，返回相对 URL 或空字符串。"""
+    candidate = _MODULES_IMAGES_DIR / module_id / f"{scene_original_id}.png"
+    if candidate.is_file():
+        return f"{_MODULES_IMAGE_PREFIX}{module_id}/{scene_original_id}.png"
+    # 降级：尝试 jpg
+    candidate_jpg = _MODULES_IMAGES_DIR / module_id / f"{scene_original_id}.jpg"
+    if candidate_jpg.is_file():
+        return f"{_MODULES_IMAGE_PREFIX}{module_id}/{scene_original_id}.jpg"
+    return ""
+
+
 # ── 过渡场景模板 ─────────────────────────────────────
 
 _TRANSITION_TEMPLATES = [
@@ -552,7 +570,7 @@ class ModuleComposer:
             for sc in mod.scenes:
                 translate[sc.id] = f"{mod.meta.id}::{sc.id}"
 
-        # Phase 2: 前缀化
+        # Phase 2: 前缀化 + 方差落盘 + 图片回链
         all_scenes: list[Scene] = []
         all_npcs: list[AdventureNpc] = []
         for mod in all_nodes:
@@ -560,6 +578,12 @@ class ModuleComposer:
             for scene in varied_scenes:
                 _apply_scene_variance(scene, mod.variance)
             prefixed = _prefix_scenes(varied_scenes, mod.meta.id, translate_leads_to=translate)
+            # 图片回链：检查 modules/{module_id}/{scene_original_id}.png
+            for scene, original in zip(prefixed, mod.scenes):
+                if not scene.image:
+                    resolved = _resolve_module_image(mod.meta.id, original.id)
+                    if resolved:
+                        scene.image = resolved
             all_scenes.extend(prefixed)
             for npc in mod.npcs:
                 if npc.name not in {n.name for n in all_npcs}:
