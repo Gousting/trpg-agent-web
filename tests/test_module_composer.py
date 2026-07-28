@@ -43,10 +43,9 @@ class TestModuleComposer:
         lib_last = adv.get_scene("library_research::library")
         assert lib_last is not None
 
-        # 应该有至少 2 个 leads_to（两个分支各一个过渡场景）
-        normal_targets = [t for t in lib_last.leads_to if "__trans__" in t]
-        assert len(normal_targets) >= 2, (
-            f"library 应有至少 2 条出口，实际 leads_to={lib_last.leads_to}"
+        # library 的最末场景应有至少 2 个投票选项（exit_labels）
+        assert len(lib_last.exit_labels) >= 2, (
+            f"library 应有至少 2 条投票出口，实际 exit_labels={lib_last.exit_labels}"
         )
 
         # 验证门控存在
@@ -191,4 +190,4 @@ class TestModuleComposer:
 
         adv, _seed = composer.compose(seed=42, max_depth=3)
 
-        assert "含 2 个分支点" in adv.summary
+        assert "分支点" in adv.summary

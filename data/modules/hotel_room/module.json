@@ -1,0 +1,117 @@
+{
+  "id": "hotel_room",
+  "title": "海风旅馆",
+  "genre": ["horror", "investigation"],
+  "difficulty": 2,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": ["indoor", "urban"],
+    "required_clues": ["town_arrived"],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "to_archives",
+      "label": "去大学博物馆查考古档案",
+      "provides_clues": ["threat_note_found", "ritual_date_known"],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "to_mansion",
+      "label": "直接上山去老宅阻止仪式",
+      "provides_clues": ["threat_note_found", "ritual_date_known", "rusher"],
+      "mood": "urgency",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "room",
+      "title": "惠特利的房间",
+      "part": 1,
+      "scene_type": "旅馆房间",
+      "image_prompt": "1920s seaside hotel room, 2nd floor corner room, window blown open with rain-soaked curtains, muddy inhuman footprints leading from window to desk, yellowed newspaper clippings and an unfinished letter scattered on desk, overturned chair, dim oil lamp, eerie detective noir atmosphere, photorealistic",
+      "description": "海风旅馆的老板一听'惠特利'就变了脸色，给了二楼尽头房间的钥匙。推开门的瞬间，冷风灌进来。窗户开着，窗帘被雨水浸透。地毯上有一行干涸的泥脚印从窗口延伸至书桌前。脚印赤足，脚趾间距宽——不像是人的。桌上散落着发黄的剪报和一封没写完的信。",
+      "npcs_here": [],
+      "vote_prompt": "先看信还是先追踪泥脚印？",
+      "opportunities": [
+        {"id": "hr1", "text": "读惠特利没写完的信（知识/图书馆使用）——完整阅读获得仪式日期和石板起源"},
+        {"id": "hr2", "text": "顺着泥脚印从窗户翻出去追踪——可能遭遇窗外的未知存在"}
+      ],
+      "secrets": [
+        {"id": "hrs1", "text": "泥脚印属于每晚来检查信是否被寄出的'访客'——它不是来伤害人的，是来确保信被销毁的"}
+      ],
+      "leads_to": ["room_letter", "room_track"],
+      "exit_labels": {
+        "room_letter": "读信（安全，获得全部信息）",
+        "room_track": "追踪泥脚印（有风险，可能遭遇）"
+      },
+      "guidance": "两条路线会汇聚。读信路线直接获得全文。追踪路线有机会遭遇窗口外的存在但获得物证。"
+    },
+    {
+      "id": "room_letter",
+      "title": "未寄出的信",
+      "part": 1,
+      "scene_type": "发现线索",
+      "image_prompt": "extreme closeup of a handwritten letter on aged paper, handwriting deteriorating from neat academic script into frantic scrawl, ink splatters, a single sentence 'it eats memories' underlined three times, dim oil lamp light, 1920s desk setting, psychological horror",
+      "description": "信是写给博物馆同事的，没有寄出。前半段是正常的考古汇报——惠特利描述了一块刻着'深渊之门'铭文的黑色石板，材质未知，放射性异常，碳定年法无法确定年代。但写到第三天时笔迹开始变形：'石板在夜里发光。它会说话——不是用声音，是直接插进脑子里。它告诉我在满月之夜，只需要一句咒语，深渊里的东西就能穿过它过来。我想把它送回沙漠，但它不肯让我走。我忘了我妻子的长相。'",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "rl1", "text": "核对日历（知识）——三天后就是满月。仪式必须在满月午夜前阻止。"}
+      ],
+      "secrets": [],
+      "leads_to": ["room_converge"],
+      "guidance": "读信路线提供完整的叙事背景和仪式截止日期。"
+    },
+    {
+      "id": "room_track",
+      "title": "窗外追踪",
+      "part": 1,
+      "scene_type": "室外小巷",
+      "image_prompt": "dark back alley behind 1920s hotel at night, rain-slicked cobblestone street, strange inhuman footprints that suddenly stop mid-alley as if the walker was lifted into air, a homeless man huddled under cardboard in corner pointing in terror, fog and single streetlamp, horror noir atmosphere",
+      "description": "你们翻窗下到后巷。泥脚印在湿漉漉的石板路上清晰可见——步伐很慢，像是在找什么。走出二十米后脚印突然消失，像是脚印主人被从地面提了起来。巷子尽头，一个流浪汉缩在纸板下，指着巷子深处：'那个没脚的东西——每晚都来。它在等里面的信。'",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "rt1", "text": "在脚印消失处搜索（侦查）——地面有灼烧痕迹，某种能量传输留下的残余"}
+      ],
+      "secrets": [
+        {"id": "rts1", "text": "流浪汉说'没脚的东西'每晚都来——惠特利被石板吞噬前派出了某种'信使'来确保他求助的信不会被寄出"}
+      ],
+      "leads_to": ["room_converge"],
+      "guidance": "追踪路线发现窗外存在监控，增加了紧迫感。"
+    },
+    {
+      "id": "room_converge",
+      "title": "旅馆大堂",
+      "part": 1,
+      "scene_type": "过渡",
+      "description": "证据够了。惠特利三周前离开旅馆后消失了。他带回来的石板是活的，会吞噬记忆，而满月只剩三天。你们有两个选择——去大学博物馆翻查他的考古档案，或者直接上山。",
+      "npcs_here": [],
+      "opportunities": [],
+      "secrets": [],
+      "vote_prompt": "证据够了，接下来去哪？",
+      "leads_to": [],
+      "exit_labels": {
+        "museum_archives::archive_room": "去大学博物馆查考古档案",
+        "foyer_investigation::foyer": "直接上山去废弃老宅"
+      },
+      "guidance": "museum_archives 提供更深层背景情报，foyer 直接进入行动。"
+    }
+  ],
+  "npcs": [],
+  "variance": {
+    "mood_variants": [
+      {
+        "scene_id": "room",
+        "base_description": "推开门的瞬间，冷风灌进来。窗户开着，窗帘被雨水浸透。",
+        "variable_details": [
+          "房间里有股淡淡的樟脑和旧书的味道——惠特利的私人物品还在。",
+          "墙上的挂钟停在三周前，和惠特利退房的日期一致。",
+          "床铺没有被睡过的痕迹——惠特利退房前的最后几晚没有躺在床上。"
+        ]
+      }
+    ]
+  }
+}

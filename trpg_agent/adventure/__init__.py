@@ -68,6 +68,7 @@ class Scene:
     guidance: str = ""
     image: str = ""          # 运行时图片 URL（composer 自动回链）
     image_prompt: str = ""   # 用于生图的提示词（模块作者填写）
+    vote_prompt: str = ""    # 弹幕投票问题文案（为空则不触发投票）
     # COC 特有触发器
     san_check: dict | None = None   # {"trigger": "...", "level": "MAJOR"}
     combat: dict | None = None      # {"trigger": "...", "enemy": "...", "hp": N, "armor": N}
@@ -102,6 +103,7 @@ class Scene:
             guidance=str(d.get("guidance", "") or ""),
             image=str(d.get("image", "") or ""),
             image_prompt=str(d.get("image_prompt", "") or ""),
+            vote_prompt=str(d.get("vote_prompt", "") or ""),
             san_check=d.get("san_check") if isinstance(d.get("san_check"), dict) else None,
             combat=d.get("combat") if isinstance(d.get("combat"), dict) else None,
         )
@@ -346,6 +348,19 @@ class Adventure:
             if scene.combat:
                 lines.append(f"\n战斗触发：{scene.combat.get('trigger', '')} "
                              f"— 敌人 {scene.combat.get('enemy', '')}")
+
+            # 投票
+            if scene.vote_prompt:
+                lines.append(f"\n🎯 弹幕投票：{scene.vote_prompt}")
+                available_exits = self.scene_exits(scene.id, resolved_ids=resolved)
+                if available_exits:
+                    for i, e in enumerate(available_exits, 1):
+                        lines.append(f"  {i}. {e.label}")
+                else:
+                    locked = self.scene_exits(scene.id, resolved_ids=resolved, include_locked=True)
+                    for e in locked:
+                        tag = "🔒" if not e.available else "✓"
+                        lines.append(f"  {tag} {e.label}")
 
             # 出口
             exits = self.scene_exits(scene.id, resolved_ids=resolved, include_locked=True)

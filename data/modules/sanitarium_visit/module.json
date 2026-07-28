@@ -1,0 +1,91 @@
+{
+  "id": "sanitarium_visit",
+  "title": "阿卡姆疯人院",
+  "genre": ["horror", "psychological"],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": ["indoor"],
+    "required_clues": ["cursed_slab_found"],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "to_basement_weak",
+      "label": "立刻去地下室（石板未完全觉醒）",
+      "provides_clues": ["destruction_method_known", "slab_not_awake"],
+      "mood": "determined",
+      "next_location_type": "basement"
+    },
+    {
+      "id": "to_basement_prepared",
+      "label": "准备工具再去（战斗加成）",
+      "provides_clues": ["destruction_method_known"],
+      "mood": "prepared",
+      "next_location_type": "basement"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "ward14",
+      "title": "14号病房",
+      "part": 1,
+      "scene_type": "疯人院",
+      "image_prompt": "1920s mental asylum ward, clean white-tiled corridor with harsh electric lights, every patient in every cell mouthing the same words, nurse with expressionless face leading visitors down hall, room 14 with padded door, psychological horror, clinical horror, photorealistic",
+      "description": "阿卡姆疯人院的走廊干净、明亮、消毒水味道刺鼻——但比古屋更令人不安。路过每一间病房，里面的人都在说同一句话。不同音色，同一句：'下面有东西醒了。'护士长面无表情地停在14号病房前。'马丁·科里根，惠特利的田野助手。送来时已经这样了。别靠太近——他咬人。'",
+      "npcs_here": ["马丁·科里根"],
+      "opportunities": [
+        {"id": "sv1", "text": "观察其他病房的病人（心理学）——他们吟诵的内容完全一致，就像在转述同一个信号源"},
+        {"id": "sv2", "text": "翻阅马丁的入院记录（图书馆使用/医学）——入院时无外伤，SAN值为零。备注：'患者声称自己的影子被吃掉了。检查发现——他没有影子。'"}
+      ],
+      "secrets": [
+        {"id": "svs1", "text": "马丁不是精神病——他的记忆被吞噬到只剩最后一段。石板的'进食'有某种顺序：先吃最近的记忆，最后才吃最古老的本能。马丁是唯一一个在被'吃空'之前被送进疯人院的"}
+      ],
+      "leads_to": ["ward14_martin"],
+      "guidance": "病房走廊提供全局线索：石板的影响不是心理暗示——几十个无关的病人同时说同样的话证明它是一种物理辐射。"
+    },
+    {
+      "id": "ward14_martin",
+      "title": "马丁的最后记忆",
+      "part": 1,
+      "scene_type": "对话",
+      "image_prompt": "mental asylum padded cell, a gaunt man in straightjacket huddled in corner, his eyes focused on something behind the viewer, his shadow missing on the wall while the visitors' shadows remain, dim institutional lighting, deeply unsettling psychological horror",
+      "description": "马丁蜷缩在病房角落里。他看着你们，但眼神聚焦在你们身后的空处。'它在你身后。它在吃你的影子——现在还只是影子，下次就是你的名字。'你们低头看——你们的影子还在。但马丁的没有了。他断断续续地说出四个词：'高温。频率。共振。粉碎。'然后像是用尽了全部力气，闭上了眼。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "sm1", "text": "记录摧毁方法（知识）——高温共振：用火焰或高功率热源加热石板至约800°C，同时用特定频率的声波（约23Hz）诱发共振，石板会自行粉碎"}
+      ],
+      "secrets": [
+        {"id": "sms1", "text": "23Hz恰好是档案室嗡鸣的频率——石板本身就在发出自己的摧毁频率。它'想要'被摧毁，因为它本身也是被深渊之物强行留在这一侧的。它不是门——它是锚。摧毁它，深渊之物就失去了在这边的支点。"}
+      ],
+      "vote_prompt": "马丁说出了摧毁石板的方法。直奔地下室？",
+      "leads_to": [],
+      "exit_labels": {
+        "basement_confrontation::basement": "立刻去地下室（石板未完全觉醒）"
+      },
+      "guidance": "获得了摧毁方法的高温共振法。直接去地下室：深渊之子初始HP减半（石板未完全觉醒）。但调查员没有额外装备加成。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "马丁·科里根",
+      "attitude": "broken",
+      "description": "惠特利的田野助手，三十出头，曾是健壮的户外工作者。现在蜷缩在病房角落，眼神永远聚焦在不存在的东西上。他的影子消失了。",
+      "secret": "他是唯一一个在被石板'吃空'之前被救出来的人。他剩下的记忆碎片恰好是摧毁石板的方法——不是巧合，是他故意把这段记忆留到最后。"
+    }
+  ],
+  "variance": {
+    "mood_variants": [
+      {
+        "scene_id": "ward14",
+        "base_description": "走廊干净、明亮、消毒水味道刺鼻。",
+        "variable_details": [
+          "走廊尽头的灯管突然闪烁了一下，你们看到了——所有病房里的病人都同时转头看着你们。",
+          "护士长说话时不眨眼。一次也没有。",
+          "走廊墙上挂着一幅风景画，画框里的颜料在缓慢地流淌。"
+        ]
+      }
+    ]
+  }
+}

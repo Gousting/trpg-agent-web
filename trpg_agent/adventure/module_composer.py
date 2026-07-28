@@ -471,7 +471,7 @@ class ModuleComposer:
 
         while queue:
             node, depth, pool_clues = queue.popleft()
-            if depth >= max_depth:
+            if depth > max_depth:
                 continue
 
             mod = node.module
@@ -614,7 +614,9 @@ class ModuleComposer:
             # 处理该模块的出口边：修改最后场景的 leads_to 和 exit_requires
             if node.edges and mod_scenes:
                 last_scene = mod_scenes[-1]
-                # 有分支出口时，清除模块内原始的 leads_to（用分支过渡替代）
+                # 保留模块作者手写的 exit_labels + exit_requires（翻译 key 到过渡场景 ID）
+                authored_labels: dict[str, str] = dict(last_scene.exit_labels)
+                authored_exits: dict[str, str] = dict(last_scene.exit_requires)
                 new_leads: list[str] = []
                 new_exits: dict[str, str] = {}
                 new_labels: dict[str, str] = {}
@@ -623,22 +625,32 @@ class ModuleComposer:
                     exit_state = node.module.meta.exits[exit_idx] if exit_idx < len(node.module.meta.exits) else None
                     for child_node, trans_id in exit_edges:
                         child_first = translate.get(_first_scene_id(child_node.module), "")
+                        child_module_id = child_node.module.meta.id
                         trans = _make_transition_scene(
                             last_scene.id,
                             node.module.meta.title,
                             child_node.module.meta.title,
                             rng=rng,
                             target_scene_id=child_first,
-                            label=exit_state.label if exit_state else "",
+                            label="",
                         )
                         trans.id = trans_id
                         if trans.id not in {s.id for s in final_scenes}:
                             final_scenes.append(trans)
                         new_leads.append(trans.id)
-                        if exit_state and exit_state.label:
-                            new_labels[trans.id] = exit_state.label
-                        if exit_state and exit_state.requires_element:
-                            new_exits[trans.id] = exit_state.requires_element
+
+                        # 标签：优先用手写的 exit_labels，回退到出口状态标签
+                        label = authored_labels.get(child_module_id) or authored_labels.get(child_first)
+                        if not label and exit_state and exit_state.label:
+                            label = exit_state.label
+                        if label:
+                            new_labels[trans.id] = label
+                        # 门控：优先手写的，回退到出口状态
+                        req = authored_exits.get(child_module_id) or authored_exits.get(child_first)
+                        if not req and exit_state and exit_state.requires_element:
+                            req = exit_state.requires_element
+                        if req:
+                            new_exits[trans.id] = req
 
                 last_scene.leads_to = new_leads
                 last_scene.exit_requires = new_exits
