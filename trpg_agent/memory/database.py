@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id      TEXT NOT NULL UNIQUE,
     adventure_id    TEXT NOT NULL DEFAULT '',
+    adventure_meta  TEXT NOT NULL DEFAULT '{}',
     location        TEXT NOT NULL DEFAULT '',
     scene_id        TEXT NOT NULL DEFAULT '',
     recap           TEXT NOT NULL DEFAULT '',
@@ -109,8 +110,18 @@ class Database:
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.execute("PRAGMA busy_timeout=5000")  # 5s BUSY 等待
         self._conn.executescript(SCHEMA_SQL)
+        self._ensure_session_columns()
         self._conn.commit()
         log.debug("数据库已打开: %s", self._path)
+
+    def _ensure_session_columns(self) -> None:
+        """为已有数据库补齐后续版本新增列。"""
+        rows = self._conn.execute("PRAGMA table_info(sessions)").fetchall()
+        existing = {str(row[1]) for row in rows}
+        if "adventure_meta" not in existing:
+            self._conn.execute(
+                "ALTER TABLE sessions ADD COLUMN adventure_meta TEXT NOT NULL DEFAULT '{}'"
+            )
 
     def close(self) -> None:
         self._conn.close()
@@ -215,14 +226,16 @@ class Database:
         assert isinstance(state, GameState)
         self._conn.execute(
             """INSERT INTO sessions
-               (session_id, adventure_id, location, scene_id, recap, turn_count, resolved_elts, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (session_id, adventure_id, adventure_meta, location, scene_id, recap, turn_count, resolved_elts, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(session_id) DO UPDATE SET
                adventure_id=excluded.adventure_id,
+                    adventure_meta=excluded.adventure_meta,
                location=excluded.location, scene_id=excluded.scene_id,
                recap=excluded.recap, turn_count=excluded.turn_count,
                resolved_elts=excluded.resolved_elts""",
-            (state.session_id, state.adventure_id,
+                (state.session_id, state.adventure_id,
+                 json.dumps(state.adventure_meta, ensure_ascii=False),
              state.location, state.scene_id, state.recap, state.turn_count,
              json.dumps(sorted(state.resolved_elements), ensure_ascii=False),
              _now()),
@@ -243,6 +256,7 @@ class Database:
             location=row["location"],
             scene_id=row["scene_id"],
             adventure_id=row["adventure_id"],
+            adventure_meta=_json_dict(row["adventure_meta"]) if "adventure_meta" in row.keys() else {},
             resolved_elements=set(_json_list(row["resolved_elts"])),
             recap=row["recap"],
             turn_count=row["turn_count"],
@@ -441,6 +455,7 @@ class Database:
             location=sess_row["location"],
             scene_id=sess_row["scene_id"],
             adventure_id=sess_row["adventure_id"],
+            adventure_meta=_json_dict(sess_row["adventure_meta"]) if "adventure_meta" in sess_row.keys() else {},
             resolved_elements=set(_json_list(sess_row["resolved_elts"])),
             recap=sess_row["recap"],
             turn_count=sess_row["turn_count"],

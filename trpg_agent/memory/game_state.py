@@ -159,6 +159,7 @@ class GameState:
     location: str = ""                          # 当前场景位置（自由文字）
     scene_id: str = ""                          # 模组场景 ID（结构化剧情追踪）
     adventure_id: str = ""                      # 当前加载的模组 ID
+    adventure_meta: dict[str, object] = field(default_factory=dict)  # 运行时模组来源/恢复元数据
     resolved_elements: set[str] = field(default_factory=set)  # 已解决的元素 ID
     investigators: list[Investigator] = field(default_factory=list)
     npcs: list[Npc] = field(default_factory=list)
@@ -175,6 +176,7 @@ class GameState:
             "location": self.location,
             "scene_id": self.scene_id,
             "adventure_id": self.adventure_id,
+            "adventure_meta": self.adventure_meta,
             "resolved_elements": sorted(self.resolved_elements),
             "investigators": [c.to_dict() for c in self.investigators],
             "npcs": [n.to_dict() for n in self.npcs],
@@ -191,6 +193,7 @@ class GameState:
             location=str(d.get("location", "") or ""),
             scene_id=str(d.get("scene_id", "") or ""),
             adventure_id=str(d.get("adventure_id", "") or ""),
+            adventure_meta=dict(d.get("adventure_meta", {}) or {}),
             resolved_elements=set(d.get("resolved_elements", []) or []),
             investigators=[Investigator.from_dict(c) for c in d.get("investigators", []) or []],
             npcs=[Npc.from_dict(n) for n in d.get("npcs", []) or []],
@@ -248,6 +251,7 @@ class GameState:
     def scene_summary(self) -> str:
         """生成当前场景的状态摘要文本。"""
         lines = []
+        active_scene_ref = self.scene_id or self.location
 
         if self.location:
             lines.append(f"当前场景：{self.location}")
@@ -261,7 +265,7 @@ class GameState:
                 lines.append(f"  {inv.name} — {status}")
 
         if self.npcs:
-            present = [n for n in self.npcs if n.location == self.location]
+            present = [n for n in self.npcs if n.location == active_scene_ref]
             if present:
                 lines.append("\n在场 NPC：")
                 for npc in present:

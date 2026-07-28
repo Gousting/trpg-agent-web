@@ -7,10 +7,12 @@ import asyncio
 import logging
 import os
 from collections.abc import Sequence
+from pathlib import Path
 
 import httpx
 
 from .adventure import Adventure
+from .adventure.module_composer import ModuleComposer
 from .llm.client import OllamaClient
 from .llm.preflight import check_ollama
 from .llm.sanitize import _sanitize
@@ -25,6 +27,8 @@ DEFAULT_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "4096"))
 DEFAULT_LOG_LEVEL = os.getenv("TRPG_LOG_LEVEL", "INFO")
 DEFAULT_PREFLIGHT = os.getenv("TRPG_PREFLIGHT", "1").lower() not in {"0", "false", "no", "off"}
 _EXIT_COMMANDS = {"/quit", "/exit", "/q"}
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_MODULES_DIR = _PROJECT_ROOT / "data" / "modules"
 _ADVENTURE_ALIASES = {
     "haunted_house": "haunted_house",
     "鬼屋": "haunted_house",
@@ -44,12 +48,36 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", default=DEFAULT_OLLAMA_MODEL, help="Ollama 模型名")
     parser.add_argument("--session-id", default="default", help="会话 ID")
     parser.add_argument("--adventure", help="模组 ID 或别名，例如 haunted_house / 鬼屋")
+    parser.add_argument("--compose-modules", action="store_true", help="从模块池动态组合冒险")
+    parser.add_argument("--module-start", help="动态组合时强制指定起始模块 ID")
+    parser.add_argument("--module-max-depth", type=int, default=3, help="动态组合时的最大模块深度")
+    parser.add_argument("--module-seed", type=int, help="动态组合时的随机种子")
     parser.add_argument("--num-ctx", type=int, default=DEFAULT_NUM_CTX, help="上下文窗口大小")
     parser.add_argument("--log-level", default=DEFAULT_LOG_LEVEL, help="日志级别")
     parser.add_argument("--check", action="store_true", help="只做离线自检，不连接 Ollama")
     parser.add_argument("--once", help="执行一轮输入后退出，便于脚本化验证")
     parser.add_argument("--skip-preflight", action="store_true", help="跳过 Ollama 连通性预检")
     return parser
+
+
+def _load_requested_adventure(session: Session, args: argparse.Namespace) -> Adventure | None:
+    if args.compose_modules:
+        composer = ModuleComposer(_MODULES_DIR)
+        bundle = composer.compile(
+            seed=args.module_seed,
+            max_depth=args.module_max_depth,
+            start_module=args.module_start,
+        )
+        return session.load_compiled_adventure(bundle)
+
+    if args.adventure:
+        adventure_id = _resolve_adventure_id(args.adventure)
+        return session.load_adventure(adventure_id) if adventure_id else None
+
+    if session.state.adventure_id:
+        return session.resume_adventure()
+
+    return None
 
 
 async def _read_user_input(prompt: str) -> str | None:
@@ -91,11 +119,17 @@ def _print_banner(session: Session, adventure: Adventure | None) -> None:
 async def _run_cli(args: argparse.Namespace) -> int:
     session = Session(args.session_id, max_context=args.num_ctx)
     adventure: Adventure | None = None
-    if args.adventure:
-        adventure_id = _resolve_adventure_id(args.adventure)
-        adventure = session.load_adventure(adventure_id) if adventure_id else None
+    if args.adventure or args.compose_modules or session.state.adventure_id:
+        try:
+            adventure = _load_requested_adventure(session, args)
+        except ValueError as exc:
+            print(f"模块组合失败: {exc}")
+            return 2
         if adventure is None:
-            print(f"未找到模组: {args.adventure}")
+            if args.compose_modules:
+                print("模块组合失败：未生成有效冒险。")
+            else:
+                print(f"未找到模组: {args.adventure}")
             return 2
 
     _print_banner(session, adventure)

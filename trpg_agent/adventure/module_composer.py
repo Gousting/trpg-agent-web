@@ -168,6 +168,41 @@ def _prefix_scenes(
     return result
 
 
+def _apply_scene_variance(scene: Scene, variance: ModuleVariance) -> None:
+    """将已选中的场景方差落到场景副本上。"""
+    mood = variance.mood_variants.get(scene.id)
+    if not mood or not mood.chosen_details:
+        return
+
+    details = " ".join(detail.strip() for detail in mood.chosen_details if detail.strip())
+    if not details or details in scene.description:
+        return
+
+    joiner = "" if not scene.description else " "
+    scene.description = f"{scene.description}{joiner}{details}".strip()
+
+
+def _apply_npc_variance(npc: AdventureNpc, variance: ModuleVariance) -> None:
+    """将已选中的 NPC 变体落到 NPC 副本上。"""
+    for variant in variance.npc_variants:
+        if variant.npc_name != npc.name or not variant.variants:
+            continue
+        if variant.chosen >= len(variant.variants):
+            continue
+
+        selected = variant.variants[variant.chosen]
+        description = str(selected.get("description", "") or "").strip()
+        attitude = str(selected.get("attitude", "") or "").strip()
+        secret = str(selected.get("secret", "") or "").strip()
+        if description:
+            npc.description = description
+        if attitude:
+            npc.attitude = attitude
+        if secret:
+            npc.secret = secret
+        return
+
+
 def _make_transition_scene(
     from_scene_id: str,
     from_title: str,
@@ -252,6 +287,21 @@ class ModuleNode:
     edges: dict[int, list[tuple["ModuleNode", str]]] = field(default_factory=dict)
 
 
+@dataclass
+class CompiledAdventure:
+    """模块池编译出的运行时冒险包。"""
+
+    adventure: Adventure
+    run_seed: RunSeed
+    module_ids: list[str]
+    branch_points: int
+    source_id: str
+    compose_seed: int
+    max_depth: int
+    start_module: str | None
+    difficulty_range: tuple[int, int] | None
+
+
 # ── 组合引擎 ────────────────────────────────────────
 
 
@@ -316,6 +366,22 @@ class ModuleComposer:
         start_module: str | None = None,
         difficulty_range: tuple[int, int] | None = None,
     ) -> tuple[Adventure, RunSeed]:
+        bundle = self.compile(
+            seed=seed,
+            max_depth=max_depth,
+            start_module=start_module,
+            difficulty_range=difficulty_range,
+        )
+        return bundle.adventure, bundle.run_seed
+
+    def compile(
+        self,
+        *,
+        seed: int | None = None,
+        max_depth: int = 3,
+        start_module: str | None = None,
+        difficulty_range: tuple[int, int] | None = None,
+    ) -> CompiledAdventure:
         """从模块池组合生成完整冒险（支持分支图）。
 
         Args:
@@ -332,7 +398,8 @@ class ModuleComposer:
         if not self._modules:
             raise ValueError("模块池为空，无法组合")
 
-        rng = random.Random(seed or random.randint(0, 2**31 - 1))
+        compose_seed = seed if seed is not None else random.randint(0, 2**31 - 1)
+        rng = random.Random(compose_seed)
         run_seed = RunSeed(rng.randint(0, 2**31 - 1))
         run_seed.rng = rng
 
@@ -342,17 +409,30 @@ class ModuleComposer:
         # 2. 收集所有节点（BFS 遍历）
         all_nodes = self._collect_nodes(root)
 
-        # 3. 组装 Adventure
-        adv = self._assemble(root, rng)
-
-        # 4. 应用方差
+        # 3. 先固定本次开局的随机变体，再组装 Adventure
         self._apply_variance(all_nodes, run_seed)
+
+        # 4. 组装 Adventure
+        adv = self._assemble(root, rng)
+        branch_points = sum(1 for node in self._walk_nodes(root) if node.edges)
+        module_ids = [mod.meta.id for mod in all_nodes]
+        bundle = CompiledAdventure(
+            adventure=adv,
+            run_seed=run_seed,
+            module_ids=module_ids,
+            branch_points=branch_points,
+            source_id=adv.id,
+            compose_seed=compose_seed,
+            max_depth=max_depth,
+            start_module=start_module,
+            difficulty_range=difficulty_range,
+        )
 
         log.info(
             "组合完成: %s (seed=%d, %d 个模块, %d 个场景)",
             adv.title, run_seed.seed, len(all_nodes), len(adv._scenes),
         )
-        return adv, run_seed
+        return bundle
 
     def _build_graph(
         self,
@@ -369,7 +449,7 @@ class ModuleComposer:
 
         # BFS: (node, depth, inherited_clues)
         queue: deque[tuple[ModuleNode, int, set[str]]] = deque()
-        queue.append((root, 1, set(start_mod.meta.exits[0].provides_clues) if start_mod.meta.exits else set()))
+        queue.append((root, 1, set()))
 
         while queue:
             node, depth, pool_clues = queue.popleft()
@@ -466,8 +546,6 @@ class ModuleComposer:
         三阶段：翻译表 → 前缀化 → 写入场景图（含分支过渡）。
         """
         all_nodes = self._collect_nodes(root)
-        modules_by_id = {n.meta.id: n for n in all_nodes}
-
         # Phase 1: 翻译表
         translate: dict[str, str] = {}
         for mod in all_nodes:
@@ -478,11 +556,16 @@ class ModuleComposer:
         all_scenes: list[Scene] = []
         all_npcs: list[AdventureNpc] = []
         for mod in all_nodes:
-            prefixed = _prefix_scenes(mod.scenes, mod.meta.id, translate_leads_to=translate)
+            varied_scenes = [copy.deepcopy(scene) for scene in mod.scenes]
+            for scene in varied_scenes:
+                _apply_scene_variance(scene, mod.variance)
+            prefixed = _prefix_scenes(varied_scenes, mod.meta.id, translate_leads_to=translate)
             all_scenes.extend(prefixed)
             for npc in mod.npcs:
                 if npc.name not in {n.name for n in all_npcs}:
-                    all_npcs.append(npc)
+                    npc_copy = copy.deepcopy(npc)
+                    _apply_npc_variance(npc_copy, mod.variance)
+                    all_npcs.append(npc_copy)
 
         # Phase 3: 组装——处理分支边
         final_scenes: list[Scene] = []
@@ -510,6 +593,7 @@ class ModuleComposer:
                 # 有分支出口时，清除模块内原始的 leads_to（用分支过渡替代）
                 new_leads: list[str] = []
                 new_exits: dict[str, str] = {}
+                new_labels: dict[str, str] = {}
 
                 for exit_idx, exit_edges in node.edges.items():
                     exit_state = node.module.meta.exits[exit_idx] if exit_idx < len(node.module.meta.exits) else None
@@ -527,11 +611,14 @@ class ModuleComposer:
                         if trans.id not in {s.id for s in final_scenes}:
                             final_scenes.append(trans)
                         new_leads.append(trans.id)
+                        if exit_state and exit_state.label:
+                            new_labels[trans.id] = exit_state.label
                         if exit_state and exit_state.requires_element:
                             new_exits[trans.id] = exit_state.requires_element
 
                 last_scene.leads_to = new_leads
                 last_scene.exit_requires = new_exits
+                last_scene.exit_labels = new_labels
 
                 # 递归处理所有子节点
                 for exit_edges in node.edges.values():
@@ -550,7 +637,7 @@ class ModuleComposer:
             title=title,
             era="1920s",
             hook=root.module.scenes[0].description[:120] if root.module.scenes else "",
-            summary=f"由 {len(all_nodes)} 个模块随机组合生成的冒险（含 {sum(1 for n in [root] if n.edges)} 个分支点）。模块：{'、'.join(mod.meta.title for mod in all_nodes)}。",
+            summary=f"由 {len(all_nodes)} 个模块随机组合生成的冒险（含 {sum(1 for node in self._walk_nodes(root) if node.edges)} 个分支点）。模块：{'、'.join(mod.meta.title for mod in all_nodes)}。",
             start_scene=translate.get(_first_scene_id(root.module), ""),
             resolution="",
             scenes=final_scenes,
@@ -565,3 +652,19 @@ class ModuleComposer:
                 seed.pick_npcs(mod.variance.npc_variants)
             if mod.variance.mood_variants:
                 seed.pick_moods(mod.variance.mood_variants)
+
+    def _walk_nodes(self, root: ModuleNode) -> list[ModuleNode]:
+        """BFS 收集所有不重复的模块节点对象。"""
+        seen: set[str] = set()
+        result: list[ModuleNode] = []
+        queue: deque[ModuleNode] = deque([root])
+        while queue:
+            node = queue.popleft()
+            if node.module.meta.id in seen:
+                continue
+            seen.add(node.module.meta.id)
+            result.append(node)
+            for exits in node.edges.values():
+                for child, _ in exits:
+                    queue.append(child)
+        return result

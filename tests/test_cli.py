@@ -15,13 +15,33 @@ class DummySession:
         self.session_id = session_id
         self.max_context = max_context
         self.state = SimpleNamespace(scene_id="foyer")
+        self.state.adventure_id = ""
         self.persist_calls = 0
+        self.runtime_loaded = None
+        self.compiled_loaded = None
+        self.resumed = False
 
     def load_adventure(self, adventure_id: str):
         return SimpleNamespace(
             id=adventure_id,
             title="古屋疑云",
             get_scene=lambda _scene_id: SimpleNamespace(title="古屋门厅", description="desc"),
+        )
+
+    def load_runtime_adventure(self, adventure, *, adventure_id: str | None = None):
+        self.runtime_loaded = (adventure, adventure_id)
+        return adventure
+
+    def load_compiled_adventure(self, bundle):
+        self.compiled_loaded = bundle
+        return bundle.adventure
+
+    def resume_adventure(self):
+        self.resumed = True
+        return SimpleNamespace(
+            id="saved_adv",
+            title="已恢复模组",
+            get_scene=lambda _scene_id: SimpleNamespace(title="恢复场景", description="desc"),
         )
 
     def persist(self) -> None:
@@ -51,6 +71,10 @@ def _args(**overrides) -> argparse.Namespace:
         "model": "qwen2.5:7b",
         "session_id": "cli_test",
         "adventure": "鬼屋",
+        "compose_modules": False,
+        "module_start": None,
+        "module_max_depth": 3,
+        "module_seed": None,
         "num_ctx": 4096,
         "log_level": "INFO",
         "check": False,
@@ -128,3 +152,70 @@ def test_run_cli_interactive_quit_uses_async_reader(monkeypatch, capsys):
     assert rc == 0
     assert DummyClient.closed == 1
     assert "输入调查员行动开始跑团" in capsys.readouterr().out
+
+
+def test_run_cli_can_load_compiled_modules(monkeypatch, capsys):
+    DummyClient.created.clear()
+    DummyClient.closed = 0
+
+    class DummyComposer:
+        def __init__(self, modules_dir):
+            self.modules_dir = modules_dir
+
+        def compile(self, *, seed=None, max_depth=3, start_module=None):
+            assert seed == 7
+            assert max_depth == 4
+            assert start_module == "library_research"
+            adventure = SimpleNamespace(
+                id="composed_library",
+                title="模块化冒险",
+                get_scene=lambda _scene_id: SimpleNamespace(title="图书室", description="desc"),
+            )
+            return SimpleNamespace(adventure=adventure, source_id="composed_library")
+
+    async def fake_read(_prompt: str) -> str:
+        return "/quit"
+
+    monkeypatch.setattr(cli, "Session", DummySession)
+    monkeypatch.setattr(cli, "ModuleComposer", DummyComposer)
+    monkeypatch.setattr(cli, "OllamaClient", DummyClient)
+    monkeypatch.setattr(cli, "_read_user_input", fake_read)
+    monkeypatch.setattr(cli, "DEFAULT_PREFLIGHT", False)
+
+    rc = asyncio.run(cli._run_cli(_args(
+        adventure=None,
+        compose_modules=True,
+        module_start="library_research",
+        module_max_depth=4,
+        module_seed=7,
+    )))
+
+    assert rc == 0
+    assert DummyClient.closed == 1
+    assert DummySession("x", max_context=1).compiled_loaded is None
+    out = capsys.readouterr().out
+    assert "模组: 模块化冒险 (composed_library)" in out
+
+
+def test_run_cli_resumes_saved_adventure(monkeypatch, capsys):
+    DummyClient.created.clear()
+    DummyClient.closed = 0
+
+    class ResumeSession(DummySession):
+        def __init__(self, session_id: str, *, max_context: int):
+            super().__init__(session_id, max_context=max_context)
+            self.state.adventure_id = "haunted_house"
+
+    async def fake_read(_prompt: str) -> str:
+        return "/quit"
+
+    monkeypatch.setattr(cli, "Session", ResumeSession)
+    monkeypatch.setattr(cli, "OllamaClient", DummyClient)
+    monkeypatch.setattr(cli, "_read_user_input", fake_read)
+    monkeypatch.setattr(cli, "DEFAULT_PREFLIGHT", False)
+
+    rc = asyncio.run(cli._run_cli(_args(adventure=None)))
+
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "模组: 已恢复模组 (saved_adv)" in out

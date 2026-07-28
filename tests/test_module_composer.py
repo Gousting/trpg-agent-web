@@ -142,3 +142,53 @@ class TestModuleComposer:
                 "library_research::library", trans_id,
                 resolved_ids={required},
             )
+
+    def test_starting_branch_module_keeps_both_exits(self):
+        composer = ModuleComposer(MODULES_DIR)
+        composer.load_all()
+
+        adv, _seed = composer.compose(
+            seed=42, max_depth=3, start_module="library_research",
+        )
+
+        lib = adv.get_scene("library_research::library")
+        assert lib is not None
+        assert any("basement_confrontation" in target for target in lib.leads_to)
+        assert any("escape_chase" in target for target in lib.leads_to)
+
+    def test_mood_variants_are_applied_to_composed_scenes(self):
+        composer = ModuleComposer(MODULES_DIR)
+        composer.load_all()
+
+        adv, seed = composer.compose(
+            seed=42, max_depth=3, start_module="foyer_investigation",
+        )
+
+        foyer = adv.get_scene("foyer_investigation::foyer")
+        assert foyer is not None
+        details = seed.mood_choices.get("foyer", [])
+        assert details
+        for detail in details:
+            assert detail in foyer.description
+
+    def test_npc_variants_are_applied_to_composed_adventure(self):
+        composer = ModuleComposer(MODULES_DIR)
+        composer.load_all()
+
+        adv, _seed = composer.compose(
+            seed=42, max_depth=3, start_module="library_research",
+        )
+
+        npc = adv.get_npc("老管理员")
+        assert npc is not None
+        assert npc.attitude == "neutral"
+        assert "早已放弃了希望" in npc.description
+        assert "不存在的人" in npc.secret
+
+    def test_summary_reports_all_branch_points(self):
+        composer = ModuleComposer(MODULES_DIR)
+        composer.load_all()
+
+        adv, _seed = composer.compose(seed=42, max_depth=3)
+
+        assert "含 2 个分支点" in adv.summary

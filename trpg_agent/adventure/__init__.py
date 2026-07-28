@@ -64,6 +64,7 @@ class Scene:
     secrets: list[SceneElement] = field(default_factory=list)
     leads_to: list[str] = field(default_factory=list)
     exit_requires: dict[str, str] = field(default_factory=dict)  # {target_id: required_element_id}
+    exit_labels: dict[str, str] = field(default_factory=dict)    # {target_id: semantic label}
     guidance: str = ""
     # COC 特有触发器
     san_check: dict | None = None   # {"trigger": "...", "level": "MAJOR"}
@@ -80,6 +81,11 @@ class Scene:
         if isinstance(raw_exits, dict):
             exit_requires = {str(k): str(v) for k, v in raw_exits.items()}
 
+        exit_labels = {}
+        raw_labels = d.get("exit_labels", {}) or {}
+        if isinstance(raw_labels, dict):
+            exit_labels = {str(k): str(v) for k, v in raw_labels.items()}
+
         return cls(
             id=str(d.get("id", "") or ""),
             title=str(d.get("title", "") or ""),
@@ -90,6 +96,7 @@ class Scene:
             secrets=secrets,
             leads_to=[str(t) for t in d.get("leads_to", []) or []],
             exit_requires=exit_requires,
+            exit_labels=exit_labels,
             guidance=str(d.get("guidance", "") or ""),
             san_check=d.get("san_check") if isinstance(d.get("san_check"), dict) else None,
             combat=d.get("combat") if isinstance(d.get("combat"), dict) else None,
@@ -104,6 +111,17 @@ class Scene:
         return [e.text for e in self.opportunities] + [e.text for e in self.secrets]
 
 
+@dataclass
+class SceneExit:
+    """场景的语义出口视图。"""
+
+    target_id: str
+    title: str
+    label: str
+    required_element: str | None = None
+    available: bool = True
+
+
 # ── 冒险 NPC ────────────────────────────────────────
 
 
@@ -112,7 +130,9 @@ class AdventureNpc:
     """模组 NPC 的战斗数据。调查员外的角色从这里获取战斗属性。"""
 
     name: str
+    attitude: str = "neutral"
     description: str = ""
+    secret: str = ""
     hp: int = 10
     armor: int = 0
     attacks: list[dict] = field(default_factory=list)  # [{"name": "爪击", "skill": 50, "damage": "1d6"}]
@@ -121,7 +141,9 @@ class AdventureNpc:
     def from_dict(cls, d: dict) -> "AdventureNpc":
         return cls(
             name=str(d.get("name", "") or ""),
+            attitude=str(d.get("attitude", "neutral") or "neutral"),
             description=str(d.get("description", "") or ""),
+            secret=str(d.get("secret", "") or ""),
             hp=int(d.get("hp", 10) or 10),
             armor=int(d.get("armor", 0) or 0),
             attacks=d.get("attacks", []) or [],
@@ -200,6 +222,38 @@ class Adventure:
 
     def npc_names(self) -> list[str]:
         return list(self._npcs.keys())
+
+    def scene_exits(
+        self,
+        scene_id: str,
+        *,
+        resolved_ids: set[str] | None = None,
+        include_locked: bool = False,
+    ) -> list[SceneExit]:
+        """返回当前场景的语义出口，而不是内部场景 ID。"""
+        scene = self.get_scene(scene_id)
+        if scene is None:
+            return []
+
+        resolved = resolved_ids or set()
+        exits: list[SceneExit] = []
+        for target_id in scene.leads_to:
+            required = scene.exit_requires.get(target_id)
+            available = required is None or required in resolved
+            if not include_locked and not available:
+                continue
+
+            target_scene = self.get_scene(target_id)
+            title = target_scene.title if target_scene is not None else target_id
+            label = scene.exit_labels.get(target_id, title)
+            exits.append(SceneExit(
+                target_id=target_id,
+                title=title,
+                label=label,
+                required_element=required,
+                available=available,
+            ))
+        return exits
 
     # ── 场景切换验证 ─────────────────────────────
 
@@ -285,12 +339,15 @@ class Adventure:
                              f"— 敌人 {scene.combat.get('enemy', '')}")
 
             # 出口
-            exits = [
-                t for t in scene.leads_to
-                if scene.exit_requires.get(t) is None or scene.exit_requires[t] in resolved
-            ]
+            exits = self.scene_exits(scene.id, resolved_ids=resolved, include_locked=True)
             if exits:
-                lines.append(f"\n可前往：{', '.join(exits)}")
+                lines.append("")
+                lines.append("可前往：")
+                for exit_view in exits:
+                    line = f"- {exit_view.label}"
+                    if exit_view.required_element and not exit_view.available:
+                        line += f"（需先解决 {exit_view.required_element}）"
+                    lines.append(line)
 
             # DM 指引
             if scene.guidance:

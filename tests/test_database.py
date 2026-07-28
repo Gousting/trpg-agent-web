@@ -5,10 +5,12 @@ from __future__ import annotations
 import tempfile
 import shutil
 from pathlib import Path
+from types import SimpleNamespace
 
 from trpg_agent.memory.database import Database
 from trpg_agent.memory.game_state import Investigator, Npc, Quest, GameState
 from trpg_agent.session import Session
+from trpg_agent.adventure import Adventure, Scene
 
 
 def test_database_crud():
@@ -67,6 +69,7 @@ def test_session_state_roundtrip():
         state = GameState(session_id="roundtrip_test")
         state.location = "古屋地下室"
         state.scene_id = "basement"
+        state.adventure_meta = {"kind": "compiled", "compose_seed": 7}
         state.turn_count = 5
         state.resolved_elements = {"clue_diary", "door_unlocked"}
 
@@ -87,6 +90,7 @@ def test_session_state_roundtrip():
         loaded = db.load_session_state("roundtrip_test")
         assert loaded is not None
         assert loaded.location == "古屋地下室"
+        assert loaded.adventure_meta["kind"] == "compiled"
         assert loaded.turn_count == 5
         assert "clue_diary" in loaded.resolved_elements
         assert loaded.investigators[0].name == "林晓"
@@ -141,6 +145,66 @@ def test_session_with_db():
         assert loaded.state.turn_count == 2
 
         print("✓ Session + db 完整流程")
+    finally:
+        db.close()
+        shutil.rmtree(tmp)
+
+
+def test_load_game_restores_runtime_adventure_context_from_db(monkeypatch):
+    """命名读档后应恢复 runtime adventure，上层无需再次手动传入 adventure。"""
+    tmp = Path(tempfile.mkdtemp())
+    db = Database(tmp / "test.db")
+    try:
+        session = Session("resume_db_test", data_dir=tmp, db=db, skip_characters=True)
+        session.state.adventure_id = "composed_library_3"
+        session.state.adventure_meta = {
+            "kind": "compiled",
+            "source_id": "composed_library_3",
+            "compose_seed": 7,
+            "module_ids": ["library_research"],
+            "branch_points": 1,
+            "max_depth": 3,
+            "start_module": "library_research",
+            "difficulty_range": [],
+            "run_seed": {"seed": 99},
+        }
+        session.state.location = "图书室"
+        session.state.scene_id = "library_research::library"
+        session.save_game("恢复测试")
+
+        class DummyComposer:
+            def __init__(self, modules_dir):
+                self.modules_dir = modules_dir
+
+            def compile(self, *, seed=None, max_depth=3, start_module=None, difficulty_range=None):
+                assert seed == 7
+                return SimpleNamespace(
+                    adventure=Adventure(
+                        id="composed_library_3",
+                        title="编译模组",
+                        start_scene="library_research::library",
+                        summary="编译摘要",
+                        scenes=[Scene(id="library_research::library", title="图书室", description="阴暗的图书室")],
+                    ),
+                    source_id="composed_library_3",
+                    compose_seed=7,
+                    module_ids=["library_research"],
+                    branch_points=1,
+                    max_depth=3,
+                    start_module="library_research",
+                    difficulty_range=None,
+                    run_seed=SimpleNamespace(to_dict=lambda: {"seed": 99}),
+                )
+
+        monkeypatch.setattr("trpg_agent.session.ModuleComposer", DummyComposer)
+
+        loaded = Session.load_game("resume_db_test", "恢复测试", data_dir=tmp, db=db)
+
+        assert loaded is not None
+        assert loaded._runtime_adventure is not None
+        prompt = loaded.build_system_prompt()
+        assert "冒险模组" in prompt
+        assert "图书室" in prompt
     finally:
         db.close()
         shutil.rmtree(tmp)

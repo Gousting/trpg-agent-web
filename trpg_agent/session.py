@@ -32,6 +32,7 @@ from .rules.combat import resolve_attack, ActionType
 from .rules.luck import spend_luck
 from .rules.pushing import push_roll, can_push
 from .adventure import Adventure, Scene
+from .adventure.module_composer import CompiledAdventure, ModuleComposer
 from .scene_matcher import SceneMatcher, SceneMatch
 
 log = logging.getLogger(__name__)
@@ -157,6 +158,8 @@ class Session:
         # 场景卡匹配器（惰性加载）
         self._scene_matcher: SceneMatcher | None = None
         self._current_scene_image: str | None = None
+        self._adventure_npc_secrets: dict[str, str] = {}
+        self._runtime_adventure: Adventure | None = None
 
     # ── 历史访问统一接口 ──────────────────────────
 
@@ -319,7 +322,8 @@ class Session:
 
         包含在场 NPC 的态度、描述和关键信息。
         """
-        present = [n for n in self.state.npcs if n.location == self.state.location]
+        active_scene_ref = self.state.scene_id or self.state.location
+        present = [n for n in self.state.npcs if n.location == active_scene_ref]
         if not present:
             return None
 
@@ -330,7 +334,73 @@ class Session:
             if npc.description:
                 line += f"：{npc.description}"
             lines.append(line)
+            secret = self._adventure_npc_secrets.get(npc.name, "")
+            if secret:
+                lines.append(f"  DM 提示：{secret}")
         return "\n".join(lines)
+
+    def _refresh_adventure_npc_secrets(self, adventure: Adventure) -> None:
+        self._runtime_adventure = adventure
+        self._adventure_npc_secrets = {
+            name: npc.secret
+            for name in adventure.npc_names()
+            if (npc := adventure.get_npc(name)) is not None and npc.secret
+        }
+
+    def _compiled_meta(self, bundle: CompiledAdventure) -> dict[str, object]:
+        return {
+            "kind": "compiled",
+            "source_id": bundle.source_id,
+            "compose_seed": bundle.compose_seed,
+            "module_ids": list(bundle.module_ids),
+            "branch_points": bundle.branch_points,
+            "max_depth": bundle.max_depth,
+            "start_module": bundle.start_module or "",
+            "difficulty_range": list(bundle.difficulty_range) if bundle.difficulty_range is not None else [],
+            "run_seed": bundle.run_seed.to_dict(),
+        }
+
+    def load_compiled_adventure(self, bundle: CompiledAdventure) -> Adventure:
+        """装载模块池编译出的冒险包，并保存可恢复元数据。"""
+        return self.load_runtime_adventure(
+            bundle.adventure,
+            adventure_id=bundle.source_id,
+            adventure_meta=self._compiled_meta(bundle),
+        )
+
+    def resume_adventure(self) -> Adventure | None:
+        """基于已持久化的 adventure_id/adventure_meta 恢复当前 Adventure 对象。"""
+        meta = dict(self.state.adventure_meta or {})
+        kind = str(meta.get("kind", "") or "")
+        if kind == "compiled":
+            modules_dir = DATA_DIR / "modules"
+            composer = ModuleComposer(modules_dir)
+            diff_raw = meta.get("difficulty_range", [])
+            difficulty_range = None
+            if isinstance(diff_raw, list) and len(diff_raw) == 2:
+                difficulty_range = (int(diff_raw[0]), int(diff_raw[1]))
+            bundle = composer.compile(
+                seed=int(meta.get("compose_seed", 0) or 0),
+                max_depth=int(meta.get("max_depth", 3) or 3),
+                start_module=str(meta.get("start_module", "") or "") or None,
+                difficulty_range=difficulty_range,
+            )
+            self._refresh_adventure_npc_secrets(bundle.adventure)
+            self.state.adventure_meta = self._compiled_meta(bundle)
+            return bundle.adventure
+
+        if self.state.adventure_id:
+            adv_dir = DATA_DIR / "adventures" / self.state.adventure_id
+            adventure = Adventure.load(adv_dir)
+            if adventure is not None:
+                self._refresh_adventure_npc_secrets(adventure)
+                self.state.adventure_meta = {
+                    "kind": "static",
+                    "adventure_id": self.state.adventure_id,
+                }
+            return adventure
+
+        return None
 
     def build_messages(self, player_input: str, *, dice_context: str = "",
                        speaker: str | None = None) -> list[dict[str, str]]:
@@ -504,25 +574,55 @@ class Session:
         if adv is None:
             return None
 
-        self.state.adventure_id = adventure_id
-        self.state.location = adv.title
-        self.state.scene_id = adv.start_scene
+        self.load_runtime_adventure(
+            adv,
+            adventure_id=adventure_id,
+            adventure_meta={"kind": "static", "adventure_id": adventure_id},
+        )
+        return adv
+
+    def load_runtime_adventure(
+        self,
+        adventure: Adventure,
+        *,
+        adventure_id: str | None = None,
+        adventure_meta: dict[str, object] | None = None,
+    ) -> Adventure:
+        """装载已解析完成的 Adventure 运行时对象。"""
+        start_scene = adventure.get_scene(adventure.start_scene)
+        start_location = start_scene.title if start_scene is not None else adventure.title
+        start_npcs = set(start_scene.npcs_here) if start_scene is not None else set()
+
+        self.state.adventure_id = adventure_id or adventure.id
+        self.state.adventure_meta = dict(adventure_meta or {})
+        self.state.location = start_location
+        self.state.scene_id = adventure.start_scene
         self.state.resolved_elements.clear()
+        self._refresh_adventure_npc_secrets(adventure)
 
         # 注册模组 NPC
-        for name in adv.npc_names():
-            if not self.state.find_npc(name):
-                npc_data = adv.get_npc(name)
-                if npc_data:
-                    self.state.npcs.append(Npc(
-                        name=npc_data.name,
-                        description=npc_data.description,
-                        location=adv.start_scene,
-                    ))
+        for name in adventure.npc_names():
+            npc_data = adventure.get_npc(name)
+            if not npc_data:
+                continue
+
+            npc_location = adventure.start_scene if npc_data.name in start_npcs else ""
+            existing = self.state.find_npc(name)
+            if existing:
+                existing.attitude = npc_data.attitude or existing.attitude
+                existing.description = npc_data.description or existing.description
+                existing.location = npc_location
+            else:
+                self.state.npcs.append(Npc(
+                    name=npc_data.name,
+                    attitude=npc_data.attitude,
+                    description=npc_data.description,
+                    location=npc_location,
+                ))
 
         log.info("模组已加载: %s (起始场景: %s, %d 个场景, %d 个 NPC)",
-                 adv.title, adv.start_scene, len(adv._scenes), len(adv._npcs))
-        return adv
+                 adventure.title, adventure.start_scene, len(adventure._scenes), len(adventure._npcs))
+        return adventure
 
     def move_to_scene(self, scene_id: str, adventure: Adventure) -> Scene | None:
         """切换到目标场景（仅限当前场景的 leads_to 列表）。
@@ -542,6 +642,7 @@ class Session:
             return None
 
         self.state.scene_id = scene_id
+        self.state.location = scene.title
 
         # 更新场景 NPC 位置
         for npc_name in scene.npcs_here:
@@ -606,6 +707,7 @@ class Session:
 
     def _build_adventure_block(self, adventure: Adventure | None = None) -> str | None:
         """生成模组数据 prompt 块。"""
+        adventure = adventure or self._runtime_adventure
         if adventure is None or not self.state.scene_id:
             return None
         return adventure.adventure_block(
@@ -802,6 +904,7 @@ class Session:
             session.state = state
             session._history_list = history_list
             session._save_loaded_from = save_name
+            session.resume_adventure()
             log.info("读档: %s/%s (第 %d 轮)", session_id, save_name, state.turn_count)
             return session
 
@@ -826,6 +929,7 @@ class Session:
             session._history_store = HistoryStore(session._history_path)
 
         session._save_loaded_from = save_name
+        session.resume_adventure()
         log.info("读档: %s/%s (第 %d 轮, %d 条历史)",
                  session_id, save_name, session.state.turn_count, session.history.count())
         return session
@@ -938,7 +1042,8 @@ class Session:
                 lines.append(f"    🎒 {items}")
 
         # 当前场景 NPC
-        present_npcs = [n for n in self.state.npcs if n.location == self.state.location]
+        active_scene_ref = self.state.scene_id or self.state.location
+        present_npcs = [n for n in self.state.npcs if n.location == active_scene_ref]
         if present_npcs:
             lines.append("🧑 在场 NPC:")
             for n in present_npcs:
