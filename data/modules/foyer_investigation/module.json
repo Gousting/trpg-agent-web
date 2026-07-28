@@ -3,7 +3,7 @@
   "title": "古屋调查·门厅",
   "genre": ["horror", "investigation"],
   "difficulty": 1,
-  "duration_estimate": "2-3 turns",
+  "duration_estimate": "3-5 turns",
   "entry": {
     "location_types": ["indoor", "urban"],
     "required_clues": [],
@@ -12,9 +12,16 @@
   },
   "exits": [
     {
-      "id": "enter_house",
-      "label": "深入古屋",
+      "id": "to_library",
+      "label": "上楼去图书室",
       "provides_clues": ["blood_trail_found", "portrait_identified", "ritual_note_found"],
+      "mood": "unease",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "to_study",
+      "label": "搜索一楼书房",
+      "provides_clues": ["blood_trail_found", "hidden_diary_found"],
       "mood": "unease",
       "next_location_type": "indoor"
     }
@@ -36,8 +43,67 @@
       "secrets": [
         {"id": "fs1", "text": "肖像中的男人是屋主阿瑟·惠特利，失踪前是密斯卡托尼克大学的考古学教授，专攻中东古代遗迹"}
       ],
+      "vote_prompt": "门厅调查完了。上楼去图书室，还是先搜一楼的书房？",
+      "leads_to": ["foyer_study", "library"],
+      "exit_labels": {
+        "foyer_study": "搜索一楼书房（可能有隐藏物品）",
+        "library_research::library": "上楼去图书室"
+      },
+      "guidance": "两条路线都会通向图书馆。书房路线能发现惠特利的私人日记，图书室路线直接去图书馆主线。"
+    },
+    {
+      "id": "foyer_study",
+      "title": "一楼书房",
+      "part": 1,
+      "scene_type": "书房",
+      "image_prompt": "dark Victorian mansion study with mahogany paneling, heavy curtains drawn shut, a massive oak desk covered in dust, a half-burned candle melted into the wood, a hidden drawer pried open revealing yellowed documents, walls lined with archaeological sketches of Mesopotamian ruins, oppressive silence, 1920s New England, Ink Frenzy style",
+      "description": "书房藏在楼梯下方，像是一个被刻意遗忘的空间。厚重的丝绒窗帘紧闭，一张巨大的橡木书桌上落满了二十年的灰。一截烧到一半的蜡烛熔进了桌面。你们在书桌暗格里找到一个小铁盒，里面是惠特利失踪前写的私人日记。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "fy1", "text": "阅读惠特利日记（知识）——揭示了石板带回后前三天的影响：先是遗忘小事的名字，然后是遗忘人脸，最后遗忘家人的存在"},
+        {"id": "fy2", "text": "检查墙上考古草图（克苏鲁神话）——惠特利在美索不达米亚挖掘的遗迹平面图，结构与阿卡姆周边的地形惊人地对应"}
+      ],
+      "secrets": [
+        {"id": "fys1", "text": "日记最后一行被划掉了。用铅笔拓印还原：'它在教我说它的语言。一旦说出口，我就不是我了。'"}
+      ],
       "leads_to": ["library"],
-      "guidance": "让调查员熟悉环境，收集初步线索。三条线索对应不同方向。"
+      "guidance": "书房提供惠特利的心理变化时间线——从兴奋的学者到恐惧的囚徒，只用了三天。"
+    },
+    {
+      "id": "foyer_attic",
+      "title": "阁楼",
+      "part": 1,
+      "scene_type": "阁楼",
+      "image_prompt": "dusty Victorian attic filled with covered furniture and old steamer trunks, a single dormer window letting in pale moonlight, cobwebs hanging from rafters, a child's rocking horse covered in white sheets, an old phonograph with a cracked record still on the turntable, something small and dark scurrying in the shadows, eerie forgotten childhood memories, Ink Frenzy style",
+      "description": "阁楼的楼梯在二楼走廊尽头，窄得只能一人通过。上面堆满了盖着白布的旧家具——不是搬家，像是有人想盖住什么。天窗透进惨白的月光，照在一架落了灰的留声机上。唱针还压在唱片上，仿佛按下去就能听到二十年前的声音。角落里有什么东西在动。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "fa1", "text": "打开留声机（机械维修）——唱片录制的是惠特利的声音，但内容令人毛骨悚然：他在复述石板上记录的咒语，试图'练习发音'"},
+        {"id": "fa2", "text": "检查盖着白布的家具（侦查）——所有的镜子都被白布盖住了。不是防尘——二十年前有人不想在任何反射面里看到什么东西"}
+      ],
+      "secrets": [
+        {"id": "fas1", "text": "留声机唱片录制于惠特利失踪前最后一晚。他的发音已经接近完美——咒语几乎可以念出来了。但他在最后一段停了十几秒，然后用完全不像他的声音说：'现在轮到你听了。'"}
+      ],
+      "leads_to": ["foyer_converge"],
+      "guidance": "阁楼是可选探索——提供氛围信息但非必需。留声机录音可触发SAN检定。"
+    },
+    {
+      "id": "foyer_converge",
+      "title": "古屋汇合",
+      "part": 1,
+      "scene_type": "过渡",
+      "description": "古屋的调查暂时结束。惠特利的日记和留声机录音拼出了一幅可怕的画面。他带回了不应该被带出沙漠的东西。现在需要更多专业知识解读这些发现——去密斯卡托尼克大学的博物馆，或者直接找阿卡姆疯人院最后一个见过他的人。",
+      "npcs_here": [],
+      "opportunities": [],
+      "secrets": [],
+      "vote_prompt": "古屋调查完了。接下来？",
+      "leads_to": [],
+      "exit_labels": {
+        "museum_archives::archive_room": "去大学博物馆查考古档案",
+        "library_research::library": "上楼去惠特利的图书室",
+        "sanitarium_visit::ward14": "去阿卡姆疯人院找马丁"
+      },
+      "guidance": "三条出口给了调查员方向选择。博物馆=学术路线，图书室=深入古屋，疯人院=直奔证人。"
     }
   ],
   "npcs": [],

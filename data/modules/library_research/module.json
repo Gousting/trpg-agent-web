@@ -3,7 +3,7 @@
   "title": "古屋调查·图书室",
   "genre": ["horror", "investigation"],
   "difficulty": 2,
-  "duration_estimate": "3-4 turns",
+  "duration_estimate": "4-6 turns",
   "entry": {
     "location_types": ["indoor"],
     "required_clues": ["blood_trail_found"],
@@ -34,21 +34,58 @@
       "title": "惠特利的图书室",
       "part": 1,
       "scene_type": "书房",
-      "image_prompt": "dark Victorian library study, floor to ceiling bookshelves filled with moldy books, overturned desk scattered with yellowed notes and dried ink, locked iron cabinet in corner, single oil lamp casting long shadows, Middle Eastern maps pinned to wall, oppressive atmosphere, 1920s academic",
-      "description": "图书室比门厅更加阴暗。高至天花板的书架塞满了发霉的书籍，大部分是考古学论文和中东旅行日志。一张翻倒的书桌旁散落着笔记，墨迹早已干涸。角落里立着一个上锁的铁柜。",
+      "image_prompt": "dark Victorian library study in complete disarray, floor to ceiling bookshelves filled with moldy books, scattered yellowed notes and dried ink across cluttered desk, locked iron cabinet in shadowy corner with strange symbols, single oil lamp casting long distorted shadows, Middle Eastern maps pinned crookedly to wall, heavy oppressive atmosphere, 1920s academic horror, Ink Frenzy style",
+      "description": "图书室比门厅更加阴暗。高至天花板的书架塞满了发霉的书籍，大部分是考古学论文和中东旅行日志。散落的笔记墨迹早已干涸。角落里立着一个上锁的铁柜。一个驼背老人坐在角落——他穿着褪色的管家制服，抬头看了你们一眼，没说话。",
       "npcs_here": ["老管理员"],
       "opportunities": [
-        {"id": "l1", "text": "翻阅散落的笔记（图书馆使用）——记录了一次中东考古的发现：'碑文描述了一个沉睡在深渊中的存在，它等待被唤醒。'"},
-        {"id": "l2", "text": "撬开上锁的铁柜（锁匠/力量）——里面是惠特利的日记，最后几页越来越疯狂。取得管理员信任。"},
+        {"id": "l1", "text": "翻阅散落的笔记（图书馆使用）——记录了一次中东考古的发现：'碑文描述了一个沉睡在深渊中的存在'"},
+        {"id": "l2", "text": "撬开上锁的铁柜（锁匠/力量）——里面是惠特利的日记。管理员看到你打开铁柜，点了点头"},
         {"id": "l3", "text": "检查书架上的特殊收藏（克苏鲁神话）——几本不该存在于私人藏书室的禁书"}
       ],
       "secrets": [
         {"id": "ls1", "text": "惠特利的日记记载：他带回了'一件不应该被带出沙漠的东西'——一块刻着召唤咒语的黑色石板"},
-        {"id": "ls2", "text": "管理员认识惠特利。他是家族仅存的仆人，二十年来守着这栋屋子，等待有人来终结这一切"}
+        {"id": "ls2", "text": "管理员认识惠特利。他是家族仅存的仆人，二十年来守着这栋屋子"}
       ],
-      "leads_to": ["basement"],
-      "vote_prompt": "图书室发现了铁柜和散落的笔记，先调查哪个？",
-      "guidance": "管理员是关键 NPC。l2 解锁信任路线→地下室决战；l1 解锁独自路线→逃亡。两条路线互斥。"
+      "vote_prompt": "图书室发现了铁柜和散落的笔记，先查哪个？",
+      "leads_to": ["library_restricted", "library_converge"],
+      "exit_labels": {"library_restricted": "检查禁书收藏架", "library_converge": "汇总发现，决定下一步"},
+      "guidance": "管理员是关键NPC。l2解锁信任路线。l1/l3提供背景知识。"
+    },
+    {
+      "id": "library_restricted",
+      "title": "禁书区",
+      "part": 1,
+      "scene_type": "书架",
+      "image_prompt": "a hidden bookshelf compartment behind a sliding panel, rows of forbidden books bound in strange leather that feels warm to touch, titles embossed in gold that seem to shift when not looked at directly, one book lying open on a reading stand showing diagrams of celestial alignments and non-Euclidean geometry, a faint green glow emanating from between the pages, oppressive occult atmosphere, Ink Frenzy style",
+      "description": "管理员犹豫了一下，然后推开一面书架——它悄无声息地滑开了。后面的暗格里藏着十几本书。不是因为它们值钱，是因为它们不该存在于任何书架上。封皮摸起来是温的。翻开的那本正在发光——不是反射灯光，是从内页之间渗出来的绿色冷光。图上画着星位排列和完全不符合欧几里得几何的空间结构。",
+      "npcs_here": [],
+      "opportunities": [
+        {"id": "lr1", "text": "研读发光古籍（克苏鲁神话/知识）——确认石板上的文字属于一种被称为'深渊语'的原始语言，人类声带无法完全发音，但可以用共振频率模拟"},
+        {"id": "lr2", "text": "查看星位图（天文学/神秘学）——满月之夜特定的行星排列会放大石板的能量。三天后的满月恰好满足条件"}
+      ],
+      "secrets": [
+        {"id": "lrs1", "text": "禁书不是惠特利收集的。是这栋房子的上一任主人——惠特利的祖父——留下的。惠特利家族三代以来一直在被同一块石板召唤。惠特利不是第一个受害者，他是第一个把它带回家的人"}
+      ],
+      "leads_to": ["library_converge"],
+      "guidance": "禁书区揭示了家族三代被石板影响的秘史——这不是意外，是宿命。"
+    },
+    {
+      "id": "library_converge",
+      "title": "研究总结",
+      "part": 1,
+      "scene_type": "过渡",
+      "description": "图书室的证据拼出了一条清晰的线索。惠特利从中东带回的石板是活的——它会吞噬记忆、扭曲现实、并试图通过满月之夜的仪式打开深渊之门。老管理员递给你们一把生锈的钥匙——通往地下室的。'二十年前我就该下去。但我太害怕了。'",
+      "npcs_here": ["老管理员"],
+      "opportunities": [],
+      "secrets": [],
+      "vote_prompt": "获得了地下室钥匙。现在下去，还是先去其他地方准备？",
+      "leads_to": [],
+      "exit_labels": {
+        "basement_confrontation::basement": "直接去地下室（管理员信任路线）",
+        "sanitarium_visit::ward14": "先去阿卡姆疯人院找马丁了解更多",
+        "museum_archives::archive_room": "去大学博物馆查更多资料再行动"
+      },
+      "guidance": "三条路线对应不同难度的最终决战。管理员路线=情报最完整，疯人院路线=获得摧毁方法，博物馆路线=获得背景加成。"
     }
   ],
   "npcs": [
@@ -63,21 +100,9 @@
       {
         "npc_name": "老管理员",
         "variants": [
-          {
-            "attitude": "wary",
-            "description": "警惕地看着你们，手里紧握着一把老式猎枪",
-            "secret": "他知道地下室有什么，但二十年的恐惧让他不敢说"
-          },
-          {
-            "attitude": "friendly",
-            "description": "几乎是哭求着迎接你们，像是看到了救星",
-            "secret": "他其实是惠特利失踪当晚唯一的幸存者——因为他逃跑了，二十年来活在愧疚中"
-          },
-          {
-            "attitude": "neutral",
-            "description": "面无表情地坐在角落，像是早已放弃了希望",
-            "secret": "他已经疯了。他有时会跟'不存在的人'说话——那是二十年前死去的屋主"
-          }
+          {"attitude": "wary", "description": "警惕地看着你们，手里紧握着一把老式猎枪", "secret": "他知道地下室有什么，但二十年的恐惧让他不敢说"},
+          {"attitude": "friendly", "description": "几乎是哭求着迎接你们，像是看到了救星", "secret": "他其实是惠特利失踪当晚唯一的幸存者——因为他逃跑了"},
+          {"attitude": "neutral", "description": "面无表情地坐在角落，像是早已放弃了希望", "secret": "他已经疯了。他有时会跟'不存在的人'说话"}
         ]
       }
     ]
