@@ -386,8 +386,8 @@ def create_app() -> web.Application:
     app.router.add_post("/api/scene/match", api_scene_match)
     app.router.add_post("/api/bgm", api_bgm)
 
-    app.router.add_static("/images/scenes", SCENES_DIR)
     app.router.add_static("/images/scenes/modules", MODULE_SCENES_DIR)
+    app.router.add_static("/images/scenes", SCENES_DIR)
     app.router.add_static("/images/items", ITEMS_DIR)
     app.router.add_static("/images/characters", CHARS_DIR)
     app.router.add_static("/audio/bgm", BGM_DIR)

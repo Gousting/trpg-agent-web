@@ -182,6 +182,10 @@ def _prefix_scenes(
             translate.get(k, k): v
             for k, v in new.exit_requires.items()
         }
+        new.exit_labels = {
+            translate.get(k, k): v
+            for k, v in new.exit_labels.items()
+        }
         result.append(new)
     return result
 
@@ -471,7 +475,7 @@ class ModuleComposer:
 
         while queue:
             node, depth, pool_clues = queue.popleft()
-            if depth > max_depth:
+            if depth >= max_depth:
                 continue
 
             mod = node.module

@@ -37,15 +37,18 @@ class TestModuleComposer:
         composer = ModuleComposer(MODULES_DIR)
         composer.load_all()
 
-        adv, seed = composer.compose(seed=42, max_depth=3)
+        adv, seed = composer.compose(
+            seed=42, max_depth=3, start_module="library_research",
+        )
 
         # 找到 library_research 的最后场景
         lib_last = adv.get_scene("library_research::library")
         assert lib_last is not None
 
         # library 的最末场景应有至少 2 个投票选项（exit_labels）
-        assert len(lib_last.exit_labels) >= 2, (
-            f"library 应有至少 2 条投票出口，实际 exit_labels={lib_last.exit_labels}"
+        exits = adv.scene_exits("library_research::library", include_locked=True)
+        assert len(exits) >= 2, (
+            f"library 应有至少 2 条投票出口，实际 exits={exits}"
         )
 
         # 验证门控存在
@@ -191,3 +194,32 @@ class TestModuleComposer:
         adv, _seed = composer.compose(seed=42, max_depth=3)
 
         assert "分支点" in adv.summary
+
+    def test_max_depth_caps_module_layers(self):
+        composer = ModuleComposer(MODULES_DIR)
+        composer.load_all()
+
+        adv, _seed = composer.compose(
+            seed=42, max_depth=1, start_module="library_research",
+        )
+
+        module_ids = {
+            sid.split("::", 1)[0]
+            for sid in adv._scenes
+            if "::" in sid
+        }
+        assert module_ids == {"library_research"}
+
+    def test_internal_vote_labels_survive_scene_prefixing(self):
+        composer = ModuleComposer(MODULES_DIR)
+        composer.load_all()
+
+        adv, _seed = composer.compose(
+            seed=42, max_depth=3, start_module="dockside_arrival",
+        )
+
+        scene = adv.get_scene("dockside_arrival::docks")
+        assert scene is not None
+        labels = [e.label for e in adv.scene_exits("dockside_arrival::docks", include_locked=True)]
+        assert "靠近渔船检查（有风险）" in labels
+        assert "直接问水手（安全）" in labels
