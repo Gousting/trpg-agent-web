@@ -455,7 +455,12 @@ function startGame() {
 
   es.addEventListener('damage', (e) => {
     const d = JSON.parse(e.data);
-    addLog('damage', '', '💥 ' + d.speaker + ' 受到 ' + d.amount + ' 點傷害 (' + d.source + ')');
+    addLog('damage', '', '💥 ' + d.speaker + ' 受到 ' + d.amount + ' 點傷害 (' + (d.source||'') + ')');
+  });
+
+  es.addEventListener('san_loss', (e) => {
+    const d = JSON.parse(e.data);
+    addLog('damage', '', '🧠 ' + d.speaker + ' 理智受損 ' + d.amount + ' 點');
   });
 
   es.addEventListener('room_change', (e) => {

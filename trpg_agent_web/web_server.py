@@ -116,41 +116,44 @@ def _state_snapshot(session: Session) -> dict:
 
 async def _chat_stream(client: OllamaClient, system: str, user_msg: str,
                        temperature: float = 0.8, max_tokens: int = 2000):
-    """流式聊天，yield token（已过滤 GS 标记）。"""
+    """流式聊天，yield token（状态机过滤 GS 标记，最小缓冲）。"""
     buf = ""
+    in_marker = False
+    _GS_START = "<!--GS"
     try:
         async for token in client.chat_stream(
             system, [{"role": "user", "content": user_msg}],
             options={"temperature": temperature, "num_predict": max_tokens},
         ):
-            buf += token
-            # 移除 <!--GS ... --> 标记块
-            while True:
-                start = buf.find("<!--GS")
-                if start == -1:
-                    break
-                end = buf.find("-->", start)
-                if end == -1:
-                    break  # 标记未闭合，等更多 token
-                buf = buf[:start] + buf[end + 3:]
-            # 如果缓冲区以 <!--GS 开头，说明正在标记块内，暂不输出
-            if buf.startswith("<!--GS"):
-                continue
-            # 输出安全部分（不包含待定标记）
-            # 检查是否以 <!-- 开头（可能是未闭合的 GS）
-            marker_start = buf.find("<!--GS")
-            if marker_start > 0:
-                safe = buf[:marker_start]
-                buf = buf[marker_start:]
-                if safe:
-                    yield safe
-            elif marker_start == -1:
-                yield buf
-                buf = ""
+            for ch in token:
+                buf += ch
+                if in_marker:
+                    if buf.endswith("-->"):
+                        buf = ""
+                        in_marker = False
+                else:
+                    if buf.endswith(_GS_START):
+                        safe = buf[:-len(_GS_START)]
+                        buf = ""
+                        in_marker = True
+                        if safe:
+                            yield safe
+                    elif not _could_be_gs_prefix(buf):
+                        yield buf
+                        buf = ""
     except Exception as e:
         yield f"\n[错误] {e}"
-    if buf and "<!--GS" not in buf:
+    if buf and not in_marker:
         yield buf
+
+
+def _could_be_gs_prefix(s: str) -> bool:
+    """检查字符串末尾是否可能是 <!--GS 的前缀。"""
+    gs = "<!--GS"
+    for i in range(1, len(gs)):
+        if s.endswith(gs[:i]):
+            return True
+    return False
 
 
 def _match_scene(text: str, *, min_score: float = 1.5) -> dict | None:
@@ -185,7 +188,90 @@ def _bgm_for_mood(mood: str) -> str:
     return _bgm_mappings.get(mood, _bgm_default)
 
 
-# ── SSE 事件流 ──────────────────────────────────
+# ── 房间类型 → 场景类型映射 ────────────────────
+_ROOM_SCENE_MAP: dict[str, str] = {
+    "entrance": "室内场景 - 废弃建筑入口",
+    "corridor": "室内走廊",
+    "ward": "医院病房",
+    "lab": "实验室",
+    "office": "书房",
+    "storage": "储藏室",
+    "basement": "地下室",
+    "morgue": "停尸房",
+    "ritual": "废弃教堂",
+    "library": "书房",
+}
+
+
+def _scene_for_room(room_type: str) -> dict | None:
+    """根据房间类型匹配场景图。"""
+    try:
+        sm = _scene_matcher()
+        scene_type = _ROOM_SCENE_MAP.get(room_type, "")
+        if scene_type:
+            matches = sm.match_exact_scene_type(scene_type)
+            if matches:
+                m = matches[0]
+                return {"image": m.filename, "location": m.location, "mood": m.mood, "score": 1.0}
+        # 回退：随机场景
+        if sm._images:
+            import random
+            fname = random.choice(list(sm._images.keys()))
+            tags = sm._images[fname]
+            return {"image": fname, "location": tags.get("location", ""),
+                    "mood": (tags.get("mood", [""]) or [""])[0], "score": 0}
+    except Exception:
+        pass
+    return None
+
+
+def _room_threat_events(rc: dict, inv_state, speaker: str) -> list[dict]:
+    """房间威胁事件：返回 [(type, text), ...]。"""
+    events: list[dict] = []
+    threats_text = rc.get("threats", "")
+    if not threats_text or threats_text == "无":
+        return events
+
+    import random
+    # 30% 概率触发 SAN 损失
+    if random.random() < 0.30:
+        loss = random.randint(1, 3)
+        inv_state.san = max(0, inv_state.san - loss)
+        events.append({
+            "type": "san_loss",
+            "speaker": speaker,
+            "text": f"{speaker} 感受到不可名状的恐怖，SAN -{loss}",
+            "amount": loss,
+        })
+    # 10% 概率触发直接伤害
+    if random.random() < 0.10:
+        dmg = random.randint(1, 2)
+        inv_state.take_damage(dmg)
+        events.append({
+            "type": "damage",
+            "speaker": speaker,
+            "text": f"{speaker} 受到了 {dmg} 点伤害",
+            "amount": dmg,
+        })
+    return events
+
+
+def _dice_consequence(dice_context: str, inv_state) -> dict | None:
+    """骰子失败后果。"""
+    if "失败" not in dice_context:
+        return None
+    import random
+    # 50% SAN损失，30% HP损失，20% 无损失
+    r = random.random()
+    if r < 0.5:
+        loss = random.randint(1, 2)
+        inv_state.san = max(0, inv_state.san - loss)
+        return {"type": "san_loss", "amount": loss, "text": f"SAN -{loss}"}
+    elif r < 0.8:
+        dmg = 1
+        inv_state.take_damage(dmg)
+        return {"type": "damage", "amount": dmg, "text": f"HP -{dmg}"}
+    return None
 
 
 async def event_stream(host: str, kp_model: str, player_model: str,
@@ -241,16 +327,29 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     })
 
     # ── KP 开场（流式）────────────────────────
+    # 根据初始房间类型选场景图
+    initial_room_type = current_room.room_type if current_room else "entrance"
+    scene_info = _scene_for_room(initial_room_type)
+    bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else _bgm_default
+    
     system_prompt = session.build_system_prompt()
-    kp_user_msg = (
-        f"场景：{OPENING}\n"
-        f"当前房间：{rc['name']} — {rc['desc']}\n"
+    # 注入 COC 恐怖氛围指令
+    coc_directive = (
+        f"当前场景：{OPENING}\n"
+        f"位置：{rc['name']} — {rc['desc']}\n"
         f"调查员：{', '.join(i['name'] for i in INVESTIGATORS)}\n"
-        "请描述开场场景，营造恐怖氛围。"
+        f"线索：{rc.get('clues', '暂无')}\n"
+        f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
+        "【重要指令】\n"
+        "1. 你是克苏鲁的呼唤守秘人，营造宇宙恐怖氛围——人类渺小、真相可怖、理智侵蚀。\n"
+        "2. 描述中必须包含感官细节：声音、气味、触感、光线扭曲。\n"
+        "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
+        "4. 如果提到线索，让它显得诡异而非寻常。\n"
+        "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
     )
     yield _sse("kp_stream_start", {})
     opening_text = ""
-    async for token in _chat_stream(kp_client, system_prompt, kp_user_msg,
+    async for token in _chat_stream(kp_client, system_prompt, coc_directive,
                                     temperature=0.8, max_tokens=2500):
         opening_text += token
         yield _sse("kp_token", {"text": token})
@@ -258,19 +357,8 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         opening_text = f"你们站在{current_room.name}中。{current_room.description}"
     session.record_turn("(游戏开始)", opening_text)
 
-    # 场景匹配 + TTS + BGM（开场用低阈值确保有初始场景）
-    scene_info = _match_scene(opening_text, min_score=0)
-    if scene_info is None:
-        # 兜底：随机选一张场景图作为初始背景
-        sm = _scene_matcher()
-        if sm._images:
-            import random
-            fname = random.choice(list(sm._images.keys()))
-            tags = sm._images[fname]
-            scene_info = {"image": fname, "location": tags.get("location", ""),
-                          "mood": (tags.get("mood", [""]) or [""])[0], "score": 0}
+    # TTS + BGM
     audio_url = await _speak(opening_text[:500])
-    bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else _bgm_default
     yield _sse("kp_stream_end", {
         "state": _state_snapshot(session),
         "scene": scene_info,
@@ -283,7 +371,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     last_narration = opening_text
     player_order = [inv["name"] for inv in INVESTIGATORS]
     current_bgm = bgm_track
-    current_scene = scene_info  # 跟踪当前场景，避免无意义切换
+    current_scene = scene_info
 
     for turn in range(turns):
         speaker = player_order[turn % len(player_order)]
@@ -336,11 +424,44 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             })
             await asyncio.sleep(0.5)
 
+        # ── 骰子后果 ───────────────────────────
+        consequence = _dice_consequence(dice_context, inv_state) if dice_context else None
+        if consequence:
+            yield _sse(consequence["type"], {
+                "speaker": speaker, "text": consequence.get("text", ""),
+                "amount": consequence.get("amount", 0),
+            })
+
         # ── KP 叙述（流式）────────────────────
         system_prompt = session.build_system_prompt()
         context_parts = []
+        # 房间线索 + 威胁注入
+        room_clues = rc.get("clues", "")
+        room_threats = rc.get("threats", "")
+        if room_clues:
+            context_parts.append(f"[房间线索] {room_clues}")
+        if room_threats and room_threats != "无":
+            context_parts.append(f"[房间威胁] {room_threats}")
+
         if dice_context:
-            context_parts.append(f"[检定] {dice_context}")
+            is_success = "成功" in dice_context and "失败" not in dice_context
+            who = dice_result.get("character", speaker)
+            skill = dice_result.get("skill", "行动")
+            if is_success:
+                directive = (
+                    f"[系统检定结果]\n"
+                    f"{who} 的「{skill}」检定：成功——{dice_context}\n"
+                    f"你必须叙述他/她成功了。描述具体发现/做到/说服了什么。"
+                )
+            else:
+                directive = (
+                    f"[系统检定结果]\n"
+                    f"{who} 的「{skill}」检定：失败——{dice_context}\n"
+                    f"你必须叙述他/她失败了，并描述由此产生的危险后果。"
+                )
+                if consequence:
+                    directive += f"\n此外，他/她还承受了：{consequence.get('text', '')}"
+            context_parts.append(directive)
         if items_picked:
             context_parts.append(f"[获得物品] {', '.join(items_picked)}")
         context_parts.append(f"[{speaker}] {action}")
@@ -358,44 +479,53 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         session.record_turn(action, narration, speaker=speaker)
         last_narration = narration
 
-        # 场景匹配 + TTS + BGM（只在真正变化时切换）
-        # 没有当前场景时降低阈值，确保至少有一张图
-        threshold = 0 if current_scene is None else 1.5
-        scene_info = _match_scene(narration, min_score=threshold)
+        # TTS
         audio_url = await _speak(narration[:500])
 
-        # 只有场景图变化或房间切换时才更新
-        scene_changed = (
-            scene_info is not None
-            and (current_scene is None or scene_info["image"] != current_scene.get("image"))
-        )
-        if scene_changed:
-            current_scene = scene_info
-
-        bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else current_bgm
-        bgm_changed = bgm_track != current_bgm
-        if bgm_changed:
-            current_bgm = bgm_track
-
-        # 房间移动检测
+        # ── 房间移动检测 ───────────────────────
+        scene_changed = False
+        bgm_changed = False
+        new_bgm = current_bgm
         room_change = _detect_move(dmap, action)
         if room_change:
-            # 房间变了，强制更新场景
-            scene_changed = True
+            session.state.location = room_change.get("room_name", "")
+            # 新房间 → 按房间类型选场景图 + BGM
+            new_room = dmap.current_room
+            if new_room:
+                scene_info = _scene_for_room(new_room.room_type)
+                if scene_info and (current_scene is None or scene_info["image"] != current_scene.get("image")):
+                    current_scene = scene_info
+                    scene_changed = True
+                    # 新场景 → 检查 BGM
+                    track = _bgm_for_mood(scene_info.get("mood", ""))
+                    if track != current_bgm:
+                        new_bgm = track
+                        current_bgm = track
+                        bgm_changed = True
+            # 新房间威胁
+            new_rc = dmap.room_context()
+            for inv_data_i in INVESTIGATORS:
+                inv_s = session.state.find_investigator(inv_data_i["name"])
+                if inv_s:
+                    threat_events = _room_threat_events(new_rc, inv_s, inv_data_i["name"])
+                    for evt in threat_events:
+                        yield _sse(evt["type"], {
+                            "speaker": evt["speaker"],
+                            "text": evt["text"],
+                            "amount": evt.get("amount", 0),
+                        })
+            yield _sse("room_change", room_change)
+            await asyncio.sleep(0.5)
 
+        # 无场景变化时，不推 scene
         yield _sse("kp_stream_end", {
             "state": _state_snapshot(session),
             "scene": current_scene if scene_changed else None,
             "audio_url": audio_url,
-            "bgm_track": bgm_track if bgm_changed else None,
+            "bgm_track": new_bgm if bgm_changed else None,
             "room_change": room_change,
             "room": rc,
         })
-
-        if room_change:
-            session.state.location = room_change.get("room_name", "")
-            yield _sse("room_change", room_change)
-            await asyncio.sleep(0.5)
 
         await asyncio.sleep(0.3)
 
@@ -411,10 +541,13 @@ async def _ai_player_stream(host: str, player_model: str,
     player_system = (
         f"你是 {inv_data['name']}，克苏鲁的呼唤调查员。\n"
         f"HP:{inv_state.hp}/{inv_state.max_hp} SAN:{inv_state.san}/{inv_state.max_san}\n"
-        f"技能：{skills_str}  物品：{items_str}\n\n"
+        f"技能：{skills_str}  已有物品：{items_str}\n\n"
         f"当前房间：{rc['name']} — {rc['desc']}\n"
-        f"出口：{rc['exits']}  物品：{rc['items']}  威胁：{rc['threats']}\n\n"
-        "用第一人称描述行动，1-2句话。探索、调查、或应对威胁。不要替其他调查员说话。"
+        f"出口：{rc['exits']}\n"
+        f"⚠ 房间里有这些东西可以拿：{rc['items']}\n"
+        f"威胁：{rc['threats']}\n\n"
+        "用第一人称描述行动，1-2句话。优先探索房间里的物品（说出物品名），"
+        "其次是调查环境或应对威胁。不要替其他调查员说话。"
     )
     player_msg = f"主持人叙述：{last_narration[:600]}\n\n{inv_data['name']}的行动："
     player_client = OllamaClient(host, player_model, num_ctx=4096, timeout=120)
@@ -431,19 +564,20 @@ async def _ai_player_stream(host: str, player_model: str,
 
 
 def _handle_pickup(dmap: DungeonMap, inv_state, action: str) -> list[str]:
-    """处理房间物品拾取。"""
+    """处理房间物品拾取——精确匹配 + 常见简称。"""
     items_picked: list[str] = []
     room = dmap.current_room
-    if not room:
+    if not room or not room.items:
         return items_picked
-    pickup_keywords = ["拿", "捡", "收集", "取", "拿走", "拾起"]
-    wants_pickup = any(kw in action for kw in pickup_keywords)
-    if wants_pickup:
-        for item in list(room.items):
-            if item in action:
-                inv_state.inventory.append(item)
-                room.items.remove(item)
-                items_picked.append(item)
+    for item in list(room.items):
+        # 精确匹配 或 物品名被简称为最后一词（如 "手电筒电池" → "电池"）
+        last_word = item  # 中文没有空格分词，取后半段
+        if len(item) > 2:
+            last_word = item[len(item)//2:]  # 取物品名后半作为简称
+        if item in action or last_word in action:
+            inv_state.inventory.append(item)
+            room.items.remove(item)
+            items_picked.append(item)
     return items_picked
 
 
