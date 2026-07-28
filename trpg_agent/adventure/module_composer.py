@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 
 # ── 模块图片路径 ─────────────────────────────────────
 
-_MODULES_IMAGES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "scenes" / "modules"
+_MODULES_IMAGES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "modules"
 _MODULES_IMAGE_PREFIX = "/images/scenes/modules/"
 
 

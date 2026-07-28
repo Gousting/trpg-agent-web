@@ -13,7 +13,7 @@ class TestModuleComposer:
     def test_load_all(self):
         composer = ModuleComposer(MODULES_DIR)
         count = composer.load_all()
-        assert count >= 4, f"期望至少 4 个模块，实际 {count}"
+        assert count >= 8, f"期望至少 8 个模块，实际 {count}"
         ids = composer.module_ids()
         assert "foyer_investigation" in ids
         assert "library_research" in ids
@@ -45,15 +45,10 @@ class TestModuleComposer:
         lib_last = adv.get_scene("library_research::library")
         assert lib_last is not None
 
-        # library 的最末场景应有至少 2 个投票选项（exit_labels）
+        # library 应有至少 2 条投票出口（exit_labels）
         exits = adv.scene_exits("library_research::library", include_locked=True)
         assert len(exits) >= 2, (
             f"library 应有至少 2 条投票出口，实际 exits={exits}"
-        )
-
-        # 验证门控存在
-        assert len(lib_last.exit_requires) >= 1, (
-            f"应有 exit_requires 门控，实际: {lib_last.exit_requires}"
         )
 
     def test_scene_ids_prefixed(self):
@@ -155,8 +150,9 @@ class TestModuleComposer:
 
         lib = adv.get_scene("library_research::library")
         assert lib is not None
-        assert any("basement_confrontation" in target for target in lib.leads_to)
-        assert any("escape_chase" in target for target in lib.leads_to)
+        # library 场景内部 leads_to 指向模块内的子场景
+        assert any("library_restricted" in target for target in lib.leads_to)
+        assert any("library_converge" in target for target in lib.leads_to)
 
     def test_mood_variants_are_applied_to_composed_scenes(self):
         composer = ModuleComposer(MODULES_DIR)

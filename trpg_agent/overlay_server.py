@@ -17,7 +17,7 @@ OVERLAY_DIR = pathlib.Path(__file__).parent.parent / "docs"
 SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "Sceneimage"
 ITEMS_DIR = pathlib.Path(__file__).parent.parent / "data" / "items" / "Itemimage"
 CHARS_DIR = pathlib.Path(__file__).parent.parent / "data" / "characters" / "Userimage"
-MODULE_SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "scenes" / "modules"
+MODULE_SCENES_DIR = pathlib.Path(__file__).parent.parent / "data" / "modules"
 BGM_DIR = pathlib.Path(__file__).parent.parent / "data" / "bgm"
 TTS_CACHE = pathlib.Path(__file__).parent.parent / "data" / "tts_cache"
 
