@@ -69,6 +69,7 @@ class Scene:
     image: str = ""          # 运行时图片 URL（composer 自动回链）
     image_prompt: str = ""   # 用于生图的提示词（模块作者填写）
     vote_prompt: str = ""    # 弹幕投票问题文案（为空则不触发投票）
+    mood: str = ""           # 场景氛围（驱动 BGM 选择；模块入口场景由 entry.mood 自动填充）
     # COC 特有触发器
     san_check: dict | None = None   # {"trigger": "...", "level": "MAJOR"}
     combat: dict | None = None      # {"trigger": "...", "enemy": "...", "hp": N, "armor": N}
@@ -104,6 +105,7 @@ class Scene:
             image=str(d.get("image", "") or ""),
             image_prompt=str(d.get("image_prompt", "") or ""),
             vote_prompt=str(d.get("vote_prompt", "") or ""),
+            mood=str(d.get("mood", "") or ""),
             san_check=d.get("san_check") if isinstance(d.get("san_check"), dict) else None,
             combat=d.get("combat") if isinstance(d.get("combat"), dict) else None,
         )

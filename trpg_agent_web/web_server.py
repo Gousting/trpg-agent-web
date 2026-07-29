@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -93,8 +94,13 @@ except Exception:
 app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
 
 # ── 投票同步 ───────────────────────────────
-_vote_events: dict[str, asyncio.Event] = {}
-_vote_choices: dict[str, str] = {}
+# 投票不再由第一个 POST 立即决定结果，而是在整个投票窗口内累加计数，
+# 窗口结束后取多数票——这样多个观众（相同 session_id）同时投票才能真正聚合。
+_vote_tallies: dict[str, dict[str, int]] = {}
+VOTE_WINDOW_SECONDS = 32  # 略长于前端 30s 倒计时，确保超时自动投的那一票也能被计入
+
+# EXIT 标记：AI 玩家模式下，KP 叙述末尾可附加 <<EXIT n>> 请求移动到第 n 个场景出口
+_EXIT_MARKER_RE = re.compile(r"<<\s*EXIT[\s:]*(\d+)\s*>>", re.IGNORECASE)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -461,6 +467,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         rc = dmap.room_context()
 
         # ── 玩家行动 ───────────────────────────
+        moved_scene = None  # 投票驱动的模块场景切换结果（仅模块模式下可能非 None）
         if mode == "ai":
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             action = ""
@@ -484,20 +491,36 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             yield _sse("player_stream_end", {"speaker": speaker})
             await asyncio.sleep(0.2)
         else:
-            # 人类模式 / 投票模式：展示选项，等待键盘投票
-            vote_options = {
-                "a": "深入调查当前的线索",
-                "b": "与同伴讨论接下来的行动",
-                "c": "谨慎地搜索房间的每个角落",
-            }
-            # 用当前房间场景定制选项
-            room_name = rc.get("name", "") if rc else ""
-            if "办公室" in room_name or "书房" in room_name:
-                vote_options = {"a": "翻查桌上的文件和信件", "b": "检查书架后的隐藏空间", "c": "仔细观察墙上的照片和地图"}
-            elif "走廊" in room_name:
-                vote_options = {"a": "贴着墙壁缓慢前进", "b": "检查地面的脚印和痕迹", "c": "倾听周围的异常声响"}
-            elif "病房" in room_name or "医院" in room_name:
-                vote_options = {"a": "查看病床上的约束带痕迹", "b": "翻阅床头柜的病历记录", "c": "检查窗户是否通向外部"}
+            # 人类模式 / 投票模式：展示选项，等待前端投票
+            vote_targets: dict[str, str] = {}
+            if adventure is not None:
+                # 模块模式：投票选项 = 当前场景的真实出口，投票结果将驱动场景切换
+                exits = adventure.scene_exits(
+                    session.state.scene_id, resolved_ids=session.state.resolved_elements,
+                )
+                letters = ["a", "b", "c"]
+                vote_options = {}
+                for letter, exit_view in zip(letters, exits):
+                    vote_options[letter] = exit_view.label
+                    vote_targets[letter] = exit_view.target_id
+                # 出口不足 3 个时，用不跳转场景的自由行动选项补齐按键
+                fillers = ["继续深入调查当前场景", "谨慎地观察四周", "与同伴商议下一步行动"]
+                for letter, filler in zip(letters[len(vote_options):], fillers):
+                    vote_options[letter] = filler
+            else:
+                vote_options = {
+                    "a": "深入调查当前的线索",
+                    "b": "与同伴讨论接下来的行动",
+                    "c": "谨慎地搜索房间的每个角落",
+                }
+                # 用当前房间场景定制选项
+                room_name = rc.get("name", "") if rc else ""
+                if "办公室" in room_name or "书房" in room_name:
+                    vote_options = {"a": "翻查桌上的文件和信件", "b": "检查书架后的隐藏空间", "c": "仔细观察墙上的照片和地图"}
+                elif "走廊" in room_name:
+                    vote_options = {"a": "贴着墙壁缓慢前进", "b": "检查地面的脚印和痕迹", "c": "倾听周围的异常声响"}
+                elif "病房" in room_name or "医院" in room_name:
+                    vote_options = {"a": "查看病床上的约束带痕迹", "b": "翻阅床头柜的病历记录", "c": "检查窗户是否通向外部"}
 
             yield _sse("vote", {
                 "options": vote_options,
@@ -505,16 +528,21 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 "speaker": speaker,
             })
 
-            # 等待前端投票
-            evt = asyncio.Event()
-            _vote_events[sid] = evt
-            try:
-                await asyncio.wait_for(evt.wait(), timeout=35)
-                choice = _vote_choices.pop(sid, "a")
-            except asyncio.TimeoutError:
+            # 投票窗口：累加整个窗口期内收到的所有票，结束后取多数票
+            _vote_tallies[sid] = {}
+            await asyncio.sleep(VOTE_WINDOW_SECONDS)
+            tally = _vote_tallies.pop(sid, {})
+            if tally:
+                choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
+            else:
                 choice = "a"
-            finally:
-                _vote_events.pop(sid, None)
+
+            # 投票结果驱动模块场景切换——只有选中真实出口时才会真正移动
+            target_scene_id = vote_targets.get(choice)
+            if adventure is not None and target_scene_id:
+                moved_scene = session.move_to_scene(target_scene_id, adventure)
+                if moved_scene is not None:
+                    moved_scene = _auto_advance_transitions(session, adventure, moved_scene)
 
             action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
@@ -555,7 +583,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             })
 
         # ── KP 叙述（流式）────────────────────
-        system_prompt = session.build_system_prompt()
+        system_prompt = session.build_system_prompt(adventure=adventure)
         context_parts = []
         # 房间线索 + 威胁注入
         room_clues = rc.get("clues", "")
@@ -586,6 +614,21 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             context_parts.append(directive)
         if items_picked:
             context_parts.append(f"[获得物品] {', '.join(items_picked)}")
+        # 模块模式：投票已经把队伍移动到了新场景——告知 KP 描述抵达
+        if moved_scene is not None:
+            context_parts.append(f"[场景切换] 队伍来到了新地点——{moved_scene.title}：{moved_scene.description}")
+        # 模块模式 + AI 玩家：告知可用的场景出口，允许 KP 用 <<EXIT n>> 请求移动
+        if adventure is not None and mode == "ai":
+            current_exits = adventure.scene_exits(
+                session.state.scene_id, resolved_ids=session.state.resolved_elements,
+            )
+            if current_exits:
+                exit_lines = "\n".join(f"{i}. {e.label}" for i, e in enumerate(current_exits, 1))
+                context_parts.append(
+                    "[场景出口]\n" + exit_lines +
+                    "\n如果调查员的行动自然会让队伍前往上述某个地点，在叙述最后另起一行附加"
+                    " <<EXIT 序号>>（如 <<EXIT 1>>）；如果队伍仍留在当前场景，不要添加这个标记。"
+                )
         context_parts.append(f"[{speaker}] {action}")
         kp_user = "\n\n".join(context_parts) + "\n\n请叙述结果："
 
@@ -598,6 +641,22 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         if not narration:
             narration = "（KP 沉思……）"
 
+        # 模块模式 + AI 玩家：解析 KP 叙述里的 <<EXIT n>>，驱动场景切换
+        if adventure is not None and mode == "ai":
+            m = _EXIT_MARKER_RE.search(narration)
+            if m:
+                narration = _EXIT_MARKER_RE.sub("", narration).rstrip()
+                exit_choice = int(m.group(1))
+                current_exits = adventure.scene_exits(
+                    session.state.scene_id, resolved_ids=session.state.resolved_elements,
+                )
+                if 1 <= exit_choice <= len(current_exits):
+                    moved_scene = session.move_to_scene(
+                        current_exits[exit_choice - 1].target_id, adventure,
+                    )
+                    if moved_scene is not None:
+                        moved_scene = _auto_advance_transitions(session, adventure, moved_scene)
+
         session.record_turn(action, narration, speaker=speaker)
         last_narration = narration
 
@@ -608,36 +667,62 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         scene_changed = False
         bgm_changed = False
         new_bgm = current_bgm
-        room_change = _detect_move(dmap, action)
-        if room_change:
-            session.state.location = room_change.get("room_name", "")
-            # 新房间 → 按房间类型选场景图 + BGM
-            new_room = dmap.current_room
-            if new_room:
-                scene_info = _scene_for_room(new_room.room_type)
-                if scene_info and (current_scene is None or scene_info["image"] != current_scene.get("image")):
-                    current_scene = scene_info
-                    scene_changed = True
-                    # 新场景 → 检查 BGM
-                    track = _bgm_for_mood(scene_info.get("mood", ""))
-                    if track != current_bgm:
-                        new_bgm = track
-                        current_bgm = track
-                        bgm_changed = True
-            # 新房间威胁
-            new_rc = dmap.room_context()
-            for inv_data_i in INVESTIGATORS:
-                inv_s = session.state.find_investigator(inv_data_i["name"])
-                if inv_s:
-                    threat_events = _room_threat_events(new_rc, inv_s, inv_data_i["name"])
-                    for evt in threat_events:
-                        yield _sse(evt["type"], {
-                            "speaker": evt["speaker"],
-                            "text": evt["text"],
-                            "amount": evt.get("amount", 0),
-                        })
+        if adventure is not None and moved_scene is not None:
+            # 模块模式：场景切换已由投票结果 / <<EXIT n>> 驱动（session.move_to_scene），
+            # 这里只需把新场景同步给前端，不再依赖地牢地图的房间名检测
+            session.state.location = moved_scene.title
+            current_scene = {"image": moved_scene.image, "location": moved_scene.title, "mood": moved_scene.mood}
+            scene_changed = True
+            # 新场景带 mood → 按氛围切换 BGM
+            if moved_scene.mood:
+                track = _bgm_for_mood(moved_scene.mood)
+                if track != current_bgm:
+                    new_bgm = track
+                    current_bgm = track
+                    bgm_changed = True
+            room_change = {
+                "room_id": None,
+                "room_name": moved_scene.title,
+                "room_desc": moved_scene.description,
+                "items": [],
+                "map": dmap.to_dict(),
+                "grid": dmap.grid,
+                "image": moved_scene.image or dmap.relative_path,
+                "room": rc,
+            }
             yield _sse("room_change", room_change)
             await asyncio.sleep(0.5)
+        else:
+            room_change = _detect_move(dmap, action)
+            if room_change:
+                session.state.location = room_change.get("room_name", "")
+                # 新房间 → 按房间类型选场景图 + BGM
+                new_room = dmap.current_room
+                if new_room:
+                    scene_info = _scene_for_room(new_room.room_type)
+                    if scene_info and (current_scene is None or scene_info["image"] != current_scene.get("image")):
+                        current_scene = scene_info
+                        scene_changed = True
+                        # 新场景 → 检查 BGM
+                        track = _bgm_for_mood(scene_info.get("mood", ""))
+                        if track != current_bgm:
+                            new_bgm = track
+                            current_bgm = track
+                            bgm_changed = True
+                # 新房间威胁
+                new_rc = dmap.room_context()
+                for inv_data_i in INVESTIGATORS:
+                    inv_s = session.state.find_investigator(inv_data_i["name"])
+                    if inv_s:
+                        threat_events = _room_threat_events(new_rc, inv_s, inv_data_i["name"])
+                        for evt in threat_events:
+                            yield _sse(evt["type"], {
+                                "speaker": evt["speaker"],
+                                "text": evt["text"],
+                                "amount": evt.get("amount", 0),
+                            })
+                yield _sse("room_change", room_change)
+                await asyncio.sleep(0.5)
 
         # 无场景变化时，不推 scene
         yield _sse("kp_stream_end", {
@@ -731,6 +816,20 @@ def _detect_move(dmap: DungeonMap, action: str) -> dict | None:
     return None
 
 
+def _auto_advance_transitions(session: Session, adventure: Adventure, scene):
+    """自动走完模块间的 __trans__ 过渡场景（无需玩家互动，见 module_composer 里的
+    "guidance: 过渡场景。无需玩家互动，自动推进"），直到落在一个真实场景为止。
+    """
+    guard = 0
+    while scene is not None and scene.id.startswith("__trans__") and scene.leads_to and guard < 5:
+        next_scene = session.move_to_scene(scene.leads_to[0], adventure)
+        if next_scene is None:
+            break
+        scene = next_scene
+        guard += 1
+    return scene
+
+
 def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
@@ -787,21 +886,22 @@ class VoteRequest(BaseModel):
 @app.post("/api/vote")
 async def handle_vote(req: VoteRequest):
     """接收前端投票请求（键盘 a/b/c 或点击）。
-    将选择注入到等待中的 event_stream，驱动游戏继续。
+    只累加到该场次的投票计数里；真正的选择由投票窗口结束后的多数票决定
+    （见 event_stream 里的 VOTE_WINDOW_SECONDS 等待逻辑），而不是第一票立即生效。
+    忽略客户端自报的 counts，避免信任前端本地计数。
     """
-    log.info("投票: choice=%s counts=%s", req.choice, req.counts)
     sid = req.session_id
     if not sid:
-        # 无 session_id 时使用最近一个等待中的投票
-        for _sid, evt in list(_vote_events.items()):
-            if not evt.is_set():
-                sid = _sid
-                break
-    if sid and sid in _vote_events:
-        _vote_choices[sid] = req.choice
-        _vote_events[sid].set()
-        return {"accepted": True, "choice": req.choice}
-    return {"accepted": False, "reason": "no waiting vote"}
+        # 无 session_id 时使用最近一个仍在进行中的投票
+        for _sid in list(_vote_tallies.keys()):
+            sid = _sid
+            break
+    if sid and sid in _vote_tallies:
+        tally = _vote_tallies[sid]
+        tally[req.choice] = tally.get(req.choice, 0) + 1
+        log.info("投票: session=%s choice=%s tally=%s", sid, req.choice, tally)
+        return {"accepted": True, "choice": req.choice, "tally": tally}
+    return {"accepted": False, "reason": "no active vote"}
 
 
 # ── 入口 ─────────────────────────────────────

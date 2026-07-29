@@ -762,6 +762,9 @@ class ModuleComposer:
                     resolved = _resolve_module_image(mod.meta.id, original.id)
                     if resolved:
                         scene.image = resolved
+            # 入口氛围回填：模块首个场景若未标注 mood，继承 entry.mood（驱动 BGM 切换）
+            if prefixed and not prefixed[0].mood and mod.meta.entry_mood:
+                prefixed[0].mood = mod.meta.entry_mood
             all_scenes.extend(prefixed)
             for npc in mod.npcs:
                 if npc.name not in {n.name for n in all_npcs}:
