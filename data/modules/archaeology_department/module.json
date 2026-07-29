@@ -1,0 +1,57 @@
+{
+  "id": "archaeology_department",
+  "title": "考古系·地下仓库",
+  "genre": [
+    "investigation",
+    "academic"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "academic",
+      "indoor"
+    ],
+    "required_clues": [
+      "antique_ledger_obtained"
+    ],
+    "mood": "mystery"
+  },
+  "exits": [
+    {
+      "id": "to_museum",
+      "label": "文物来源指向博物馆",
+      "provides_clues": [
+        "artifact_origin_traced",
+        "slab_is_alive"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "to_observatory",
+      "label": "石板上的星图需要天文台",
+      "provides_clues": [
+        "star_map_recorded"
+      ],
+      "mood": "mystery",
+      "next_location_type": "academic"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "storage",
+      "description": "考古系地下仓库的灯光忽明忽暗。一排编号木箱中有一个被撬开了——里面的南太平洋石雕和你们见过的石板纹路完全一致。箱子标签写着惠特利教授的名字和'待销毁'三个红字。系主任似乎想销毁证据。",
+      "image_prompt": "university archaeology department basement storage, numbered crates, one pried open revealing Pacific stone carvings matching slab patterns, flickering lights, Ink Frenzy style, academic cover-up, institutional horror",
+      "leads_to": "director_office"
+    },
+    {
+      "id": "director_office",
+      "description": "系主任办公室的保险柜没锁好。里面是惠特利教授的完整田野调查报告，记录了南太平洋遗迹的精确坐标和水下结构的异常声呐读数。报告结论被黑笔划掉重写：'建议销毁所有样本和记录——那东西知道我们碰了它'。一份星图拓片夹在报告里。",
+      "image_prompt": "1920s university archaeology office, open wall safe, field report on desk with blacked-out sections, sun-bleached excavation photograph in frame, Ink Frenzy style, sepia tones only, no bright colors, academic noir, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "observatory::telescope_room": "带星图去天文台计算星辰归位时间",
+        "museum_archives::exhibit_hall": "去博物馆查对南太平洋文物展品"
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "id": "dockmaster_interrogation",
+  "title": "港务长办公室·审问",
+  "genre": [
+    "investigation",
+    "waterfront"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "waterfront",
+      "indoor"
+    ],
+    "required_clues": [
+      "dockside_horror_witnessed"
+    ],
+    "mood": "confrontation"
+  },
+  "exits": [
+    {
+      "id": "to_warehouse",
+      "label": "港务长供出仓库地址",
+      "provides_clues": [
+        "dockmaster_confession",
+        "smuggling_route_known"
+      ],
+      "mood": "dread",
+      "next_location_type": "waterfront"
+    },
+    {
+      "id": "to_ship",
+      "label": "查到问题货船船名",
+      "provides_clues": [
+        "dockmaster_confession"
+      ],
+      "mood": "suspense",
+      "next_location_type": "waterfront"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "office",
+      "description": "港务长办公室弥漫着廉价威士忌的气味。墙上的航运图上，用红笔圈出了四处港口——每处旁边都标注了日期，恰好和失踪事件吻合。港务长看到你们盯着图，脸色瞬间发白。",
+      "image_prompt": "1920s dockmaster office, wooden desk with whiskey bottle and shipping manifests, wall chart with harbor routes, period-authentic furnishings, absolutely no modern technology, no screens, Ink Frenzy style, noir atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "leads_to": "confrontation"
+    },
+    {
+      "id": "confrontation",
+      "description": "港务长崩溃了。他供出三周前有艘叫'南海之星'的货船进港，卸下的不是报关单上的'农具'而是刻满符号的石板。以斯拉付了他三倍工资让他别记录。他交出仓库钥匙和船期表。",
+      "image_prompt": "broken man confessing at desk, scattered papers showing ship schedules, warehouse key on chain, Ink Frenzy style, interrogation scene, harsh lamplight, defeated posture, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "vote_prompt": "先去仓库还是先查船？",
+      "exit_labels": {
+        "harbor_warehouse::loading_dock": "持钥匙搜查港口大仓库",
+        "abandoned_ship::deck": "去码头找南海之星号"
+      }
+    }
+  ]
+}

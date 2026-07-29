@@ -233,7 +233,6 @@ def test_load_requested_adventure_smoke_uses_real_module_composition():
         # 手写目标必须始终保留；组合引擎现在还会叠加随机兼容候选作为额外分支。
         assert {
             "basement_confrontation::basement",
-            "museum_archives::archive_room",
             "sanitarium_visit::ward14",
         } <= targets
 

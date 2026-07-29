@@ -1,0 +1,48 @@
+{
+  "id": "cliffside_path",
+  "title": "悬崖小径·石刻",
+  "genre": [
+    "investigation",
+    "coastal"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "coastal",
+      "indoor"
+    ],
+    "required_clues": [
+      "deep_sea_gateway"
+    ],
+    "mood": "awe"
+  },
+  "exits": [
+    {
+      "id": "to_ruins",
+      "label": "石刻指向低潮位遗迹",
+      "provides_clues": [
+        "cliffside_carving_found",
+        "low_tide_access"
+      ],
+      "mood": "awe",
+      "next_location_type": "coastal"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "summit",
+      "description": "悬崖顶上的海风大得几乎让人站不稳。这里视野开阔，整个阿卡姆海湾尽收眼底——也包括海中那个不该存在的东西：退潮时露出的黑色石脊，它们的排列不是自然的，而是形成规则的几何图形。悬崖边有被风吹日晒的古老石刻，刻的正是海中的那个图形。",
+      "image_prompt": "cliff top overlooking Arkham bay, low tide revealing black stone ridges in geometric patterns, ancient weathered carvings on cliff edge matching the pattern, Ink Frenzy style, vast coastal panorama, cosmic revelation, wind and sea",
+      "leads_to": "carving"
+    },
+    {
+      "id": "carving",
+      "description": "石刻的细节显示海中的结构并非自然形成。在特定潮位下，露出的石脊会形成一个完整的七角星——和石板上的符号完全一致。石刻边缘有近代添加的铜钉和被烧过的蜡烛，说明最近有人在这里做过仪式。下面的潮水正在退，露出一条通往远处石脊的湿滑通道。",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, detailed ancient cliff carving, seven-pointed star diagram matching sea stones, modern copper nails and candle wax near carving, low tide revealing path, ancient map, threshold moment, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "coastal_ruins::tide_pool": "趁退潮沿石脊路径下海",
+        "temple_ruins::underwater_approach": "海水最低时通往更远的水下遗迹"
+      }
+    }
+  ]
+}

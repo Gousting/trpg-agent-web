@@ -1,0 +1,58 @@
+{
+  "id": "boarding_house",
+  "title": "寄宿屋·惠特利之室",
+  "genre": [
+    "investigation",
+    "urban"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "urban",
+      "indoor"
+    ],
+    "required_clues": [
+      "whitley_history_known"
+    ],
+    "mood": "paranoia"
+  },
+  "exits": [
+    {
+      "id": "to_sanitarium",
+      "label": "寄宿屋线索指向疯人院",
+      "provides_clues": [
+        "whitley_diary_found",
+        "missing_persons_known"
+      ],
+      "mood": "dread",
+      "next_location_type": "institutional"
+    },
+    {
+      "id": "to_library",
+      "label": "日记提到古屋图书室",
+      "provides_clues": [
+        "whitley_diary_found"
+      ],
+      "mood": "mystery",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "room_3b",
+      "description": "惠特利租过的房间已被房东锁了三个月。撬开门锁后，房间看起来正常——除了面向东南的整面墙都被密密麻麻的符号覆盖，在月光下微微发出荧绿色的光。",
+      "image_prompt": "1920s boarding house room, entire wall covered in strange symbols glowing faint green in moonlight, overturned bed, scattered papers, broken window, Ink Frenzy style, Lovecraftian domestic horror, unnatural light source, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "leads_to": "hidden_diary"
+    },
+    {
+      "id": "hidden_diary",
+      "description": "地板下藏着一本日记。前半本记录正常——考古学笔记、对南太平洋遗迹的学术兴奋。后半本的字迹逐渐扭曲，反复写同一句话：'它在看我 它在看我 它在看我'。最后一页是疯人院的入院申请单，空白处写着'来不及了'。",
+      "image_prompt": "worn leather diary hidden under floorboard, pages showing deteriorating handwriting from academic notes to desperate scrawl, Ink Frenzy style, evidence photography aesthetic, hands holding diary, dim lighting, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "vote_prompt": "先追哪条线索？",
+      "exit_labels": {
+        "sanitarium_visit::reception": "拿着入院单去疯人院查惠特利记录",
+        "library_research::rare_section": "去古屋图书室查对符号含义"
+      }
+    }
+  ]
+}

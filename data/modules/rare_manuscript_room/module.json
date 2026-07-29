@@ -1,0 +1,61 @@
+{
+  "id": "rare_manuscript_room",
+  "title": "珍稀手稿室",
+  "genre": [
+    "investigation",
+    "academic"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "academic",
+      "indoor"
+    ],
+    "required_clues": [
+      "stone_origin_known"
+    ],
+    "mood": "mystery"
+  },
+  "exits": [
+    {
+      "id": "to_library",
+      "label": "去古屋图书室核对",
+      "provides_clues": [
+        "rare_text_translated",
+        "summoning_ritual_details"
+      ],
+      "mood": "mystery",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "to_rare_books",
+      "label": "手稿提到了珍本书店",
+      "provides_clues": [
+        "rare_text_translated"
+      ],
+      "mood": "investigation",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "manuscript_room",
+      "description": "需要特别许可才能进入的恒温恒湿手稿室。一本17世纪的拉丁文航海日志记载了在南太平洋发现'会移动的岛屿'。夹页里有一张折叠的兽皮纸——上面用古英语写着召唤仪式的完整步骤，图的中央画的正是惠特利石板。",
+      "image_prompt": "climate-controlled rare manuscript room, 17th century Latin ship log, unrolled vellum with ritual diagram featuring the Whitley slab, Ink Frenzy style, scholarly discovery of forbidden knowledge, reverent horror",
+      "san_check": {
+        "trigger": "读懂兽皮纸上的完整召唤仪式",
+        "level": "MAJOR"
+      },
+      "leads_to": "translation"
+    },
+    {
+      "id": "translation",
+      "description": "手稿室的管理员帮你们逐段翻译。仪式需要三块石板碎片——你们已经见过两块。但最重要的是：仪式必须在'星辰归位时的水下地点'进行。管理员颤抖着说他在另一本私人收藏中见过相同的描述——那本书现在在镇上珍本书店。",
+      "image_prompt": "manuscript curator translating ancient text by lamplight, fear growing on his face, scattered reference books, Ink Frenzy style, the moment of terrible understanding",
+      "exit_labels": {
+        "library_research::rare_section": "去古屋图书室查对残缺部分",
+        "rare_book_shop::shop": "去珍本书店找那本私人收藏"
+      }
+    }
+  ]
+}

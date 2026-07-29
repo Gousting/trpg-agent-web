@@ -1,0 +1,59 @@
+{
+  "id": "pine_barrens",
+  "title": "松林荒地",
+  "genre": [
+    "investigation",
+    "wilderness"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "forest",
+      "outdoor"
+    ],
+    "required_clues": [
+      "land_ownership_mapped"
+    ],
+    "mood": "unease"
+  },
+  "exits": [
+    {
+      "id": "to_mill",
+      "label": "拖痕通向废弃锯木厂",
+      "provides_clues": [
+        "pine_barrens_ritual_site",
+        "forest_dragging_trail"
+      ],
+      "mood": "dread",
+      "next_location_type": "industrial"
+    },
+    {
+      "id": "to_grove",
+      "label": "林中空地有仪式残留",
+      "provides_clues": [
+        "pine_barrens_ritual_site",
+        "swamp_hermit_info"
+      ],
+      "mood": "horror",
+      "next_location_type": "forest"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "clearing",
+      "description": "松林深处一片被刻意砍平的圆形空地。树木的切口都是旧伤——不是斧头砍的，是什么更强的东西扭断的。空地中央的泥土被翻开过，露出一个浅坑，坑底有烧焦的痕迹和一摊已经凝固的黑红色蜡。",
+      "image_prompt": "deep pine forest clearing at night, trees twisted and broken unnaturally, shallow pit with burnt remains and congealed dark wax, moonlight through pine branches, Ink Frenzy style, wilderness horror, wrongness in nature",
+      "leads_to": "trail"
+    },
+    {
+      "id": "trail",
+      "description": "空地边缘的灌木丛被压出一条新鲜的拖痕——什么东西被拖过了松针地。拖痕的方向指向远处的废弃锯木厂，沿途的树干上每隔几步就有你们已经熟悉的符号刻痕，像路标一样指引着什么。",
+      "image_prompt": "forest trail at night, fresh dragging marks through pine needles, symbols carved on tree trunks like signposts, Ink Frenzy style, following a terrible path, forest dread, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "vote_prompt": "往哪追？",
+      "exit_labels": {
+        "abandoned_sawmill::mill": "沿拖痕去废弃锯木厂",
+        "hidden_grove::grove": "反向追踪去找仪式空地来源"
+      }
+    }
+  ]
+}

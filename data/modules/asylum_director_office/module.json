@@ -1,0 +1,58 @@
+{
+  "id": "asylum_director_office",
+  "title": "疯人院·院长办公室",
+  "genre": [
+    "investigation",
+    "institutional"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "institutional",
+      "indoor"
+    ],
+    "required_clues": [
+      "patient_zero_found"
+    ],
+    "mood": "paranoia"
+  },
+  "exits": [
+    {
+      "id": "to_ward",
+      "label": "特殊病区藏着更多病人",
+      "provides_clues": [
+        "director_notes_seized",
+        "experimental_treatment_log"
+      ],
+      "mood": "dread",
+      "next_location_type": "institutional"
+    },
+    {
+      "id": "to_asylum_attic",
+      "label": "惠特利的私人物品在阁楼",
+      "provides_clues": [
+        "director_notes_seized"
+      ],
+      "mood": "mystery",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "office",
+      "description": "院长办公室的装潢豪华得与疯人院格格不入——红木家具、波斯地毯。但墙上挂的不是医学奖状，而是和石板符号一模一样的巨幅挂毯。桌上摊着'实验性疗法记录'——不是医疗档案，而是仪式观察日志。",
+      "image_prompt": "1920s asylum director office, luxurious redwood and Persian rugs, huge tapestry with slab symbols on wall, open logbook showing ritual observation notes not medical records, Ink Frenzy style, institutional corruption, elegant horror",
+      "leads_to": "safe"
+    },
+    {
+      "id": "safe",
+      "description": "撬开保险柜发现了真正的实验记录：院长在以斯拉资助下进行了至少二十次'意识连接实验'，所有实验对象都是失踪的流浪汉和妓女。文件附有以斯拉的签名授权和拨款记录。惠特利教授是第一个自愿受试者——在那之后他就'不是原来的他了'。",
+      "image_prompt": "open safe in asylum director office, experimental records with Ezra signatures, documents about Whitley as first volunteer, Ink Frenzy style, paper evidence of conspiracy, corruption files, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "vote_prompt": "下一步？",
+      "exit_labels": {
+        "asylum_attic::attic": "去阁楼找惠特利入院时的私人物品",
+        "patient_ward::ward": "去特殊病区看还在住院的实验对象"
+      }
+    }
+  ]
+}

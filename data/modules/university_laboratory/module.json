@@ -1,0 +1,48 @@
+{
+  "id": "university_laboratory",
+  "title": "大学实验室·样本分析",
+  "genre": [
+    "investigation",
+    "academic"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "academic",
+      "indoor"
+    ],
+    "required_clues": [
+      "sample_to_analyze"
+    ],
+    "mood": "investigation"
+  },
+  "exits": [
+    {
+      "id": "to_botanical",
+      "label": "发现植物毒素需要植物园确认",
+      "provides_clues": [
+        "sample_analyzed",
+        "microbial_life_discovered"
+      ],
+      "mood": "dread",
+      "next_location_type": "academic"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "lab",
+      "description": "深夜的大学实验室，显微镜下石板样本显示的微生物仍然活着。它们以某种规律运动——不是随机的，而是有方向、有目的的。化学分析显示石板表面残留了高浓度的乙醚和一种未知的植物碱。",
+      "image_prompt": "1920s university laboratory at night, microscope with glowing sample, chemical apparatus, scientific horror, green glow, Ink Frenzy style, isolated researcher, sterile tension, avoid human figures, focus on environment and architecture",
+      "leads_to": "findings"
+    },
+    {
+      "id": "findings",
+      "description": "实验结果令人不安：微生物在接触人类血液后会加速分裂。植物碱的成分无法在已知植物学文献中找到，但化学结构类似于南太平洋岛屿土著使用的致幻剂——只不过强效百倍。实验记录建议参考大学植物园的热带标本库。",
+      "image_prompt": "lab notebook with disturbing findings, chemical diagrams, blood samples, microscope slides, Ink Frenzy style, evidence photography, scientific dread, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "exit_labels": {
+        "botanical_conservatory::greenhouse": "去植物园对照热带标本",
+        "hospital_morgue::autopsy_room": "去停尸间验证对人体影响"
+      }
+    }
+  ]
+}

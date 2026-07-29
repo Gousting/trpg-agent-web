@@ -1,0 +1,54 @@
+{
+  "id": "abandoned_sawmill",
+  "title": "废弃锯木厂",
+  "genre": [
+    "horror",
+    "industrial"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "industrial",
+      "indoor"
+    ],
+    "required_clues": [
+      "forest_dragging_trail"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_cave",
+      "label": "地板下的通道通向更深处",
+      "provides_clues": [
+        "sawmill_worker_disappeared",
+        "underground_access_found"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "mill",
+      "description": "锯木厂的机器已经锈死，但厂房的灯居然还亮着——从发电机室传来柴油机的轰鸣。传送带上不是木材，而是一排排陶罐，每个罐子里都泡着奇怪的有机物。值夜班的老工头看到你们就举起撬棍——但他的眼睛不对，全是黑色的。",
+      "image_prompt": "abandoned sawmill at night, conveyor belt carrying clay jars with organic matter floating inside, single light from generator room, old foreman with completely black eyes holding crowbar, Ink Frenzy style, industrial body horror, rust and decay, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "combat": {
+        "trigger": "被控制的工头挥撬棍攻击",
+        "enemy": "被控制的锯木厂工头",
+        "hp": 10,
+        "armor": 2
+      },
+      "leads_to": "generator_room"
+    },
+    {
+      "id": "generator_room",
+      "description": "发电机室的地板被人撬开了。下面不是地基而是凿出来的石阶，通向一个天然的洞穴。发电机并不是在给锯木厂供电——电缆顺着石阶伸入地下深处。工头的日志最后一页写着：'他们晚上从洞里出来。我不记得我做的事了。请不要再送人来轮班。'",
+      "image_prompt": "generator room floor pried open revealing stone stairs into cave, cables running down, foreman logbook open on desk, Ink Frenzy style, discovered horror, industrial meets ancient, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "exit_labels": {
+        "underground_chamber::crypt_stairs": "沿着电缆进入地下洞穴",
+        "cave_entrance::opening": "顺着洞口的自然通道探索"
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "cult_storage",
+  "title": "地下·邪教储藏室",
+  "genre": [
+    "investigation",
+    "underground"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "cult_warehouse_connection"
+    ],
+    "mood": "investigation"
+  },
+  "exits": [
+    {
+      "id": "to_ritual_prep",
+      "label": "物资清单指向仪式准备室",
+      "provides_clues": [
+        "cult_supplies_found",
+        "cult_member_roster"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "room",
+      "description": "人工开凿的大储藏室整齐地码放着木箱和陶罐，和港口仓库里的一模一样。靠墙的架子上是黑袍——至少三十件，意味着至少三十个成员。桌上摊着物资分配清单，以斯拉的签名出现在每一页。墙角堆着成捆的乙醚罐和你们在植物园见过的那种藤蔓样本。",
+      "image_prompt": "underground cult storage room, neat stacks of crates and clay jars matching harbor warehouse, rack with 30+ black robes, supply manifest with Ezra signature, ether cans and vine samples, Ink Frenzy style, organized evil, inventory of horror, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "leads_to": "roster"
+    },
+    {
+      "id": "roster",
+      "description": "物资清单的背面是成员名册。以斯拉的手下不仅包括码头工人和走私者——还有市政厅职员、报社社长、疯人院院长。名单最底下一行被划掉了：'惠特利——志愿者——已转移'。一份最新的分配表显示今晚将有一次'大型仪式'，地点是山顶祭坛和海底遗迹同时进行。",
+      "image_prompt": "cult membership roster on back of supply manifest, crossed-out names including town officials and asylum director, Whitley listed as VOLUNTEER TRANSFERRED, Ink Frenzy style, conspiracy revealed, paper trail of betrayal, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "ritual_prep_room::room": "去仪式准备室——趁物资还没运走",
+        "ritual_grounds::summit": "立刻赶往山顶祭坛阻止今晚仪式"
+      }
+    }
+  ]
+}

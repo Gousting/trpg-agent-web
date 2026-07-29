@@ -1,0 +1,58 @@
+{
+  "id": "professor_study",
+  "title": "教授私人研究室",
+  "genre": [
+    "investigation",
+    "academic"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "academic",
+      "indoor"
+    ],
+    "required_clues": [
+      "whitley_research_known"
+    ],
+    "mood": "investigation"
+  },
+  "exits": [
+    {
+      "id": "to_lab",
+      "label": "需要实验室分析样本",
+      "provides_clues": [
+        "professor_notes_obtained",
+        "sample_to_analyze"
+      ],
+      "mood": "investigation",
+      "next_location_type": "academic"
+    },
+    {
+      "id": "to_archaeology",
+      "label": "考古系有相关文物",
+      "provides_clues": [
+        "professor_notes_obtained"
+      ],
+      "mood": "mystery",
+      "next_location_type": "academic"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "study",
+      "description": "惠特利教授的办公室被翻得很乱，但翻找的人显然没注意到壁炉后的暗格。里面藏着教授的私人研究笔记：他相信那块石板来自比已知文明更古老的深海遗迹，并且认为它可以'连接意识'。最后一页写着：'我已经让以斯拉帮忙把它运回来。我不该这么做的。'",
+      "image_prompt": "1920s university professor study, overturned books and papers, hidden compartment behind fireplace, leather-bound research notes with disturbing diagrams, Ink Frenzy style, academic horror, scholarly mystery, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "leads_to": "specimen"
+    },
+    {
+      "id": "specimen",
+      "description": "教授的标本柜里锁着一小块石板样本——和你们在古屋见过的一样，但这块在显微镜下显示出活的微生物结构。旁边贴着标签：'接触后，三名研究生出现同样症状——被注视感、噩梦、水中低语'。",
+      "image_prompt": "specimen cabinet with small stone fragment in glass case, microscope beside it, warning labels, 1920s academic laboratory equipment, Ink Frenzy style, scientific horror, sterile danger, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture",
+      "vote_prompt": "下一步？",
+      "exit_labels": {
+        "university_laboratory::lab": "带样本去实验室分析微生物",
+        "archaeology_department::storage": "去考古系查对南太平洋文物"
+      }
+    }
+  ]
+}

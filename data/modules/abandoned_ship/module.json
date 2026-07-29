@@ -1,0 +1,62 @@
+{
+  "id": "abandoned_ship",
+  "title": "南海之星号·废弃货船",
+  "genre": [
+    "horror",
+    "waterfront"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "waterfront",
+      "indoor"
+    ],
+    "required_clues": [
+      "dockmaster_confession"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_warehouse",
+      "label": "提货单指向港口仓库",
+      "provides_clues": [
+        "ship_log_obtained",
+        "cargo_manifest"
+      ],
+      "mood": "dread",
+      "next_location_type": "industrial"
+    },
+    {
+      "id": "to_temple",
+      "label": "航海图上标记了海底坐标",
+      "provides_clues": [
+        "ocean_ritual_coordinates"
+      ],
+      "mood": "awe",
+      "next_location_type": "coastal"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "deck",
+      "description": "南海之星号静静泊在最远的码头，整艘船没有一盏灯。登船后甲板上空无一人，但船员室的收音机还在响——播放的不是音乐，而是重复的低沉吟诵。船舱里弥漫着海水的腥味和更浓的东西——焚香和腐烂。",
+      "image_prompt": "abandoned cargo ship at night, dark deck, radio playing static in crew quarters, eerie green glow from below deck, Ink Frenzy style, maritime horror, fog around hull, ship swaying gently",
+      "san_check": {
+        "trigger": "收音机里传来不应该存在的水下声音",
+        "level": "MAJOR"
+      },
+      "leads_to": "hold"
+    },
+    {
+      "id": "hold",
+      "description": "货舱里的景象令人发寒：木箱已经被撬开，里面不是普通货物，而是排列整齐的仪式用品——黑袍、黑蜡烛、雕刻着深海图案的铜碗。角落里堆着凿下来的石板碎片。航海日志上最后一页写着目的地坐标——不是任何已知港口。",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, dark cargo hold of 1920s ship, crates pried open revealing black robes and ritual implements, copper bowls with deep-sea engravings, stone fragments stacked in corner, single lantern, discovered horror, claustrophobic hold, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, no legible English text, no readable signage, no letters on any surface, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "vote_prompt": "追哪条线索？",
+      "exit_labels": {
+        "harbor_warehouse::loading_dock": "按提货单追物流去向",
+        "temple_ruins::underwater_approach": "按坐标去找海底遗迹"
+      }
+    }
+  ]
+}

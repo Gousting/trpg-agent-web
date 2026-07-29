@@ -1,0 +1,52 @@
+{
+  "id": "hidden_grove",
+  "title": "隐藏树林·植被异常",
+  "genre": [
+    "horror",
+    "forest"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "forest",
+      "urban"
+    ],
+    "required_clues": [
+      "swamp_hermit_info"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_lair",
+      "label": "植被覆盖着生物巢穴入口",
+      "provides_clues": [
+        "grove_ritual_remains",
+        "creature_nest_found"
+      ],
+      "mood": "horror",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "grove",
+      "description": "按植物学家的地图找到的这片树林不对劲。所有树都活着，但没有一片叶子在动——没有风、没有虫鸣、没有鸟叫。藤蔓从树枝上垂下，它们的颜色不是绿色，而是一种深到近乎黑色的紫，脉动着像血管。脚下的泥土是温热的。",
+      "image_prompt": "dense grove of ancient trees, absolutely no animal life visible, dark purple pulsing vines hanging from branches, warm soil beneath feet, unnatural silence, Ink Frenzy style, cosmic horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "leads_to": "center"
+    },
+    {
+      "id": "center",
+      "description": "树林中央的植被完全变了样——所有藤蔓汇聚成一个巨大的结节，它的规模至少有两层楼高，表面缓慢起伏，像在呼吸。结节底部有一个被藤蔓半掩的洞口，里面传来低沉的有规律的声响。地上的泥土中陷着六具尸骸——穿着一模一样的黑袍，手腕上都有和弗兰克一样的淤青。",
+      "image_prompt": "grove center with massive organic node two stories tall, pulsing slowly, dark vines converging, cave entrance half-hidden beneath, six robed skeletons in mud, Ink Frenzy style, botanical body horror, epic scale",
+      "san_check": {
+        "trigger": "藤蔓结节上有六张人脸的轮廓",
+        "level": "MAJOR"
+      },
+      "exit_labels": {
+        "creature_lair::nest": "进入藤蔓结节下的洞穴",
+        "ritual_interruption::circle": "就地破坏这个生长中的植物祭坛"
+      }
+    }
+  ]
+}

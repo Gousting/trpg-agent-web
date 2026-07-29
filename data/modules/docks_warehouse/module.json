@@ -1,31 +1,109 @@
 {
-  "id": "docks_warehouse", "title": "码头仓库", "genre": ["horror", "investigation"], "difficulty": 2, "duration_estimate": "2-3 turns",
-  "entry": {"location_types": ["indoor", "docks"], "required_clues": ["dockside_horror_witnessed"], "forbidden_clues": [], "mood": null},
-  "exits": [{"id": "warehouse_done", "label": "离开仓库", "provides_clues": ["smuggling_record_found", "stone_fragments_found"], "mood": "dread"}],
-  "scenes": [
-    {"id": "warehouse_ext", "title": "7号仓库", "part": 1, "scene_type": "仓库外景",
-      "image_prompt": "1920s waterfront warehouse district at night, fog rolling in from the harbor, a rusted corrugated iron warehouse with faded number 7 painted on the side, the main door slightly ajar with a chain cut on the ground, strange greenish light seeping through the cracks in the walls, wet cobblestones reflecting gaslight, maritime industrial horror, Ink Frenzy style",
-      "description": "7号仓库藏在码头最深处。铁门上锈迹斑斑，挂着被剪断的铁链。门缝里渗出幽绿色的光。以斯拉说惠特利的考古队用这个仓库临时存放中东运回的文物——但海关记录显示仓库已经废弃五年了。门虚掩着，里面传出低沉持续的嗡鸣声。",
-      "npcs_here": [], "opportunities": [{"id": "dw1", "text": "检查被剪断的门锁（侦查）——锁是被从里面剪断的"}],
-      "secrets": [{"id": "dws1", "text": "仓库里现在还有人——或者说还有东西。它不需要门进出"}],
-      "leads_to": ["warehouse_int"], "guidance": "仓库线提供石板运输的物证。进入内部前做好准备。"
-    },
-    {"id": "warehouse_int", "title": "仓库内部", "part": 1, "scene_type": "仓库内部",
-      "image_prompt": "dark warehouse interior filled with wooden crates stamped with Middle Eastern port marks, a central clearing where a ritual circle has been drawn in what looks like dried blood, fragments of black stone scattered within the circle each glowing with faint inner green light, a shipping manifest pinned to a crate with a knife, the air thick and humming with low frequency vibration, industrial occult horror, Ink Frenzy style",
-      "description": "仓库中央被清理出一片空地。地面上用暗色干涸物画了一个不完整的圆——不完整，因为画圆的人没画完就消失了。圆内散落着十几块黑色碎片，每一块都在发出微弱的绿色脉动——和石板一样的光。钉在木箱上的货运单显示惠特利托运了'考古样本二十箱'。但海关记录里只有五箱。剩下的十五箱去了哪里？",
-      "npcs_here": [], "opportunities": [
-        {"id": "wi1", "text": "阅读货运单（侦查）——十五箱'样本'被发往了镇上的不同地址。他在分散石板碎片"},
-        {"id": "wi2", "text": "检查圈内碎片（克苏鲁神话）——碎片之间以肉眼不可见的能量丝线相连，形成了一个微型能量网络"}
+  "id": "docks_warehouse",
+  "title": "码头仓库",
+  "genre": [
+    "horror",
+    "investigation"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "indoor",
+      "docks"
+    ],
+    "required_clues": [
+      "dockside_horror_witnessed"
+    ],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "warehouse_done",
+      "label": "离开仓库",
+      "provides_clues": [
+        "smuggling_record_found",
+        "stone_fragments_found"
       ],
-      "secrets": [{"id": "wis1", "text": "惠特利在做什么——他在用石板碎片在镇上构建一个巨大的通道。每块碎片都是门的一部分。满月之夜这些碎片会同步开启"}],
-      "leads_to": ["warehouse_converge"], "guidance": "仓库内部揭示惠特利的真实计划——碎片不是遗落，是刻意布设。"
-    },
-    {"id": "warehouse_converge", "title": "仓库外", "part": 1, "scene_type": "过渡",
-      "description": "这不是意外。惠特利在中东发现石碑后，不是被卷入了灾难——他主动带了碎片回来。他在阿卡姆镇上布设碎片，等待满月。但石板吞噬了他的记忆，他变成了另一个东西。",
-      "npcs_here": [], "opportunities": [], "secrets": [],
-      "vote_prompt": "仓库调查完毕。去哪？",
-      "leads_to": [], "exit_labels": {"foyer_investigation::foyer": "去山上老宅", "hotel_room::room": "去海风旅馆找剩余碎片", "town_investigation::town_square": "回镇上报信"}
+      "mood": "dread"
     }
   ],
-  "npcs": [], "variance": {}
+  "scenes": [
+    {
+      "id": "warehouse_ext",
+      "title": "7号仓库",
+      "part": 1,
+      "scene_type": "仓库外景",
+      "image_prompt": "1920s waterfront warehouse district at night, fog rolling in from the harbor, a rusted corrugated iron warehouse with faded number 7 painted on the side, the main door slightly ajar with a chain cut on the ground, strange greenish light seeping through the cracks in the walls, wet cobblestones reflecting gaslight, maritime industrial horror, Ink Frenzy style",
+      "description": "7号仓库藏在码头最深处。铁门上锈迹斑斑，挂着被剪断的铁链。门缝里渗出幽绿色的光。以斯拉说惠特利的考古队用这个仓库临时存放中东运回的文物——但海关记录显示仓库已经废弃五年了。门虚掩着，里面传出低沉持续的嗡鸣声。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "dw1",
+          "text": "检查被剪断的门锁（侦查）——锁是被从里面剪断的"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "dws1",
+          "text": "仓库里现在还有人——或者说还有东西。它不需要门进出"
+        }
+      ],
+      "leads_to": [
+        "warehouse_int"
+      ],
+      "guidance": "仓库线提供石板运输的物证。进入内部前做好准备。"
+    },
+    {
+      "id": "warehouse_int",
+      "title": "仓库内部",
+      "part": 1,
+      "scene_type": "仓库内部",
+      "image_prompt": "dark warehouse interior, wooden crates with faded foreign markings, central cleared space with ritual circle drawn in chalk on floor, scattered black stone fragments pulsing faint green, Ink Frenzy style, desaturated palette, deep shadows, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "description": "仓库中央被清理出一片空地。地面上用暗色干涸物画了一个不完整的圆——不完整，因为画圆的人没画完就消失了。圆内散落着十几块黑色碎片，每一块都在发出微弱的绿色脉动——和石板一样的光。钉在木箱上的货运单显示惠特利托运了'考古样本二十箱'。但海关记录里只有五箱。剩下的十五箱去了哪里？",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "wi1",
+          "text": "阅读货运单（侦查）——十五箱'样本'被发往了镇上的不同地址。他在分散石板碎片"
+        },
+        {
+          "id": "wi2",
+          "text": "检查圈内碎片（克苏鲁神话）——碎片之间以肉眼不可见的能量丝线相连，形成了一个微型能量网络"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "wis1",
+          "text": "惠特利在做什么——他在用石板碎片在镇上构建一个巨大的通道。每块碎片都是门的一部分。满月之夜这些碎片会同步开启"
+        }
+      ],
+      "leads_to": [
+        "warehouse_converge"
+      ],
+      "guidance": "仓库内部揭示惠特利的真实计划——碎片不是遗落，是刻意布设。"
+    },
+    {
+      "id": "warehouse_converge",
+      "title": "仓库外",
+      "part": 1,
+      "scene_type": "过渡",
+      "description": "这不是意外。惠特利在中东发现石碑后，不是被卷入了灾难——他主动带了碎片回来。他在阿卡姆镇上布设碎片，等待满月。但石板吞噬了他的记忆，他变成了另一个东西。",
+      "npcs_here": [],
+      "opportunities": [],
+      "secrets": [],
+      "vote_prompt": "仓库调查完毕。去哪？",
+      "leads_to": [],
+      "exit_labels": {
+        "foyer_investigation::foyer": "去山上老宅",
+        "hotel_room::room": "去海风旅馆找剩余碎片",
+        "town_investigation::town_square": "回镇上报信",
+        "fishing_village::village": "沿走私路线去废弃渔村调查"
+      },
+      "image_prompt": "1920s waterfront warehouse conspiracy evidence board, scattered shipping manifests with Whitley name circled in red, black stone fragments glowing faint green on wooden crate, Middle East archaeological photos pinned to wall, half-burned candle melting onto desk, Ink Frenzy style, investigator connecting the dots, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and artifacts"
+    }
+  ],
+  "npcs": [],
+  "variance": {}
 }

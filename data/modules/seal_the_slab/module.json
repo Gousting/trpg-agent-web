@@ -1,0 +1,36 @@
+{
+  "id": "seal_the_slab",
+  "title": "结局·封印石板",
+  "genre": [
+    "confrontation",
+    "underground"
+  ],
+  "difficulty": 5,
+  "is_ending": true,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "ritual_requirements_known",
+      "celestial_event_imminent"
+    ],
+    "mood": "despair"
+  },
+  "exits": [],
+  "scenes": [
+    {
+      "id": "underground_vault",
+      "leads_to": "sealing",
+      "description": "按远古文字的指示找到了地下网络最深处的'心石'——整个石板网络的根源。它不比拳头大，但脉动和整个洞穴系统同步。远古记录说星辰归位之时将心石封入纯净的盐，石板网络就会永久关闭。代价是封印者永远无法离开——封印需要持续的意识锚定。",
+      "image_prompt": "deepest underground vault, fist-sized heartstone pulsing in rhythm with entire cavern system, salt circle prepared, Ink Frenzy style, ancient sacrifice, cathedral-sized chamber with tiny focal point, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease"
+    },
+    {
+      "id": "sealing",
+      "exit_labels": {},
+      "description": "你们做出了选择。星辰在头顶看不见的地表对齐——心石开始发出前所未有的光芒。将盐撒下的一刻整个地下网络发出低沉的共鸣，像大地在叹息。石板网络逐渐失去了不自然的生命力。洞穴的入口开始闭合。在最后的清醒时刻听到了大海平息的声音。有些人留下了。有些人永远无法离开这座地下坟墓。【结局：封印】阿卡姆恢复了日常——除了多了一座无名纪念碑。",
+      "image_prompt": "moment of sealing, salt pouring over heartstone, entire cave network resonating, light fading, Ink Frenzy style, sacrifice and peace, solemn resolution, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture"
+    }
+  ]
+}

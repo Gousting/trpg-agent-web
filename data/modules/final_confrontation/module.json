@@ -1,0 +1,43 @@
+{
+  "id": "final_confrontation",
+  "title": "山顶·最终对决",
+  "genre": [
+    "confrontation",
+    "horror"
+  ],
+  "difficulty": 5,
+  "is_ending": true,
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "indoor"
+    ],
+    "required_clues": [
+      "ezra_location_known",
+      "celestial_event_imminent"
+    ],
+    "mood": "confrontation"
+  },
+  "exits": [],
+  "scenes": [
+    {
+      "id": "summit",
+      "description": "山顶废弃采石场已被改造成仪式场。星辰在头顶排列成石板预言的位置。以斯拉和六个黑袍人围着一块远比古屋里更大的完整石板——它在发光，悬浮在离地一尺的高度。以斯拉转向你们，笑了——你们来迟了，它已经醒了。但你们可以做另一件事：帮他控制它，或者在他完成最终连接前不惜一切摧毁石板。",
+      "image_prompt": "mountain summit at night, stars aligned in foretold pattern, seven robed figures around massive floating glowing slab, Ink Frenzy style, apocalyptic confrontation, cosmic alignment, epic scale",
+      "combat": {
+        "trigger": "以斯拉的手下冲向你们",
+        "enemy": "邪教护卫",
+        "hp": 15,
+        "armor": 3
+      },
+      "leads_to": "choice"
+    },
+    {
+      "id": "choice",
+      "description": "星辰的对齐在加剧。惠特利的日记在口袋里发烫——他最后清醒时刻写道：星辰归位时三分钟内石板可以被毁灭，用碎片刺入中央符号，那是唯一的方法。距离完美对齐不到两分钟。你们必须做出选择。",
+      "image_prompt": "climactic moment on summit, blinding light from floating slab, stars at peak alignment, Ink Frenzy style, final choice, all paths converge",
+      "vote_prompt": "最终选择——摧毁石板还是帮以斯拉控制它",
+      "exit_labels": {}
+    }
+  ]
+}

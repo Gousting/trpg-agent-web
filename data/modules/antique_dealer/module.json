@@ -1,0 +1,58 @@
+{
+  "id": "antique_dealer",
+  "title": "古董店·可疑交易",
+  "genre": [
+    "investigation",
+    "urban"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "urban",
+      "indoor"
+    ],
+    "required_clues": [
+      "town_investigated"
+    ],
+    "mood": "suspense"
+  },
+  "exits": [
+    {
+      "id": "to_museum",
+      "label": "去博物馆核实文物来源",
+      "provides_clues": [
+        "antique_ledger_obtained",
+        "slab_purchaser_known"
+      ],
+      "mood": "investigation",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "to_rare_books",
+      "label": "去珍本书店鉴定古籍",
+      "provides_clues": [
+        "antique_ledger_obtained"
+      ],
+      "mood": "mystery",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "shop",
+      "description": "昏暗的古董店里堆满奇形怪状的物件。玻璃柜里锁着一本皮面账簿，封面上有你们在古屋见过的同样符号。店主不在——但后屋有声响。",
+      "image_prompt": "1920s antique shop crammed with bizarre objects, glass display case, leather-bound ledger with strange symbols, dust motes in slanting light, door ajar to back room, Ink Frenzy style, cluttered Victorian curiosity shop, dark aged wood tones, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture",
+      "leads_to": "back_room"
+    },
+    {
+      "id": "back_room",
+      "description": "后屋是交易记录室。账簿上记载：三周前，一个自称'以斯拉'的人买走了来自南太平洋的石板。购买人地址填的是海风旅馆。墙上钉着一张褪色的海运提货单。",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, cramped back office of antique shop, open ledger on desk showing strange diagrams, faded shipping manifest pinned to wall, yellowed papers, inkwell, magnifying glass, detective noir atmosphere, cluttered paperwork, avoid human figures, focus on environment and architecture, no legible English text, no readable signage, no letters on any surface, strictly 1920s period setting, no modern technology, no electronics, no screens, no laptops, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "vote_prompt": "追查哪条线索？",
+      "exit_labels": {
+        "hotel_room::lobby": "去海风旅馆追查'以斯拉'",
+        "docks_warehouse::office": "按提货单去找港口仓库"
+      }
+    }
+  ]
+}

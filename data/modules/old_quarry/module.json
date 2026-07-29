@@ -1,0 +1,52 @@
+{
+  "id": "old_quarry",
+  "title": "旧采石场·过度挖掘",
+  "genre": [
+    "horror",
+    "wilderness"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "mountain",
+      "indoor"
+    ],
+    "required_clues": [
+      "whitley_property_secret"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_temple",
+      "label": "采石场挖通了更古老的东西",
+      "provides_clues": [
+        "quarry_unearthed_artifact",
+        "ancient_structure_below"
+      ],
+      "mood": "awe",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "entrance",
+      "description": "采石场早已停工，但重型设备都被移到了最深处的矿坑边上，围成一个圈——像是什么仪式的观众席。坑底的矿壁被凿穿了一个不规则的洞，洞口边缘的石头不是被砸碎的，而是像被什么东西从内部融化后重新凝结的。洞口吹出温热的风，带着海水的腥味。",
+      "image_prompt": "abandoned quarry at night, heavy equipment arranged in circle around deep pit, irregular hole in quarry wall with melted edges, warm sea-smelling air rising, Ink Frenzy style, industrial meets primordial horror, vast scale",
+      "leads_to": "descent"
+    },
+    {
+      "id": "descent",
+      "description": "顺着绳索降到坑底，洞口的温热空气更浓了。洞壁上嵌着你们熟悉的石板符号，但这些是倒着的——不是被人倒过来刻的，而是墙本身就是颠倒的。进入洞内十几步后，空间突然豁然开朗：你们发现采石场下面不是岩石，而是一个远比人类文明古老的建筑结构——它不是被埋没的，而是被有意用整座山压住的。",
+      "image_prompt": "underground cavern beneath quarry, walls with inverted symbols, opening into impossibly ancient structure, Ink Frenzy style, scale of cosmic horror, architectural impossibility, breathtaking and terrifying, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "san_check": {
+        "trigger": "意识到这座山压着一个远古建筑",
+        "level": "MAJOR"
+      },
+      "exit_labels": {
+        "temple_ruins::underwater_approach": "古老建筑的通道通向更深的水下",
+        "ancient_chamber::entrance_hall": "探索建筑内部"
+      }
+    }
+  ]
+}

@@ -1,21 +1,75 @@
 {
-  "id": "underground_tunnels", "title": "地下通道", "genre": ["horror", "exploration"], "difficulty": 3, "duration_estimate": "2-3 turns",
-  "entry": {"location_types": ["underground"], "required_clues": [], "forbidden_clues": [], "mood": null},
+  "id": "underground_tunnels",
+  "title": "地下通道",
+  "genre": [
+    "horror",
+    "exploration"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "underground"
+    ],
+    "required_clues": [],
+    "forbidden_clues": [],
+    "mood": null
+  },
   "scenes": [
-    {"id": "tunnel_entrance", "title": "地洞入口", "part": 1, "scene_type": "地下",
+    {
+      "id": "tunnel_entrance",
+      "title": "地洞入口",
+      "part": 1,
+      "scene_type": "地下",
       "image_prompt": "a crude opening in the forest floor hidden under fallen leaves and branches, the hole leading downward into darkness with rough stone steps carved by something that didn't use tools, roots hanging down like grasping fingers, a faint green glow emanating from deep below, the air from the hole is warm and smells of ozone, subterranean horror, Ink Frenzy style",
       "description": "林间地面有一个被落叶半掩的洞口。向下的石阶不是凿出来的——石头是被什么东西从内部挤开的，表面有融化的痕迹。底下深处透出微弱的绿色光。从洞里升上来的空气是温的，带着臭氧的味道。这不是人类的工程。",
-      "npcs_here": [], "opportunities": [{"id": "tu1", "text": "分析石阶的融化痕迹（地质学）——这种温度需要约800°C，与石板共振摧毁的温度一致"}],
-      "secrets": [{"id": "tus1", "text": "这些通道是石板碎片在镇下移动时留下的——它们不是一直在仓库或老宅里。它们在地下移动，连接成网络"}],
-      "vote_prompt": "下去吗？", "leads_to": ["tunnel_flooded"], "guidance": "地下通道连接多个地点——是碎片网络的地下部分。"
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "tu1",
+          "text": "分析石阶的融化痕迹（地质学）——这种温度需要约800°C，与石板共振摧毁的温度一致"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "tus1",
+          "text": "这些通道是石板碎片在镇下移动时留下的——它们不是一直在仓库或老宅里。它们在地下移动，连接成网络"
+        }
+      ],
+      "vote_prompt": "下去吗？",
+      "leads_to": [
+        "tunnel_flooded"
+      ],
+      "guidance": "地下通道连接多个地点——是碎片网络的地下部分。"
     },
-    {"id": "tunnel_flooded", "title": "地下暗河", "part": 1, "scene_type": "地下",
+    {
+      "id": "tunnel_flooded",
+      "title": "地下暗河",
+      "part": 1,
+      "scene_type": "地下",
       "image_prompt": "underground cavern with a black water channel flowing through it, the walls covered in phosphorescent fungus that pulses with the same rhythm as the stone fragments, stone fragments embedded in the cavern ceiling like stars in a dark sky all glowing with faint green light, a narrow stone ledge along the water's edge, the water surface occasionally disturbed by something large moving beneath, subterranean cosmic horror, Ink Frenzy style",
       "description": "地下甬道通向一个天然洞穴。头顶的穹顶上嵌着几十块石板碎片——像星空一样排列成不自然的几何图形，每一块都在同步脉动。一条黑色暗河从洞中穿过。水面上偶尔浮起巨大的波纹——下面有什么在移动。河对岸有一个出口，但需要趟水或绕行窄石沿。",
-      "npcs_here": [], "opportunities": [{"id": "tf1", "text": "观察穹顶碎片排列（知识/天文学）——排列精确对应了满月之夜的行星位置"}],
-      "secrets": [{"id": "tfs1", "text": "水下移动的不是生物。是更多碎片在河底聚集——它们在往一个方向集中"}],
-      "leads_to": [], "exit_labels": {"basement_confrontation::basement": "跟着碎片流向——通往老宅地下室", "escape_chase::woods": "水里的东西醒了——快跑"}
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "tf1",
+          "text": "观察穹顶碎片排列（知识/天文学）——排列精确对应了满月之夜的行星位置"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "tfs1",
+          "text": "水下移动的不是生物。是更多碎片在河底聚集——它们在往一个方向集中"
+        }
+      ],
+      "leads_to": [],
+      "exit_labels": {
+        "basement_confrontation::basement": "跟着碎片流向——通往老宅地下室",
+        "escape_chase::woods": "水里的东西醒了——快跑",
+        "tunnel_crossroads::junction": "深入通道网络——有近期活动的痕迹"
+      }
     }
   ],
-  "npcs": [], "variance": {}
+  "npcs": [],
+  "variance": {}
 }

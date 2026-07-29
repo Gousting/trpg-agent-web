@@ -1,12 +1,20 @@
 {
   "id": "museum_archives",
   "title": "禁入档案区",
-  "genre": ["horror", "investigation"],
+  "genre": [
+    "horror",
+    "investigation"
+  ],
   "difficulty": 2,
   "duration_estimate": "3-4 turns",
   "entry": {
-    "location_types": ["indoor"],
-    "required_clues": ["cursed_slab_found"],
+    "location_types": [
+      "indoor",
+      "basement"
+    ],
+    "required_clues": [
+      "cursed_slab_found"
+    ],
     "forbidden_clues": [],
     "mood": null
   },
@@ -14,14 +22,22 @@
     {
       "id": "to_sanitarium",
       "label": "去疯人院找唯一幸存者",
-      "provides_clues": ["slab_is_alive", "summoning_ritual_details"],
+      "provides_clues": [
+        "celestial_event_imminent",
+        "slab_is_alive",
+        "summoning_ritual_details"
+      ],
       "mood": "horror",
       "next_location_type": "indoor"
     },
     {
       "id": "to_basement",
       "label": "直接去地下室摧毁石板",
-      "provides_clues": ["slab_is_alive", "summoning_ritual_details", "rusher"],
+      "provides_clues": [
+        "slab_is_alive",
+        "summoning_ritual_details",
+        "rusher"
+      ],
       "mood": "urgent",
       "next_location_type": "basement"
     }
@@ -32,18 +48,30 @@
       "title": "地下档案 C 区",
       "part": 1,
       "scene_type": "档案室",
-      "image_prompt": "underground university archive vault, 1920s, dim flickering fluorescent lights, iron door sealed with new padlock but a crude hole smashed through the wall next to it, claw marks on inside of door, walls covered in handwritten desperate notes in black liquid instead of paper, low frequency hum visible as vibration in puddles on floor, academic horror, photorealistic",
+      "image_prompt": "underground university archive vault, 1920s, dim flickering fluorescent lights, iron door sealed with new padlock but a crude hole smashed through the wall next to it, claw marks on inside of door, walls covered in handwritten desperate notes in black liquid instead of paper, low frequency hum visible as vibration in puddles on floor, academic horror, photorealistic, no legible English text, no readable signage, no letters on any surface, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "密斯卡托尼克大学博物馆馆长犹豫了很久才交出地下档案室钥匙。C 区的铁门被新锁封住，旁边的墙上有新凿的洞，刚好够一人爬进去。地下室灯光闪烁不定，空气中一种低频嗡鸣在颅骨内振动。铁门内侧有抓痕——从里面抓的。",
       "npcs_here": [],
       "vote_prompt": "怎么进入C区？",
       "opportunities": [
-        {"id": "ma1", "text": "撬开铁锁正常进入（力量/锁匠检定）——触发室内防御符文"},
-        {"id": "ma2", "text": "从墙洞爬进去（敏捷检定，但只能一人先进）"}
+        {
+          "id": "ma1",
+          "text": "撬开铁锁正常进入（力量/锁匠检定）——触发室内防御符文"
+        },
+        {
+          "id": "ma2",
+          "text": "从墙洞爬进去（敏捷检定，但只能一人先进）"
+        }
       ],
       "secrets": [
-        {"id": "mas1", "text": "嗡鸣频率约23Hz——恰好是人体眼球共振频率。长期暴露会导致视觉幻觉。"}
+        {
+          "id": "mas1",
+          "text": "嗡鸣频率约23Hz——恰好是人体眼球共振频率。长期暴露会导致视觉幻觉。"
+        }
       ],
-      "leads_to": ["archive_lock", "archive_crawl"],
+      "leads_to": [
+        "archive_lock",
+        "archive_crawl"
+      ],
       "exit_labels": {
         "archive_lock": "撬锁进入（触发符文防御）",
         "archive_crawl": "从墙洞爬进去（单人探路）"
@@ -55,15 +83,23 @@
       "title": "符文防御",
       "part": 1,
       "scene_type": "超自然现象",
-      "image_prompt": "dark archive room, walls covered with glowing black runes that emit darkness instead of light, floor becoming soft and warm like living flesh, a sense of being inside something alive, papers floating mid-air as if gravity failed, cosmic horror, photorealistic",
+      "image_prompt": "dark archive room, black runes covering walls that absorb light creating pools of unnatural darkness, floor warping like living tissue, oppressive psychic presence, Ink Frenzy style, muted palette, no bright colors, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "锁头落地的同时，C 区内部的符文亮了起来——不是光，是黑。黑色从石板上蔓延开，像墨滴入水。脚下的地面变得柔软、温热，像是踩在活物的皮肤上。一个声音直接灌进每个人的脑子：'回去。'全员意志检定。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "al1", "text": "阅读墙上的符文（克苏鲁神话）——这是某种召唤术的逆写版本，符文本身是被石板'感染'后自行生成的"}
+        {
+          "id": "al1",
+          "text": "阅读墙上的符文（克苏鲁神话）——这是某种召唤术的逆写版本，符文本身是被石板'感染'后自行生成的"
+        }
       ],
       "secrets": [],
-      "san_check": {"trigger": "符文激活时", "level": "MINOR"},
-      "leads_to": ["archive_interior"],
+      "san_check": {
+        "trigger": "符文激活时",
+        "level": "MINOR"
+      },
+      "leads_to": [
+        "archive_interior"
+      ],
       "guidance": "撬锁路线全员进入，符文防御是一次 MINOR SAN 检定，全员意志检定失败者暂时无法行动1轮。"
     },
     {
@@ -75,11 +111,19 @@
       "description": "你爬过洞口。C 区的墙上贴满了惠特利的笔记——不是纸，是直接写在墙上的。笔记从正常的考古记录逐渐变成绝望的警告。惠特利的私人日记摊开在中央桌上，最后一页只有四个字：满月午夜。日记旁的相框里，惠特利妻子的照片——面部已经被黑色液体涂掉了。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "ac1", "text": "翻阅日记（图书馆使用）——完整的考古记录显示惠特利在中东发现了石板后，整个挖掘队陆续出现记忆丧失症状。他是最后一个还能写字的人。"},
-        {"id": "ac2", "text": "打开队友能进的通道（力量）——从内部拆除铁门的封锁装置"}
+        {
+          "id": "ac1",
+          "text": "翻阅日记（图书馆使用）——完整的考古记录显示惠特利在中东发现了石板后，整个挖掘队陆续出现记忆丧失症状。他是最后一个还能写字的人。"
+        },
+        {
+          "id": "ac2",
+          "text": "打开队友能进的通道（力量）——从内部拆除铁门的封锁装置"
+        }
       ],
       "secrets": [],
-      "leads_to": ["archive_interior"],
+      "leads_to": [
+        "archive_interior"
+      ],
       "guidance": "墙洞路线只有一人进入，可后续让队友也进入。获得日记全文但触发的防御较弱。"
     },
     {
@@ -90,11 +134,20 @@
       "description": "档案室的完整记录拼出了一幅绝望的图景。惠特利在三个月的挖掘中找到了石板，但带着石板离开沙漠的那一刻起，整个考古队就开始出事。不是外伤——他们忘记东西。先是最新的记忆，然后是好几年，最后连自己的名字都忘了。被吞噬记忆的人变成了空壳，但还活着，被关在阿卡姆疯人院里。其中包括他的田野助手马丁。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "ai1", "text": "翻阅考古队人员名单——马丁·科里根，田野助手，入院日期是三周前。他是唯一一个没有完全丧失语言能力的人。"},
-        {"id": "ai2", "text": "检查石板碎屑（克苏鲁神话/化学）——石板表面脱落的微粒在被加热到特定温度时会共振并自行粉碎"}
+        {
+          "id": "ai1",
+          "text": "翻阅考古队人员名单——马丁·科里根，田野助手，入院日期是三周前。他是唯一一个没有完全丧失语言能力的人。"
+        },
+        {
+          "id": "ai2",
+          "text": "检查石板碎屑（克苏鲁神话/化学）——石板表面脱落的微粒在被加热到特定温度时会共振并自行粉碎"
+        }
       ],
       "secrets": [
-        {"id": "ais1", "text": "石板害怕高温共振。这是摧毁它的物理方法——但需要精确的温度和频率。马丁知道。"}
+        {
+          "id": "ais1",
+          "text": "石板害怕高温共振。这是摧毁它的物理方法——但需要精确的温度和频率。马丁知道。"
+        }
       ],
       "vote_prompt": "石板吃记忆，惠特利已消失。去哪？",
       "leads_to": [],
@@ -102,7 +155,8 @@
         "sanitarium_visit::ward14": "去疯人院找马丁（降低决战难度）",
         "basement_confrontation::basement": "直接去地下室摧毁石板"
       },
-      "guidance": "sanitarium_visit 获得摧毁方法后 basement 决战难度降低。直接去 basement 需要自己找出高温共振法。"
+      "guidance": "sanitarium_visit 获得摧毁方法后 basement 决战难度降低。直接去 basement 需要自己找出高温共振法。",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, underground university archive vault fully explored, walls covered in Whitley desperate handwritten warnings scrawled directly on stone, central table holding his private journal open to final page reading FULL MOON MIDNIGHT, silver picture frame with wife photograph whose face is obscured by dried black fluid, scattered archaeological field notes showing three months of excavation, memories consumed, empty shells in asylum, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and artifacts, no legible English text, no readable signage, no letters on any surface"
     }
   ],
   "npcs": [],

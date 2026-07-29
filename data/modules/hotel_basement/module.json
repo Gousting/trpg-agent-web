@@ -1,21 +1,75 @@
 {
-  "id": "hotel_basement", "title": "旅馆地下室", "genre": ["horror"], "difficulty": 2, "duration_estimate": "2-3 turns",
-  "entry": {"location_types": ["indoor", "basement"], "required_clues": ["threat_note_found"], "forbidden_clues": [], "mood": null},
+  "id": "hotel_basement",
+  "title": "旅馆地下室",
+  "genre": [
+    "horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "indoor",
+      "basement"
+    ],
+    "required_clues": [
+      "threat_note_found"
+    ],
+    "forbidden_clues": [],
+    "mood": null
+  },
   "scenes": [
-    {"id": "hotel_basement_stairs", "title": "地下室楼梯", "part": 1, "scene_type": "地下室",
-      "image_prompt": "narrow wooden stairs descending into hotel basement, walls damp with condensation that forms patterns resembling faces, a single bare bulb at the bottom casting long shadows upward, the stairs creaking underfoot, the smell of salt water and decay rising from below, door at the bottom with a DO NOT ENTER sign that has been torn in half, claustrophobic horror, Ink Frenzy style",
+    {
+      "id": "hotel_basement_stairs",
+      "title": "地下室楼梯",
+      "part": 1,
+      "scene_type": "地下室",
+      "image_prompt": "narrow wooden stairs descending into hotel basement, walls damp with condensation that forms patterns resembling faces, a single bare bulb at the bottom casting long shadows upward, the stairs creaking underfoot, the smell of salt water and decay rising from below, door at the bottom with a DO NOT ENTER sign that has been torn in half, claustrophobic horror, Ink Frenzy style, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "旅馆老板说地下室是洗衣房和锅炉间。他不让你们下去。你们趁他不注意撬开了锁。楼梯又窄又陡，墙上凝结的水珠排列成了人脸般的图案。底下透上来咸水和腐烂的气味。门上的'禁止入内'标志被撕成了两半。",
-      "npcs_here": [], "opportunities": [{"id": "hb1", "text": "检查水渍图案（侦查）——不是随机的。每一张'脸'都是失踪者之一的模糊样貌"}],
-      "secrets": [{"id": "hbs1", "text": "旅馆老板知道下面有什么——他自己永远不下地下室。他请了三个杂工下去修理锅炉，一个都没回来"}],
-      "leads_to": ["hotel_basement_boiler"], "guidance": "旅馆地下室是隐藏的可选探索——不在主线情报中。"
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "hb1",
+          "text": "检查水渍图案（侦查）——不是随机的。每一张'脸'都是失踪者之一的模糊样貌"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "hbs1",
+          "text": "旅馆老板知道下面有什么——他自己永远不下地下室。他请了三个杂工下去修理锅炉，一个都没回来"
+        }
+      ],
+      "leads_to": [
+        "hotel_basement_boiler"
+      ],
+      "guidance": "旅馆地下室是隐藏的可选探索——不在主线情报中。"
     },
-    {"id": "hotel_basement_boiler", "title": "锅炉房", "part": 1, "scene_type": "地下室",
+    {
+      "id": "hotel_basement_boiler",
+      "title": "锅炉房",
+      "part": 1,
+      "scene_type": "地下室",
       "image_prompt": "old hotel boiler room with a massive cast iron furnace glowing orange, pipes running along the ceiling dripping condensation, a workbench covered in tools but also fragments of black stone arranged in geometric patterns, a handwritten note pinned to the wall reading 'it likes the heat', the floor near the furnace stained with dark footprints leading into the flame, industrial occult horror, Ink Frenzy style",
       "description": "锅炉房比上面冷得多——锅炉在烧，但热量被什么东西吸走了。工作台上整齐排列着黑色碎石，摆成了几何图案。墙上的便条写着：'它喜欢热。'地上的暗色脚印一直延伸到燃烧的锅炉——像是有人走进去就没有出来。锅炉的火焰颜色不对——橘色的火舌里掺着绿色的条纹。",
-      "npcs_here": [], "opportunities": [{"id": "hb2", "text": "检查锅炉内部（勇气检定）——火焰中心有一块拳头大的石板碎片，在高温中丝毫无损，反而更加活跃"}],
-      "secrets": [{"id": "hbs2", "text": "碎片在锅炉里不是因为热死了——是在吸收热能。摧毁石板的方法是错误的——加热只会让它更强。需要的是共振频率+极端低温"}],
-      "leads_to": [], "exit_labels": {"museum_archives::archive_room": "马丁说的摧毁方法是错的——去大学查证", "foyer_investigation::foyer": "惠特利从旅馆带走了最大的那块碎片"}
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "hb2",
+          "text": "检查锅炉内部（勇气检定）——火焰中心有一块拳头大的石板碎片，在高温中丝毫无损，反而更加活跃"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "hbs2",
+          "text": "碎片在锅炉里不是因为热死了——是在吸收热能。摧毁石板的方法是错误的——加热只会让它更强。需要的是共振频率+极端低温"
+        }
+      ],
+      "leads_to": [],
+      "exit_labels": {
+        "museum_archives::archive_room": "马丁说的摧毁方法是错的——去大学查证",
+        "foyer_investigation::foyer": "惠特利从旅馆带走了最大的那块碎片"
+      }
     }
   ],
-  "npcs": [], "variance": {}
+  "npcs": [],
+  "variance": {}
 }

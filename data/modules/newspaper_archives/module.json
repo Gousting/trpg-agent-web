@@ -1,0 +1,58 @@
+{
+  "id": "newspaper_archives",
+  "title": "阿卡姆公报·档案室",
+  "genre": [
+    "investigation",
+    "urban"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "urban",
+      "indoor"
+    ],
+    "required_clues": [
+      "town_investigated"
+    ],
+    "mood": "mystery"
+  },
+  "exits": [
+    {
+      "id": "to_university",
+      "label": "去大学查惠特利背景",
+      "provides_clues": [
+        "whitley_articles_found",
+        "missing_persons_known"
+      ],
+      "mood": "investigation",
+      "next_location_type": "academic"
+    },
+    {
+      "id": "to_police",
+      "label": "去警局对比失踪记录",
+      "provides_clues": [
+        "whitley_articles_found"
+      ],
+      "mood": "suspense",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "archive_room",
+      "description": "报社地下室档案库，铁架堆到天花板。按日期索引查找：过去半年阿卡姆及周边至少十七人无故失踪。每一篇报道都在最后一段被蓝笔划掉了一个名字——惠特利。",
+      "image_prompt": "newspaper archive basement, tall iron shelves stuffed with bound newspapers, single bare bulb, investigator pulling out yellowed papers, dust hanging in light, Ink Frenzy style, claustrophobic research atmosphere, deep shadows between shelves",
+      "leads_to": "editor_desk"
+    },
+    {
+      "id": "editor_desk",
+      "description": "夜班编辑的老橡木桌上摊着未发表的稿子。标题是'阿卡姆失踪潮——是否与古屋有关？'，被红笔批注'不予刊登'，签名是社长本人。",
+      "image_prompt": "1920s editor desk at night, oak desk with typewriter, unpublished article about missing persons, red stamp, half-drunk coffee, green banker's lamp, Ink Frenzy style, journalistic noir, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "vote_prompt": "怎么处理这篇被禁的报道？",
+      "exit_labels": {
+        "town_hall_archives::filing_room": "去市政厅调查社长背景",
+        "police_station::chief_office": "带着报道去警局质问"
+      }
+    }
+  ]
+}

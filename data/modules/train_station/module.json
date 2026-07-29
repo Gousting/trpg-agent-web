@@ -1,22 +1,85 @@
 {
-  "id": "train_station", "title": "阿卡姆火车站", "genre": ["horror", "investigation"], "difficulty": 1, "duration_estimate": "2-3 turns",
-  "entry": {"location_types": ["outdoor", "urban"], "required_clues": [], "forbidden_clues": [], "mood": null},
+  "id": "train_station",
+  "title": "阿卡姆火车站",
+  "genre": [
+    "horror",
+    "investigation"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "urban"
+    ],
+    "required_clues": [],
+    "forbidden_clues": [],
+    "mood": null
+  },
   "scenes": [
-    {"id": "train_platform", "title": "月台", "part": 1, "scene_type": "火车站",
+    {
+      "id": "train_platform",
+      "title": "月台",
+      "part": 1,
+      "scene_type": "火车站",
       "image_prompt": "1920s rural train station platform at dusk, a single steam locomotive idle on the tracks hissing steam into the cold air, wooden benches empty except for one passenger sitting perfectly still with a ticket in hand, the station clock stopped at 3:33, luggage abandoned on the platform as if passengers fled mid-journey, telegraph machine in the office clicking by itself, isolated rural horror, Ink Frenzy style",
       "description": "阿卡姆站的月台上只停着一列空火车。长椅上空着，只有一个乘客一动不动地坐着——手里攥着一张去波士顿的车票，日期是三周前。他在这里坐了三周。车站的钟停在3:33。行李散落在月台上，像是旅客中途逃下了车。电报室里的电报机在自己敲打着——接收的是不存在的信号。",
-      "npcs_here": ["静止的乘客"], "opportunities": [{"id": "tp1", "text": "接近静止的乘客（侦查/勇气）——他还活着，但眼神空洞。嘴里反复念着：'下一班。下一班就能走了。'他永远在等下一班"}],
-      "secrets": [{"id": "tps1", "text": "乘客不是被困在这里的——他离开了阿卡姆，但每次醒来都在火车站。石板不会让任何接触到碎片的人离开"}],
-      "leads_to": ["train_office"], "guidance": "火车站可作为备选入场点——玩家乘火车抵达阿卡姆的路线。"
+      "npcs_here": [
+        "静止的乘客"
+      ],
+      "opportunities": [
+        {
+          "id": "tp1",
+          "text": "接近静止的乘客（侦查/勇气）——他还活着，但眼神空洞。嘴里反复念着：'下一班。下一班就能走了。'他永远在等下一班"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "tps1",
+          "text": "乘客不是被困在这里的——他离开了阿卡姆，但每次醒来都在火车站。石板不会让任何接触到碎片的人离开"
+        }
+      ],
+      "leads_to": [
+        "train_office"
+      ],
+      "guidance": "火车站可作为备选入场点——玩家乘火车抵达阿卡姆的路线。"
     },
-    {"id": "train_office", "title": "站长办公室", "part": 1, "scene_type": "办公室",
-      "image_prompt": "1920s station master's office cluttered with schedules and telegraph tapes, a wall map of New England rail lines with black pins marking every station this line connects to, the telegraph machine spitting out tape with the same message repeated endlessly, a half-packed suitcase on the desk, the station master's hat still on the coat rack, abandoned urgency, Ink Frenzy style",
+    {
+      "id": "train_office",
+      "title": "站长办公室",
+      "part": 1,
+      "scene_type": "办公室",
+      "image_prompt": "1920s New England train station office, wooden desk with telegraph equipment and yellowed schedules, wall map of railway routes, dim lamp light, Ink Frenzy style, period-authentic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "站长办公室桌上摊着一张新英格兰铁路地图——所有连接阿卡姆的线路都被黑针标记了。电报机吐出的纸带上重复着一行字：'不要发车。外面不对。'站长的帽子还挂在衣帽架上，行李箱收了一半。他试图逃跑但没走成。",
-      "npcs_here": [], "opportunities": [{"id": "to1", "text": "阅读电报记录（侦查）——三周前所有离开阿卡姆的火车全部在出镇后迷路，绕了一圈又开回来"}],
-      "secrets": [{"id": "tos1", "text": "不是火车迷路——是空间在打转。石板的影响已经扭曲了阿卡姆周围的物理空间，镇上的人逃不出去"}],
-      "leads_to": [], "exit_labels": {"town_investigation::town_square": "去镇上调查", "dockside_arrival::docks": "去码头——船是唯一可能离开的方式"}
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "to1",
+          "text": "阅读电报记录（侦查）——三周前所有离开阿卡姆的火车全部在出镇后迷路，绕了一圈又开回来"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "tos1",
+          "text": "不是火车迷路——是空间在打转。石板的影响已经扭曲了阿卡姆周围的物理空间，镇上的人逃不出去"
+        }
+      ],
+      "leads_to": [],
+      "exit_labels": {
+        "town_investigation::town_square": "去镇上调查",
+        "dockside_arrival::docks": "去码头——船是唯一可能离开的方式",
+        "town_investigation::square": "从小路进入阿卡姆镇",
+        "dockside_arrival::dock": "跟随可疑货物去港口"
+      }
     }
   ],
-  "npcs": [{"name": "静止的乘客", "attitude": "catatonic", "description": "三周前买了去波士顿的车票。现在还在等。他不会老，不会饿，不会死——但也不会离开。", "secret": "他是第一个收到惠特利寄出的信的人。他打开了信。"}],
+  "npcs": [
+    {
+      "name": "静止的乘客",
+      "attitude": "catatonic",
+      "description": "三周前买了去波士顿的车票。现在还在等。他不会老，不会饿，不会死——但也不会离开。",
+      "secret": "他是第一个收到惠特利寄出的信的人。他打开了信。"
+    }
+  ],
   "variance": {}
 }

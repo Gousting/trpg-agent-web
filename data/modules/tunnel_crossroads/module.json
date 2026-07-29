@@ -1,0 +1,58 @@
+{
+  "id": "tunnel_crossroads",
+  "title": "地下通道·岔路口",
+  "genre": [
+    "investigation",
+    "underground"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "tunnel_network_mapped"
+    ],
+    "mood": "mystery"
+  },
+  "exits": [
+    {
+      "id": "to_flooded",
+      "label": "水声来自被淹的通道",
+      "provides_clues": [
+        "tunnel_junction_mapped",
+        "underground_layout_known"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "to_storage",
+      "label": "发现邪教物资储藏室",
+      "provides_clues": [
+        "tunnel_junction_mapped"
+      ],
+      "mood": "investigation",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "junction",
+      "description": "地下通道在这里分成三条岔路。墙壁上有人绘制了简陋的地图——用血和木炭，标注了通道系统和各个出口。东边的通道已经被故意炸塌了。南边有灯光和说话声——不是正常的语言。北边被水淹到膝盖，水是黑色的，完全看不到底。",
+      "image_prompt": "underground tunnel junction, crude map on wall drawn with blood and charcoal, collapsed eastern passage, water-filled northern tunnel with black water, Ink Frenzy style, subterranean crossroads, claustrophobic choice",
+      "leads_to": "map"
+    },
+    {
+      "id": "map",
+      "description": "仔细研究墙上的地图：整个阿卡姆地下存在一个由天然洞穴和人工通道组成的网络，连接了至少七个地面出入口——教堂、疯人院、港口、古屋都在其中。地图中央标注了一个最深处的位置，写着'旧神之门'，是所有通道的交汇点。以斯拉的名字写在门的位置旁边。",
+      "image_prompt": "detailed crude underground map on tunnel wall, seven surface exits labeled, central point marked OLD ONE'S GATE, EZRA written beside it, Ink Frenzy style, conspiracy cartography, revelation of scale",
+      "exit_labels": {
+        "flooded_section::tunnel": "涉水探索被淹的北部通道",
+        "cult_storage::room": "跟声音去南边——邪教在这里储存物资",
+        "ancient_chamber::entrance_hall": "按地图去最深处的交汇点"
+      }
+    }
+  ]
+}

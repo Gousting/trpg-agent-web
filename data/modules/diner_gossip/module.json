@@ -1,0 +1,59 @@
+{
+  "id": "diner_gossip",
+  "title": "路边餐馆·流言搜集",
+  "genre": [
+    "investigation",
+    "urban"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "urban",
+      "indoor"
+    ],
+    "required_clues": [
+      "town_arrived"
+    ],
+    "mood": "suspense"
+  },
+  "exits": [
+    {
+      "id": "to_town",
+      "label": "继续镇上调查",
+      "provides_clues": [
+        "cult_members_identified",
+        "swamp_hermit_info",
+        "town_gossip_collected"
+      ],
+      "mood": "investigation",
+      "next_location_type": "urban"
+    },
+    {
+      "id": "to_hotel",
+      "label": "去海风旅馆查问",
+      "provides_clues": [
+        "town_gossip_collected"
+      ],
+      "mood": "suspense",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "diner",
+      "description": "深夜的阿卡姆路边餐馆，几个喝咖啡的卡车司机在角落窃窃私语。墙上贴满寻人启事。",
+      "image_prompt": "1920s roadside diner at night, steam rising from coffee cups, posters on walls, tired truckers whispering in corner booth, neon sign flickering outside rain-streaked window, Ink Frenzy style, Edward Hopper atmosphere, deep shadows, film noir lighting, 1920s New England Americana, avoid human figures, focus on environment and architecture",
+      "leads_to": "waitress"
+    },
+    {
+      "id": "waitress",
+      "description": "女招待梅布尔紧张地擦着同一只杯子——她认出了你们描述的那个符号。她压低声音说，上周有三个客人点了咖啡后就没再出现。",
+      "image_prompt": "1920s diner waitress nervously polishing glass, worried expression, 1920s uniform, background shows empty diner at night, Ink Frenzy style, film noir portrait, tension in posture, warm overhead light creating harsh shadows, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "vote_prompt": "怎么利用梅布尔的证词？",
+      "exit_labels": {
+        "police_station::missing_persons": "把失踪者名单交给警局",
+        "town_investigation::square": "回镇上继续打听更多失踪者"
+      }
+    }
+  ]
+}

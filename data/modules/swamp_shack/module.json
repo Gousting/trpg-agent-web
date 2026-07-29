@@ -1,0 +1,57 @@
+{
+  "id": "swamp_shack",
+  "title": "沼泽小屋",
+  "genre": [
+    "horror",
+    "swamp"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "swamp",
+      "outdoor"
+    ],
+    "required_clues": [
+      "plant_origin_swamp"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_hermit",
+      "label": "小屋主人逃入沼泽深处",
+      "provides_clues": [
+        "swamp_hermit_info",
+        "ritual_date_known"
+      ],
+      "mood": "paranoia",
+      "next_location_type": "swamp"
+    },
+    {
+      "id": "to_cult",
+      "label": "补给品标记指向邪教据点",
+      "provides_clues": [
+        "cult_supply_cache_found"
+      ],
+      "mood": "dread",
+      "next_location_type": "rural"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "approach",
+      "description": "沼泽地的木板栈道通向一座建在木桩上的小屋。栈道两侧的水面泛着异常的光泽——不是反射月光，而是水下有什么东西在发光。屋里传出反复的、机械的劈砍声。门板上钉着一张发黄的字条：'别进来。我在里面但我不希望你们看到现在的我。'",
+      "image_prompt": "rickety boardwalk through foggy swamp leading to shack on stilts, water glowing from beneath, eerie green luminescence, mist, Ink Frenzy style, Louisiana bayou horror, dread approach",
+      "leads_to": "inside"
+    },
+    {
+      "id": "inside",
+      "description": "小屋里一个瘦骨嶙峋的男人背对着门，不停地用刀刻着墙壁——墙上已经被他刻满了密密麻麻的符号。他转过头，你们认出他是半年前失踪的植物学家雷诺兹。他说他在沼泽深处找到了那种植物的原生群落，而植物下面是'更大的东西，在呼吸'。他给了你们一张手绘地图和一箱补给——那些标着'以斯拉'名字的补给箱。",
+      "image_prompt": "inside swamp shack, emaciated man carving symbols on walls obsessively, walls covered in dense carvings, dim lamplight, Ink Frenzy style, madness in isolation, hermit horror portrait",
+      "exit_labels": {
+        "hidden_grove::grove": "按地图去找植物原生地和'下面的大东西'",
+        "cult_safehouse::hideout": "追查以斯拉补给箱的物流来源"
+      }
+    }
+  ]
+}

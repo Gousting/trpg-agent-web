@@ -1,0 +1,54 @@
+{
+  "id": "ritual_prep_room",
+  "title": "地下·仪式准备室",
+  "genre": [
+    "confrontation",
+    "underground"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "ritual_date_known"
+    ],
+    "mood": "urgency"
+  },
+  "exits": [
+    {
+      "id": "to_final",
+      "label": "这里就是仪式的最后节点",
+      "provides_clues": [
+        "ritual_preparations_witnessed",
+        "ezra_location_known"
+      ],
+      "mood": "confrontation",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "room",
+      "description": "这个房间是仪式前最后的准备站。三张长桌上摆着仪式需要的全部物品：蚀刻了所有人名的石板碎片、盛在铜碗里的深色液体、以及一把和考古系仓库里同源的黑曜石刀。最显眼的是一个巨大的沙盘模型——精确复制了阿卡姆海湾的海底地形和地下通道网络。以斯拉的名字刻在沙盘中央的控制点上。",
+      "image_prompt": "ritual preparation room, three long tables with stone fragments, copper bowls of dark liquid, obsidian knife, large sand table model of Arkham bay topography and tunnel network, Ink Frenzy style, operational evil, war room aesthetic, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "leads_to": "confrontation"
+    },
+    {
+      "id": "confrontation",
+      "description": "就在你们检查沙盘时，门被从外面锁上了——然后天花板上的通风口开始注入乙醚气体。一个声音从传声管里传来，是以斯拉：'我一直在等你们找到这里。你们正好是今晚仪式需要的七个见证者。可惜不能亲自招待——我在山顶等星辰升到正确的位置。当然，如果你们能活着从这里出去的话。'",
+      "image_prompt": "ritual prep room with locked door, ether gas pouring from ceiling vents, speaking tube on wall, Ink Frenzy style, trapped and taunted, claustrophobic danger",
+      "combat": {
+        "trigger": "必须砸开通气口或破坏门锁逃出乙醚室",
+        "enemy": "时间——在失去意识前逃出",
+        "hp": 0,
+        "armor": 0
+      },
+      "exit_labels": {
+        "final_confrontation::summit": "逃出后直奔山顶——追赶以斯拉",
+        "seal_the_slab::underground_vault": "先破坏沙盘控制点——切断石板与海底的连接"
+      }
+    }
+  ]
+}

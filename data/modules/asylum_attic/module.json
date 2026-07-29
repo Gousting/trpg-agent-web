@@ -1,0 +1,48 @@
+{
+  "id": "asylum_attic",
+  "title": "疯人院阁楼·遗忘之物",
+  "genre": [
+    "investigation",
+    "institutional"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "institutional",
+      "basement"
+    ],
+    "required_clues": [
+      "director_notes_seized"
+    ],
+    "mood": "mystery"
+  },
+  "exits": [
+    {
+      "id": "to_restraint",
+      "label": "惠特利的笔记指向约束病房",
+      "provides_clues": [
+        "attic_journal",
+        "whitley_transformation_witnessed"
+      ],
+      "mood": "dread",
+      "next_location_type": "institutional"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "attic",
+      "description": "疯人院的阁楼塞满了数十年积攒的旧病历和病人遗物。在惠特利教授的档案箱里，找到了入院时的个人物品清单：考古笔记、一块小石板碎片、一叠未寄出的信。信是写给他妻子的——前三封正常，后面每一封的字迹都比前一封更扭曲，最后一封只有一句话重复了四十遍。",
+      "image_prompt": "dusty asylum attic crammed with old patient records and belongings, open archive box labeled , letters with deteriorating handwriting, Ink Frenzy style, institutional archaeology, personal tragedy amid horror, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "leads_to": "journal"
+    },
+    {
+      "id": "journal",
+      "description": "教授的入院日志被钉在木箱底部——有人不想它被找到。他记录了从'第一次接触'到完全转变的每一天：第3天开始听到水下声音，第7天无法控制地刻符号，第14天他说'我已经分不清哪个是我的想法哪个是它的'。最后一篇的日期是三周前，写着：'他们今晚会把我转到特殊病区。我在约束病房见过这种事。请不要来找我。'",
+      "image_prompt": "dusty asylum attic, open leather journal on wooden desk with deteriorating handwritten pages, ink sketches of transformation, single candlelight, Ink Frenzy style, dark atmospheric horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "restraint_ward::ward": "去约束病房寻找惠特利的下落",
+        "university_campus::quad": "把教授的学术遗物送回大学"
+      }
+    }
+  ]
+}

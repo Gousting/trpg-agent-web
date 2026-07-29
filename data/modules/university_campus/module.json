@@ -1,60 +1,135 @@
 {
   "id": "university_campus",
   "title": "密斯卡托尼克大学",
-  "genre": ["horror", "investigation"],
+  "genre": [
+    "horror",
+    "investigation"
+  ],
   "difficulty": 2,
   "duration_estimate": "3-4 turns",
-  "entry": {"location_types": ["indoor", "urban"], "required_clues": [], "forbidden_clues": [], "mood": null},
-  "exits": [{"id": "campus_done", "label": "调查完毕", "provides_clues": ["whitley_research_known", "stone_origin_known"], "mood": "dread", "next_location_type": "indoor"}],
+  "entry": {
+    "location_types": [
+      "indoor",
+      "urban"
+    ],
+    "required_clues": [],
+    "forbidden_clues": [],
+    "mood": null
+  },
+  "exits": [
+    {
+      "id": "campus_done",
+      "label": "调查完毕",
+      "provides_clues": [
+        "microbial_life_discovered",
+        "star_map_recorded",
+        "stone_origin_known",
+        "whitley_research_known"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
   "scenes": [
     {
       "id": "campus_quad",
       "title": "大学方庭",
-      "part": 1, "scene_type": "校园",
+      "part": 1,
+      "scene_type": "校园",
       "image_prompt": "1920s New England university quad at twilight, ivy-covered brick buildings with gothic architecture, gas lamps just beginning to flicker on, a few students hurrying across the lawn with coats pulled tight, an old stone fountain in the center with water that looks too dark, the archaeology building looming in the background with one window inexplicably lit on the top floor, academic gothic atmosphere, Ink Frenzy style",
       "description": "密斯卡托尼克大学的方庭在暮色中庄严而阴郁。藤蔓爬满了哥特式建筑的砖墙。几个学生裹紧大衣匆匆穿过草坪，没人抬头看你们。方庭中央的石喷泉喷着颜色过深的水。考古系大楼矗立在远处，顶层有一扇窗户亮着——尽管整层楼都应该没人。",
       "npcs_here": [],
-      "opportunities": [{"id": "c1", "text": "查看考古系公告板（侦查）——惠特利的名字出现在一份被撕掉一半的中东考古队名单上"}],
-      "secrets": [{"id": "cs1", "text": "考古系的顶层那盏灯——二十年来每晚都亮着。没有开关能关掉它"}],
+      "opportunities": [
+        {
+          "id": "c1",
+          "text": "查看考古系公告板（侦查）——惠特利的名字出现在一份被撕掉一半的中东考古队名单上"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "cs1",
+          "text": "考古系的顶层那盏灯——二十年来每晚都亮着。没有开关能关掉它"
+        }
+      ],
       "vote_prompt": "先去教授办公室还是禁书室？",
-      "leads_to": ["campus_professor", "campus_vault"], "exit_labels": {"campus_professor": "去考古系教授办公室", "campus_vault": "去大学禁书库"},
+      "leads_to": [
+        "campus_professor",
+        "campus_vault"
+      ],
+      "exit_labels": {
+        "campus_professor": "去考古系教授办公室",
+        "campus_vault": "去大学禁书库"
+      },
       "guidance": "教授线=惠特利的人事档案，禁书线=石板学术背景。"
     },
     {
       "id": "campus_professor",
       "title": "考古系办公室",
-      "part": 1, "scene_type": "办公室",
-      "image_prompt": "1920s archaeology professor's office cluttered with artifacts from global expeditions, a large map of Mesopotamia pinned to the wall with red circles around certain dig sites, shelves of pottery shards and cuneiform tablets, a desk with Whitley's personnel file open showing a photograph of the expedition team, something about the photograph is wrong, academic dread, Ink Frenzy style",
+      "part": 1,
+      "scene_type": "办公室",
+      "image_prompt": "1920s archaeology professor office, cluttered desk with excavation artifacts and field notes, large wall map showing Middle East region, dim academic lighting, Ink Frenzy style, scholarly horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "惠特利的前办公室现在堆满了别人的考古标本——系里刻意清空了他的痕迹。但墙上那幅巨大的美索不达米亚地图上，红色墨圈依然清晰。你们在书架底部找到被塞进去的人事档案。照片里是考古队合影——惠特利在左，马丁在右。正中间站着一个皮肤灰白、五官不全的人形。不是所有人都在看镜头。有些人在看它。",
       "npcs_here": [],
-      "opportunities": [{"id": "cp1", "text": "研究地图标注（知识/考古学）——惠特利圈出的挖掘点恰好与全球多处克苏鲁崇拜遗址对应"}],
-      "secrets": [{"id": "cps1", "text": "人事档案末尾附有系主任的备注：'惠特利教授的离职原因列为医疗休假。我们不谈论他带回来的东西。'"}],
-      "leads_to": ["campus_converge"], "guidance": "教授办公室提供学术视角——惠特利的同事们知道出事了但选择沉默。"
+      "opportunities": [
+        {
+          "id": "cp1",
+          "text": "研究地图标注（知识/考古学）——惠特利圈出的挖掘点恰好与全球多处克苏鲁崇拜遗址对应"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "cps1",
+          "text": "人事档案末尾附有系主任的备注：'惠特利教授的离职原因列为医疗休假。我们不谈论他带回来的东西。'"
+        }
+      ],
+      "leads_to": [
+        "campus_converge"
+      ],
+      "guidance": "教授办公室提供学术视角——惠特利的同事们知道出事了但选择沉默。"
     },
     {
       "id": "campus_vault",
       "title": "大学禁书库",
-      "part": 1, "scene_type": "图书馆",
+      "part": 1,
+      "scene_type": "图书馆",
       "image_prompt": "university rare book vault deep underground, steel shelves holding ancient tomes bound in strange materials, temperature controlled atmosphere unnaturally cold, a reading table with a single open book showing woodcut illustrations of tentacled entities and celestial bodies, the book's pages turning slowly by themselves as if being read by an invisible presence, oppressive occult academic atmosphere, Ink Frenzy style",
       "description": "禁书库在地下三层，需要通过三道锁。金属书架上的书不需要分类——它们自己会靠在一起。恒温系统让室温保持在令人不适的低温。阅览桌上摊开着一本木刻插图的书——画着不可名状的实体和星体排列。书页正在自己缓慢翻动，仿佛有个看不见的人在阅读。翻到的那一页上，画的是一块裂成碎片的石碑。",
       "npcs_here": [],
-      "opportunities": [{"id": "cv1", "text": "阅读当前页面（克苏鲁神话）——石碑可以碎裂但不可摧毁。每一块碎片都保持与母体的连接。"}],
-      "secrets": [{"id": "cvs1", "text": "这本书原本不在这里。是今天早上自己出现在禁书库的——书架之间多了一本不在目录里的书。"}],
-      "leads_to": ["campus_converge"], "guidance": "禁书库揭示核心世界观：石板是更大石碑的碎片，深渊之物通过碎片做锚点试图进入这个世界。"
+      "opportunities": [
+        {
+          "id": "cv1",
+          "text": "阅读当前页面（克苏鲁神话）——石碑可以碎裂但不可摧毁。每一块碎片都保持与母体的连接。"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "cvs1",
+          "text": "这本书原本不在这里。是今天早上自己出现在禁书库的——书架之间多了一本不在目录里的书。"
+        }
+      ],
+      "leads_to": [
+        "campus_converge"
+      ],
+      "guidance": "禁书库揭示核心世界观：石板是更大石碑的碎片，深渊之物通过碎片做锚点试图进入这个世界。"
     },
     {
       "id": "campus_converge",
       "title": "大学门口",
-      "part": 1, "scene_type": "过渡",
+      "part": 1,
+      "scene_type": "过渡",
       "description": "大学的证据确认了最坏的猜测。惠特利带回的碎片连接着沙漠中的完整石碑。碎片在分裂——在繁殖——在扩大它的影响范围。满月之夜，足够多的碎片连在一起就能打开完整的通道。",
-      "npcs_here": [], "opportunities": [], "secrets": [],
+      "npcs_here": [],
+      "opportunities": [],
+      "secrets": [],
       "vote_prompt": "大学调查完毕。下一步？",
-      "leads_to": [], "exit_labels": {
+      "leads_to": [],
+      "exit_labels": {
         "museum_archives::archive_room": "去大学博物馆查实物证据",
         "foyer_investigation::foyer": "直接去山上老宅",
         "police_station::police_front": "去警局查失踪案"
       },
-      "guidance": "大学线提供学术理论框架。三条出口。"
+      "guidance": "大学线提供学术理论框架。三条出口。",
+      "image_prompt": "university rare book vault research climax, ancient tome open to woodcut illustration of shattered black monolith fragmenting and spreading across world map, Whitley expedition photograph with faceless figure, stone fragments arranged in incomplete circle on reading table glowing with faint green pulse, astronomical charts showing planetary alignment converging on full moon, Ink Frenzy style, fragments breeding and spreading, the gate opens when enough pieces connect, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and artifacts"
     }
   ],
   "npcs": [],

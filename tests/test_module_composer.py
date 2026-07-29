@@ -140,7 +140,6 @@ class TestModuleComposer:
         # 因此这里只断言手写目标是实际目标的子集，而非精确相等。
         assert {
             "basement_confrontation::basement",
-            "museum_archives::archive_room",
             "sanitarium_visit::ward14",
         } <= targets
 

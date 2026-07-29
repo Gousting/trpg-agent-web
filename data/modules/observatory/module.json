@@ -1,0 +1,54 @@
+{
+  "id": "observatory",
+  "title": "天文台·星辰计算",
+  "genre": [
+    "investigation",
+    "academic"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "academic",
+      "outdoor"
+    ],
+    "required_clues": [
+      "star_map_recorded"
+    ],
+    "mood": "awe"
+  },
+  "exits": [
+    {
+      "id": "to_ritual",
+      "label": "计算结果显示星辰归位时间",
+      "provides_clues": [
+        "star_alignment_calculated",
+        "ritual_date_known",
+        "celestial_event_imminent"
+      ],
+      "mood": "urgency",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "telescope_room",
+      "description": "天文台的巨型望远镜指向东南方向。将石板上的星图叠加到当前夜空后，天文学家脸色发白：三颗关键恒星正在以非自然的速度靠近星图上的位置。推算结果显示，它们将在不到四十八小时内完全对齐——对齐的中心点正好是阿卡姆上空。",
+      "image_prompt": "1920s observatory at night, massive telescope pointing at stars, star chart overlaid on current sky showing unnatural alignment, astronomer pale with fear, Ink Frenzy style, cosmic horror, celestial mechanics gone wrong",
+      "san_check": {
+        "trigger": "意识到星辰对齐意味着什么",
+        "level": "MAJOR"
+      },
+      "leads_to": "calculation"
+    },
+    {
+      "id": "calculation",
+      "description": "详细计算显示，天体对齐不仅是指向位置——还指向一个特定的水下深度。那不是任何已知海底地形的深度。星图上标记的位置恰好和教授田野调查报告的水下坐标重合。时间不多了。",
+      "image_prompt": "observatory calculation room, chalkboards covered with astronomical calculations, telescope log books, clock showing time, star maps, Ink Frenzy style, race against cosmic clock",
+      "exit_labels": {
+        "ritual_grounds::summit": "去山顶祭坛——那里是对齐的地面投影点",
+        "temple_ruins::underwater_approach": "去海底遗迹——水下对应坐标",
+        "sacrifice_ending::ritual_circle": "星辰归位已近——去地下仪式圈做最后的准备"
+      }
+    }
+  ]
+}

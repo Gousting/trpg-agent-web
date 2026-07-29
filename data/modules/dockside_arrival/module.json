@@ -1,11 +1,17 @@
 {
   "id": "dockside_arrival",
   "title": "雾港靠岸",
-  "genre": ["horror", "investigation"],
+  "genre": [
+    "horror",
+    "investigation"
+  ],
   "difficulty": 1,
   "duration_estimate": "3-4 turns",
   "entry": {
-    "location_types": ["outdoor", "docks"],
+    "location_types": [
+      "outdoor",
+      "docks"
+    ],
     "required_clues": [],
     "forbidden_clues": [],
     "mood": null
@@ -14,14 +20,25 @@
     {
       "id": "to_hotel",
       "label": "去海风旅馆查惠特利遗物",
-      "provides_clues": ["town_arrived", "dockside_horror_witnessed"],
+      "provides_clues": [
+        "celestial_event_imminent",
+        "coastal_cave_location",
+        "deep_sea_gateway",
+        "dockside_horror_witnessed",
+        "town_arrived",
+        "underwater_passage_found"
+      ],
       "mood": "unease",
       "next_location_type": "indoor"
     },
     {
       "id": "to_mansion",
       "label": "直接上山去废弃老宅",
-      "provides_clues": ["town_arrived", "dockside_horror_witnessed"],
+      "provides_clues": [
+        "deep_sea_gateway",
+        "dockside_horror_witnessed",
+        "town_arrived"
+      ],
       "mood": "dread",
       "next_location_type": "indoor"
     }
@@ -34,17 +51,34 @@
       "scene_type": "码头",
       "image_prompt": "foggy Arkham docks at midnight, 1920s New England, abandoned wooden pier stretching into thick sea fog, wrecked fishing boat tilted against dock pilings with clawed tear in hull, lone fisherman in oilskin coat crouching at end of pier drawing spiral symbols with chalk, red lantern glow in fog, Lovecraftian maritime horror, cinematic, photorealistic",
       "description": "浓雾裹住码头。船已消失在身后，只剩桅灯的红色光晕在雾中若隐若现。栈桥吱呀作响。右手边，渔船'玛丽安号'歪斜着卡在木桩之间，船体被什么东西从外侧抠开了。甲板上有灰色的东西在蠕动。栈桥尽头蹲着一个穿油布雨衣的男人，用粉笔在地上画螺旋。",
-      "npcs_here": ["以斯拉·布莱克"],
+      "npcs_here": [
+        "以斯拉·布莱克"
+      ],
       "opportunities": [
-        {"id": "d1", "text": "检查渔船撕裂口（侦查）——黏液酸性足以腐蚀钢铁，不属于任何已知海洋生物"},
-        {"id": "d2", "text": "靠近甲板上蠕动的触手残肢（生物学/克苏鲁神话）——断口仍在再生长出吸盘，低概率触发攻击"},
-        {"id": "d3", "text": "跟水手以斯拉对话——他捞到一块黑色石板后'海里跟上了他们'，石板已扔回海里但为时已晚"}
+        {
+          "id": "d1",
+          "text": "检查渔船撕裂口（侦查）——黏液酸性足以腐蚀钢铁，不属于任何已知海洋生物"
+        },
+        {
+          "id": "d2",
+          "text": "靠近甲板上蠕动的触手残肢（生物学/克苏鲁神话）——断口仍在再生长出吸盘，低概率触发攻击"
+        },
+        {
+          "id": "d3",
+          "text": "跟水手以斯拉对话——他捞到一块黑色石板后'海里跟上了他们'，石板已扔回海里但为时已晚"
+        }
       ],
       "secrets": [
-        {"id": "ds1", "text": "以斯拉捞到的是石板脱落的碎片。完整石板三周前已被惠特利考古队带上岸。碎片与母体仍连通——扔回海里只是把信号中继器放回了原位"}
+        {
+          "id": "ds1",
+          "text": "以斯拉捞到的是石板脱落的碎片。完整石板三周前已被惠特利考古队带上岸。碎片与母体仍连通——扔回海里只是把信号中继器放回了原位"
+        }
       ],
       "vote_prompt": "先调查渔船，还是先问水手？",
-      "leads_to": ["docks_boat", "docks_sailor"],
+      "leads_to": [
+        "docks_boat",
+        "docks_sailor"
+      ],
       "exit_labels": {
         "docks_boat": "靠近渔船检查（有风险）",
         "docks_sailor": "直接问水手（安全）"
@@ -60,12 +94,23 @@
       "description": "你们靠近渔船。撕裂口处的黏液闪着幽绿色的荧光，散发刺鼻的氨水味。甲板上的触手残肢感应到你们的接近，突然抽搐着弹了过来。残肢落回甲板仍在蠕动。在它旁边，一截破布——惠特利家族的纹章绣在上面。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "db1", "text": "收集黏液样本（化学/生物学）——成分分析显示它同时具有碳基和硅基生命特征"},
-        {"id": "db2", "text": "检查破布（知识/历史）——惠特利家族的纹章，证明老宅和码头事件有关联"}
+        {
+          "id": "db1",
+          "text": "收集黏液样本（化学/生物学）——成分分析显示它同时具有碳基和硅基生命特征"
+        },
+        {
+          "id": "db2",
+          "text": "检查破布（知识/历史）——惠特利家族的纹章，证明老宅和码头事件有关联"
+        }
       ],
       "secrets": [],
-      "san_check": {"trigger": "触手残肢弹起攻击时", "level": "MINOR"},
-      "leads_to": ["docks_converge"],
+      "san_check": {
+        "trigger": "触手残肢弹起攻击时",
+        "level": "MINOR"
+      },
+      "leads_to": [
+        "docks_converge"
+      ],
       "guidance": "船员路线：获得物证（黏液+纹章破布），代价是一次小型 SAN 检定。"
     },
     {
@@ -77,11 +122,19 @@
       "description": "水手抬头，眼睛布满血丝。'别碰船上的东西。'他叫以斯拉·布莱克，玛丽安号的船长。三天前他们在深水区捞到一块黑色石板，带上船后海里就跟上了他们。他把石板扔回去了——但船还是被拖回了这个码头。他求你们去镇上的海风旅馆查查惠特利家族，石板是他们在中东挖出来的。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "dsa1", "text": "追问石板细节（交涉）——以斯拉描述石板'摸起来是暖的，上面的符号自己会动'"},
-        {"id": "dsa2", "text": "问惠特利的下落——以斯拉只听说他住在山上废弃的老宅，镇上的人都不敢靠近"}
+        {
+          "id": "dsa1",
+          "text": "追问石板细节（交涉）——以斯拉描述石板'摸起来是暖的，上面的符号自己会动'"
+        },
+        {
+          "id": "dsa2",
+          "text": "问惠特利的下落——以斯拉只听说他住在山上废弃的老宅，镇上的人都不敢靠近"
+        }
       ],
       "secrets": [],
-      "leads_to": ["docks_converge"],
+      "leads_to": [
+        "docks_converge"
+      ],
       "guidance": "水手路线：获得全部对话情报，但缺少渔船上的物证。"
     },
     {
@@ -99,7 +152,8 @@
         "foyer_investigation::foyer": "直接上山去废弃老宅",
         "hotel_room::room": "去海风旅馆查登记记录"
       },
-      "guidance": "第二条分支：hotel_room 提供更多背景线索和安全路线，foyer_investigation 直接进入危险区域。"
+      "guidance": "第二条分支：hotel_room 提供更多背景线索和安全路线，foyer_investigation 直接进入危险区域。",
+      "image_prompt": "foggy Arkham docks at midnight, evidence spread on wet wooden pier, bloodstained Whitley family crest fabric scrap, crumpled note with hotel address, old photograph of mansion on hill, ship lantern casting red glow through fog, Ink Frenzy style, two paths ahead, full moon three days away, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and artifacts"
     }
   ],
   "npcs": [

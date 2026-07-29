@@ -1,0 +1,48 @@
+{
+  "id": "ancient_chamber",
+  "title": "地下·远古密室",
+  "genre": [
+    "awe",
+    "underground"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "ancient_structure_below"
+    ],
+    "mood": "awe"
+  },
+  "exits": [
+    {
+      "id": "to_ritual_prep",
+      "label": "远古文字提到了仪式准备室",
+      "provides_clues": [
+        "ancient_writing_translated",
+        "ritual_requirements_known"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "entrance_hall",
+      "description": "这个空间的规模挑战人类建筑学的理解——不是凿出来的，更像是巨石被某种力量熔化后重新凝固成的几何形态。墙上覆盖着精细的浮雕，描绘了一个文明从崛起到沉入海中的完整历史。它们崇拜的不是神，而是一种被称为'深度意识'的东西——石板是它与陆地世界交流的工具。",
+      "image_prompt": "impossibly vast ancient underground hall, walls of melted and reformed stone, entire civilization history carved in relief, Ink Frenzy style, scale of cosmic time, architectural impossibility, breathtaking awe, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "leads_to": "inscription"
+    },
+    {
+      "id": "inscription",
+      "description": "最深处的一面墙上，浮雕的内容变了——不再是历史，而是预言。画面显示七个身穿黑袍的人围着一块巨大的石板，石板上方悬浮着一个不成形的东西。画面的最后显示整个城市在绿光中化为瓦砾。浮雕底部有文字——和你们见过的拉丁文、希腊文和楔形符号对应，翻译过来是：'星辰归位之时，以血启门，深度将升。'",
+      "image_prompt": "ancient underground chamber, massive black stone slab covered in carved symbols and relief figures, crumbling civilization depicted in stone, dim green glow, Ink Frenzy style, dark cosmic horror, oppressive shadows, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "ritual_prep_room::room": "找仪式准备室——在预言生效前阻止它",
+        "ritual_grounds::summit": "预言指向山顶祭坛——今晚星辰归位"
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "flood_escape",
+  "title": "结局·洪水逃生",
+  "genre": [
+    "confrontation",
+    "coastal"
+  ],
+  "difficulty": 4,
+  "is_ending": true,
+  "entry": {
+    "location_types": [
+      "coastal",
+      "indoor"
+    ],
+    "required_clues": [
+      "underwater_passage_found",
+      "celestial_event_imminent"
+    ],
+    "mood": "urgency"
+  },
+  "exits": [],
+  "scenes": [
+    {
+      "id": "collapsing_chamber",
+      "leads_to": "surface",
+      "description": "水下的拱门在星辰归位时崩塌。海水从四面八方涌入——远处出现一个轮廓，大到挑战人类心智。唯一的出路是反方向一条被炸塌的通道——挖通它，在海水和更糟的东西追上之前。",
+      "image_prompt": "collapsing underground chamber, seawater rushing through cracking walls, colossal dark shape visible through distant tunnel opening, one narrow blocked passage as only escape, Ink Frenzy style, desperate horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture"
+    },
+    {
+      "id": "surface",
+      "exit_labels": {},
+      "description": "在海水淹没之前挖通了最后的碎石。从悬崖底部裂缝爬出来，瘫倒在礁石上看着黎明前的天空。海中那个巨大轮廓沉回了深处。阿卡姆的灯光在远处闪烁——活着出来了。但那东西没有被击败，只是暂时退了回去。它还在等。它有永恒的时间。【结局：逃生】海面恢复了平静。阿卡姆日报报道了不明原因的潮汐异常。你们看着报纸什么也没说。但已经开始计划下一次出海。",
+      "image_prompt": "survivors on rocky shore at pre-dawn, distant Arkham lights, sea calming, massive shape sinking below water, Ink Frenzy style, exhausted escape, haunted survivors"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "restraint_ward",
+  "title": "疯人院·约束病房",
+  "genre": [
+    "horror",
+    "institutional"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "institutional",
+      "basement"
+    ],
+    "required_clues": [
+      "whitley_transformation_witnessed"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_escape",
+      "label": "一个逃出去的病人提供了外部线索",
+      "provides_clues": [
+        "restraint_ward_escapee",
+        "cult_ritual_location"
+      ],
+      "mood": "urgency",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "ward",
+      "description": "约束病房在疯人院最深处，没有窗户、墙壁包着软垫——但软垫上布满了指甲抓出的深沟和血写的符号。六张约束床，其中五张绑着人，他们都在同步地、用完全一致的声音呢喃着什么。第六张床的皮带被挣断了——不管是谁，他们赤手扯断了粗帆布。",
+      "image_prompt": "deep asylum restraint ward, padded walls covered in scratched symbols, five restraint beds in row, dim institutional lighting, Ink Frenzy style, oppressive horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "san_check": {
+        "trigger": "五个病人的瞳孔同时转向你",
+        "level": "MAJOR"
+      },
+      "leads_to": "escape_route"
+    },
+    {
+      "id": "escape_route",
+      "description": "第六张床下的软垫被撕开了一个洞，下面是砖墙上的一个破口——那个逃出去的人徒手挖出了一条通道。通道另一头通向外墙，外面是森林。墙上用血写着潦草的地址：'山顶祭坛——他们在今晚完成它——不要从正面进——南坡有旧矿道——找到以斯拉'。",
+      "image_prompt": "asylum restraint room, torn padding on bed, crude hole dug through brick wall by bare hands, bloody marks on wall, single dim light, Ink Frenzy style, desperate escape, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "ritual_grounds::summit": "直接冲向山顶祭坛——今晚就是仪式",
+        "cult_safehouse::hideout": "先找逃出来的病人——他可能知道以斯拉的藏身处"
+      }
+    }
+  ]
+}

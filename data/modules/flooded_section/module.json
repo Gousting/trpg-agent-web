@@ -1,0 +1,53 @@
+{
+  "id": "flooded_section",
+  "title": "地下·水淹通道",
+  "genre": [
+    "horror",
+    "underground"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "underground_layout_known"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_temple",
+      "label": "水下通道通向海底遗迹",
+      "provides_clues": [
+        "flooded_tunnel_crossed",
+        "underwater_passage_found"
+      ],
+      "mood": "awe",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "tunnel",
+      "description": "黑色冷水没到腰际，每走一步都能踩到不知是什么的柔软物体。手电筒的光在水中照不出三十厘米——但水面下偶尔会泛起微弱的绿光。通道尽头不是死路，而是向下的斜坡——水在这里形成一个漩涡，但漩涡是静止的。",
+      "image_prompt": "flooded underground tunnel, black waist-deep water, flashlight beam dying in murk, occasional green glow beneath surface, perfectly still whirlpool at end, Ink Frenzy style, submerged dread, thalassophobia underground, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "leads_to": "gate"
+    },
+    {
+      "id": "gate",
+      "description": "水下通道的尽头通向一个巨大的穹顶空间，半淹在水中。穹顶中央有一个由黑色石材组成的拱门结构——不是建在这里的，更像是从水底生长出来的。拱门的另一侧不是墙壁，而是深不见底的黑暗和有节奏的水压波动，像是某个巨大的东西在深处移动。拱门上方刻着你们已经熟识的符号，在这里它们散发出持续的光。",
+      "image_prompt": "vast underground stone chamber, ancient black archway half-submerged in dark water, rhythmic ripples, oppressive silence, Ink Frenzy style, monumental scale, cosmic dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "san_check": {
+        "trigger": "注视拱门另一侧的黑暗超过三秒",
+        "level": "MAJOR"
+      },
+      "exit_labels": {
+        "temple_ruins::underwater_approach": "蹚水去探索穹顶另一侧的遗迹",
+        "ancient_chamber::entrance_hall": "退回干地走旁边的陆路通道",
+        "flood_escape::collapsing_chamber": "通过水下的拱门——退潮后也许能到更深处"
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "id": "fishing_village",
+  "title": "废弃渔村",
+  "genre": [
+    "investigation",
+    "coastal"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "coastal",
+      "outdoor"
+    ],
+    "required_clues": [
+      "stone_fragments_found"
+    ],
+    "mood": "unease"
+  },
+  "exits": [
+    {
+      "id": "to_cave",
+      "label": "渔民指路去海岸洞穴",
+      "provides_clues": [
+        "fishing_village_abandoned_reason",
+        "coastal_cave_location"
+      ],
+      "mood": "dread",
+      "next_location_type": "coastal"
+    },
+    {
+      "id": "to_ruins",
+      "label": "发现海底遗迹线索",
+      "provides_clues": [
+        "tide_ritual_observed"
+      ],
+      "mood": "awe",
+      "next_location_type": "coastal"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "village",
+      "description": "渔村的码头已经腐烂，渔船倒扣在岸边。只有一个老渔夫还住在最边上的棚屋里——他说村民们三周前陆续离开，不是因为鱼获不好，是因为'涨潮时不应该存在的影子出现在水底'。",
+      "image_prompt": "abandoned fishing village at dusk, rotting dock, overturned boats, single hut with lamplight, dark ocean, Ink Frenzy style, coastal desolation, melancholy and wrongness, seagulls circling silently, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "leads_to": "hut"
+    },
+    {
+      "id": "hut",
+      "description": "老渔夫拿出一块和你们找到的一模一样的石板碎片。他说这是儿子最后一次出海时从网里捞上来的——之后儿子就和村里其他人一样，再也没回来。他指着北边悬崖方向：'那下面有洞穴，退潮时能进去。'",
+      "image_prompt": "old fisherman in ramshackle hut, holding stone fragment with strange markings, weathered face, whale oil lamp, nautical charts on walls, Ink Frenzy style, character portrait of worn coastal wisdom and fear, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "vote_prompt": "下一步？",
+      "exit_labels": {
+        "coastal_cave::entrance": "趁退潮去探查悬崖洞穴",
+        "coastal_ruins::tide_pool": "去退潮后露出的海底遗迹"
+      }
+    }
+  ]
+}

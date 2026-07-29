@@ -1,0 +1,58 @@
+{
+  "id": "town_hall_archives",
+  "title": "市政厅·土地档案",
+  "genre": [
+    "investigation",
+    "urban"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "urban",
+      "indoor"
+    ],
+    "required_clues": [
+      "town_gossip_collected"
+    ],
+    "mood": "investigation"
+  },
+  "exits": [
+    {
+      "id": "to_manor",
+      "label": "古屋地产记录指向惠特利庄园",
+      "provides_clues": [
+        "land_ownership_mapped",
+        "whitley_property_secret"
+      ],
+      "mood": "dread",
+      "next_location_type": "rural"
+    },
+    {
+      "id": "to_church",
+      "label": "去教堂查对教区记录",
+      "provides_clues": [
+        "land_ownership_mapped"
+      ],
+      "mood": "mystery",
+      "next_location_type": "religious"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "filing_room",
+      "description": "市政厅地下档案室的荧光灯管嗡嗡作响。土地登记册显示惠特利家族在过去五十年间以极低价格收购了镇郊七块土地——包括废弃的采石场和沼泽地。",
+      "image_prompt": "town hall basement filing room, fluorescent lights flickering, old leather-bound land registry books open on wooden table, hand-drawn property maps showing circled locations, Ink Frenzy style, bureaucratic horror, sterile government atmosphere with wrongness creeping in, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "leads_to": "clerk_office"
+    },
+    {
+      "id": "clerk_office",
+      "description": "值班的老档案员认出了惠特利的名字。他颤抖着说，去年有个记者来查过同样的地块——那人后来再没出现过。他从抽屉里拿出一张手绘地图，上面标注了那些地的位置。",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, elderly town clerk in 1920s office, trembling hands holding hand-drawn map, fear in eyes, dusty office with filing cabinets, single desk lamp, character portrait with atmosphere of suppressed horror, no legible English text, no readable signage, no letters on any surface, strictly 1920s period setting, no modern technology, no electronics, no screens, no laptops, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "vote_prompt": "调查哪块可疑土地？",
+      "exit_labels": {
+        "old_quarry::entrance": "去镇郊废弃采石场",
+        "swamp_shack::approach": "去沼泽地的反常地块"
+      }
+    }
+  ]
+}

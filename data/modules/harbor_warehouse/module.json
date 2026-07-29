@@ -1,0 +1,63 @@
+{
+  "id": "harbor_warehouse",
+  "title": "港口大仓库·走私集散点",
+  "genre": [
+    "confrontation",
+    "industrial"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "industrial",
+      "indoor"
+    ],
+    "required_clues": [
+      "smuggling_record_found"
+    ],
+    "mood": "confrontation"
+  },
+  "exits": [
+    {
+      "id": "to_ship",
+      "label": "查出货船回程日期",
+      "provides_clues": [
+        "warehouse_inventory",
+        "next_shipment_date"
+      ],
+      "mood": "urgency",
+      "next_location_type": "waterfront"
+    },
+    {
+      "id": "to_cult",
+      "label": "追踪以斯拉的收货地址",
+      "provides_clues": [
+        "cult_warehouse_connection"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "loading_dock",
+      "description": "港口大仓库门虚掩着，里面堆满标着'农具'的木箱。但裂缝里露出的是仪轨器具和一罐罐不明液体。两个工人在远处搬运——他们动作机械，眼神空洞，像被操纵的木偶。",
+      "image_prompt": "1920s harbor warehouse interior, stacks of crates labeled leaking ritual implements, two workers moving mechanically with blank stares, Ink Frenzy style, industrial horror, vast shadowy space, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "combat": {
+        "trigger": "被操纵的工人突然攻击",
+        "enemy": "被控制的码头工人",
+        "hp": 6,
+        "armor": 0
+      },
+      "leads_to": "office"
+    },
+    {
+      "id": "office",
+      "description": "仓库办公室的文件柜里找到详细的收货记录：来自南太平洋的'石料'分三批送到——古屋地下室、疯人院后门、沼泽地废弃农舍。下一批预计在三天后靠港。以斯拉的签名出现在每一张收据上。",
+      "image_prompt": "warehouse office at night, filing cabinet open, shipping manifests with strange entries, desk lamp, Ink Frenzy style, paper trail of horror, detective noir, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "exit_labels": {
+        "abandoned_ship::deck": "按船期去港口拦截下一批货",
+        "cult_safehouse::hideout": "追踪以斯拉的收货地址"
+      }
+    }
+  ]
+}

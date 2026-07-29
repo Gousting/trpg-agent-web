@@ -1,0 +1,48 @@
+{
+  "id": "student_dormitory",
+  "title": "学生宿舍·秘密社团",
+  "genre": [
+    "investigation",
+    "academic"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "academic",
+      "indoor"
+    ],
+    "required_clues": [
+      "professor_notes_obtained"
+    ],
+    "mood": "suspense"
+  },
+  "exits": [
+    {
+      "id": "to_asylum",
+      "label": "学生证词指向疯人院",
+      "provides_clues": [
+        "secret_society_exposed",
+        "student_testimony_obtained"
+      ],
+      "mood": "dread",
+      "next_location_type": "institutional"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "dorm",
+      "description": "惠特利教授带过的三个研究生住同一间宿舍。两人已经一周没来上课了。剩下那个叫弗兰克的，锁着门不肯出来。门缝下塞出一张纸条：'他们晚上会来。是教授让我们加入那个社团的。我们不知道会变成这样。'",
+      "image_prompt": "1920s university dormitory corridor at night, one door slightly open, note slipping under door, shadows under other doors, Ink Frenzy style, academic paranoia, institutional dread",
+      "leads_to": "frank_room"
+    },
+    {
+      "id": "frank_room",
+      "description": "弗兰克终于开了门。他面色苍白，手腕上有奇怪的淤青——像是被什么长而柔韧的东西缠过。他供出教授组织了一个秘密社团，成员都是考古系学生，定期在疯人院废弃病区集会。他们以为是在研究'古代认知科学'。然后有人开始失踪。",
+      "image_prompt": "pale university student in dorm room, strange bruises on wrists, fear in eyes, scattered books and notes, Ink Frenzy style, character portrait of trauma, witness testimony, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "asylum_cells::ward": "去疯人院废弃病区找失踪学生",
+        "sanitarium_visit::reception": "先去疯人院正门询问社团记录"
+      }
+    }
+  ]
+}

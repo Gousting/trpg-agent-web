@@ -1,0 +1,52 @@
+{
+  "id": "patient_ward",
+  "title": "疯人院·特殊病区",
+  "genre": [
+    "horror",
+    "institutional"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "institutional",
+      "basement"
+    ],
+    "required_clues": [
+      "experimental_treatment_log"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_shock",
+      "label": "病区角落有电击治疗室",
+      "provides_clues": [
+        "patient_testimony",
+        "ward_horror_witnessed"
+      ],
+      "mood": "horror",
+      "next_location_type": "institutional"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "ward",
+      "description": "特殊病区铁门后的走廊弥漫着消毒水和更浓烈的腐臭。每间病房的门上都有观察窗——透过玻璃，病人不像在接受治疗，而像在被系统性地观察某种变化。一个病人正在用指甲在墙上刻符号，血从指尖滴下，但他完全没停。他的瞳孔是竖着的。",
+      "image_prompt": "1920s asylum ward corridor, barred doors with observation windows, patient carving symbols on wall with bleeding fingers, vertical pupils, Ink Frenzy style, institutional horror, systematic dehumanization, 1930s psychiatric abuse aesthetic, avoid human figures, focus on environment and architecture",
+      "san_check": {
+        "trigger": "看到病人的竖瞳和墙上的符号与石板一模一样",
+        "level": "MAJOR"
+      },
+      "leads_to": "cell_7"
+    },
+    {
+      "id": "cell_7",
+      "description": "七号病房的病人还能说话。她曾是报社记者，三周前入院调查失踪案。她低声说，每周五午夜，穿黑袍的人会来带走几个病人去地下室。有些人回来——但已经不是人了，'它们是从里面被换掉的'。她描述了地下室的入口位置。",
+      "image_prompt": "asylum cell with patient who was once a reporter, gaunt but lucid, whispering through barred window, Ink Frenzy style, testimony of horror, institutional prisoner who knows too much, no legible English text, no readable signage, no letters on any surface, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "shock_therapy_room::room": "去电击室查设备记录——那是仪式的一部分",
+        "underground_chamber::crypt_stairs": "找到地下室入口深入真相"
+      }
+    }
+  ]
+}

@@ -1,12 +1,19 @@
 {
   "id": "sanitarium_visit",
   "title": "阿卡姆疯人院",
-  "genre": ["horror", "psychological"],
+  "genre": [
+    "horror",
+    "psychological"
+  ],
   "difficulty": 2,
   "duration_estimate": "3-4 turns",
   "entry": {
-    "location_types": ["indoor"],
-    "required_clues": ["cursed_slab_found"],
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "cursed_slab_found"
+    ],
     "forbidden_clues": [],
     "mood": null
   },
@@ -14,14 +21,25 @@
     {
       "id": "to_basement_weak",
       "label": "立刻去地下室（石板未完全觉醒）",
-      "provides_clues": ["destruction_method_known", "slab_not_awake", "patient_zero_found"],
+      "provides_clues": [
+        "destruction_method_known",
+        "patient_testimony",
+        "patient_zero_found",
+        "slab_not_awake",
+        "whitley_transformation_witnessed"
+      ],
       "mood": "determined",
       "next_location_type": "basement"
     },
     {
       "id": "to_basement_prepared",
       "label": "准备工具再去（战斗加成）",
-      "provides_clues": ["destruction_method_known", "patient_zero_found"],
+      "provides_clues": [
+        "destruction_method_known",
+        "director_notes_seized",
+        "experimental_treatment_log",
+        "patient_zero_found"
+      ],
       "mood": "prepared",
       "next_location_type": "basement"
     }
@@ -34,15 +52,29 @@
       "scene_type": "疯人院",
       "image_prompt": "1920s mental asylum corridor, white-tiled walls under harsh electric lights, expressionless nurse with completely blank face leading visitors down long hallway, every patient in every cell standing at their bars mouthing identical silent words in perfect synchronization, room 14 at end of hall with padded door slightly ajar, clinical horror, psychological dread, Ink Frenzy style",
       "description": "阿卡姆疯人院的走廊干净、明亮、消毒水味道刺鼻——但比古屋更令人不安。路过每一间病房，里面的人都在说同一句话。不同音色，同一句：'下面有东西醒了。'护士长面无表情地停在14号病房前。",
-      "npcs_here": ["马丁·科里根"],
+      "npcs_here": [
+        "马丁·科里根"
+      ],
       "opportunities": [
-        {"id": "sv1", "text": "观察其他病房的病人（心理学）——他们吟诵的内容完全一致，就像在转述同一个信号源"},
-        {"id": "sv2", "text": "翻阅马丁的入院记录（图书馆使用/医学）——入院时无外伤。备注：'患者声称自己的影子被吃掉了'"}
+        {
+          "id": "sv1",
+          "text": "观察其他病房的病人（心理学）——他们吟诵的内容完全一致，就像在转述同一个信号源"
+        },
+        {
+          "id": "sv2",
+          "text": "翻阅马丁的入院记录（图书馆使用/医学）——入院时无外伤。备注：'患者声称自己的影子被吃掉了'"
+        }
       ],
       "secrets": [
-        {"id": "svs1", "text": "马丁不是精神病——他的记忆被吞噬到只剩最后一段。石板的'进食'有某种顺序：先吃最近的记忆，最后才吃最古老的本能"}
+        {
+          "id": "svs1",
+          "text": "马丁不是精神病——他的记忆被吞噬到只剩最后一段。石板的'进食'有某种顺序：先吃最近的记忆，最后才吃最古老的本能"
+        }
       ],
-      "leads_to": ["ward14_martin", "sanitarium_director"],
+      "leads_to": [
+        "ward14_martin",
+        "sanitarium_director"
+      ],
       "vote_prompt": "先去马丁的病房，还是先找院长谈？",
       "exit_labels": {
         "ward14_martin": "去马丁的病房（获得摧毁方法）",
@@ -55,16 +87,24 @@
       "title": "马丁的最后记忆",
       "part": 1,
       "scene_type": "对话",
-      "image_prompt": "dimly lit mental asylum padded cell, white quilted padding on all walls, gaunt man in white straightjacket huddled in corner staring with terrified eyes at something behind the viewer, long shadows of unseen visitors stretch across the padded walls, deeply unsettling psychological horror, Ink Frenzy style",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, dimly lit mental asylum padded cell, white quilted padding on all walls, gaunt man in white straightjacket huddled in corner staring with terrified eyes at something behind the viewer, long shadows of unseen visitors stretch across the padded walls, deeply unsettling psychological horror, Ink Frenzy style, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "马丁蜷缩在病房角落里。他看着你们，但眼神聚焦在你们身后的空处。他断断续续地说出四个词：'高温。频率。共振。粉碎。'然后像是用尽了全部力气，闭上了眼。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "sm1", "text": "记录摧毁方法（知识）——高温共振：用火焰加热石板至约800°C，同时用约23Hz声波诱发共振，石板会自行粉碎"}
+        {
+          "id": "sm1",
+          "text": "记录摧毁方法（知识）——高温共振：用火焰加热石板至约800°C，同时用约23Hz声波诱发共振，石板会自行粉碎"
+        }
       ],
       "secrets": [
-        {"id": "sms1", "text": "23Hz恰好是档案室嗡鸣的频率——石板本身就在发出自己的摧毁频率。它不是门——它是锚"}
+        {
+          "id": "sms1",
+          "text": "23Hz恰好是档案室嗡鸣的频率——石板本身就在发出自己的摧毁频率。它不是门——它是锚"
+        }
       ],
-      "leads_to": ["sanitarium_converge"],
+      "leads_to": [
+        "sanitarium_converge"
+      ],
       "guidance": "获得了摧毁方法。马丁是被石板吞噬的最后一个活证人。"
     },
     {
@@ -74,15 +114,28 @@
       "scene_type": "办公室",
       "image_prompt": "1920s asylum director's oak-paneled office, diplomas on walls slightly crooked, a heavy desk with stacks of patient files, a half-empty bottle of whiskey hidden behind a medical textbook, the director nervously adjusting his tie as he stares at a black and white photograph of the archaeological dig site, clinical lighting casting harsh shadows, psychological horror, Ink Frenzy style",
       "description": "院长办公室比病房更像病房。墙上挂着歪斜的医学文凭。桌子下面藏着半瓶威士忌。院长——一个神经质的中年男人——不停地调整领带。他桌上摊开一张黑白照片：中东考古挖掘现场。照片里惠特利站在最左边，马丁在最右边。中间站着一个灰白皮肤、没有五官的人形轮廓。",
-      "npcs_here": ["疯人院院长"],
+      "npcs_here": [
+        "疯人院院长"
+      ],
       "opportunities": [
-        {"id": "sd1", "text": "审问院长关于照片（交涉/心理学）——他承认照片里多了一个人。不是摄影失误——那天所有在场的人都看到了。但没人敢提"},
-        {"id": "sd2", "text": "翻查马丁的完整病历（医学）——马丁入院后前三天的记录被涂黑了。用特殊方法复原：记录显示他入院第一天是有影子的。第二天影子开始变淡。第三天完全消失"}
+        {
+          "id": "sd1",
+          "text": "审问院长关于照片（交涉/心理学）——他承认照片里多了一个人。不是摄影失误——那天所有在场的人都看到了。但没人敢提"
+        },
+        {
+          "id": "sd2",
+          "text": "翻查马丁的完整病历（医学）——马丁入院后前三天的记录被涂黑了。用特殊方法复原：记录显示他入院第一天是有影子的。第二天影子开始变淡。第三天完全消失"
+        }
       ],
       "secrets": [
-        {"id": "sds1", "text": "院长知道得比他说出来的多。他不是不想说——他在害怕。照片里那个没有五官的人形也在看他。"}
+        {
+          "id": "sds1",
+          "text": "院长知道得比他说出来的多。他不是不想说——他在害怕。照片里那个没有五官的人形也在看他。"
+        }
       ],
-      "leads_to": ["sanitarium_converge"],
+      "leads_to": [
+        "sanitarium_converge"
+      ],
       "guidance": "院长办公室揭示照片中的额外存在——石板的'信使'出现在考古现场。"
     },
     {
@@ -99,9 +152,11 @@
       "exit_labels": {
         "basement_confrontation::basement": "直奔惠特利古屋地下室",
         "museum_archives::archive_room": "先去大学博物馆找更多资料",
-        "asylum_cells::asylum_isolation": "先去地下隔离区——马丁不是第一个被石板盯上的人"
+        "asylum_cells::asylum_isolation": "先去地下隔离区——马丁不是第一个被石板盯上的人",
+        "asylum_director_office::office": "去找院长——他一定知道更多内情"
       },
-      "guidance": "两条出口：直奔地下室（石板未完全觉醒，敌人削弱）或博物馆（获得额外情报加成），也可先探查地下隔离区确认患者零号线索。"
+      "guidance": "两条出口：直奔地下室（石板未完全觉醒，敌人削弱）或博物馆（获得额外情报加成），也可先探查地下隔离区确认患者零号线索。",
+      "image_prompt": "1920s asylum director office investigation aftermath, black and white archaeology expedition photograph showing Whitley and Martin with faceless figure between them, patient files documenting progressive memory loss in victims, doctor handwritten notes on destroying the stone fragments through resonant frequency, whiskey bottle half empty on desk, Ink Frenzy style, method discovered, time running out, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and artifacts, no legible English text, no readable signage, no letters on any surface, strictly black and white, no color accents, monochrome"
     }
   ],
   "npcs": [

@@ -1,0 +1,55 @@
+{
+  "id": "smuggler_den",
+  "title": "走私者窝点",
+  "genre": [
+    "confrontation",
+    "waterfront"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "waterfront",
+      "indoor"
+    ],
+    "required_clues": [
+      "smuggling_route_known"
+    ],
+    "mood": "confrontation"
+  },
+  "exits": [
+    {
+      "id": "to_warehouse",
+      "label": "追踪走私物资去仓库",
+      "provides_clues": [
+        "smuggler_ledger_seized",
+        "cult_shipping_manifest"
+      ],
+      "mood": "dread",
+      "next_location_type": "industrial"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hideout",
+      "description": "码头区废弃渔具仓库的假墙后藏着一个走私据点。木箱里不是酒，而是考古设备、化学试剂和大量乙醚。墙上钉着阿卡姆及周边地图，六个红叉标的都是你们已经调查过的地点。",
+      "image_prompt": "hidden smuggler den behind false wall in abandoned fishing warehouse, crates of archaeological tools and chemical bottles, map on wall with red X marks, dim lantern light, Ink Frenzy style, criminal hideout atmosphere, waterfront noir, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture",
+      "combat": {
+        "trigger": "走私者突然从暗处扑出",
+        "enemy": "走私者打手",
+        "hp": 8,
+        "armor": 0
+      },
+      "leads_to": "interrogation"
+    },
+    {
+      "id": "interrogation",
+      "description": "制服了一个留守的走私者。他供出以斯拉的货物流向三个地点：港口大仓库的货物中转、沼泽废弃农舍的定期补给、以及疯人院后门的夜间交付。他还交出了记录所有交易的账簿。",
+      "image_prompt": "smuggler pinned against wall, hands up, stolen ledger book on floor, dim lantern casting long shadows, Ink Frenzy style, tense interrogation, criminal caught, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "vote_prompt": "先追踪哪条供应线？",
+      "exit_labels": {
+        "harbor_warehouse::loading_dock": "追踪最大批货物去港口仓库",
+        "swamp_shack::approach": "去沼泽农舍查探定期补给"
+      }
+    }
+  ]
+}

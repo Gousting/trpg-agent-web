@@ -1,11 +1,17 @@
 {
   "id": "foyer_investigation",
   "title": "古屋调查·门厅",
-  "genre": ["horror", "investigation"],
+  "genre": [
+    "horror",
+    "investigation"
+  ],
   "difficulty": 1,
   "duration_estimate": "3-5 turns",
   "entry": {
-    "location_types": ["indoor", "urban"],
+    "location_types": [
+      "indoor",
+      "urban"
+    ],
     "required_clues": [],
     "forbidden_clues": [],
     "mood": null
@@ -14,14 +20,22 @@
     {
       "id": "to_library",
       "label": "上楼去图书室",
-      "provides_clues": ["blood_trail_found", "portrait_identified", "ritual_note_found"],
+      "provides_clues": [
+        "blood_trail_found",
+        "forest_dragging_trail",
+        "portrait_identified",
+        "ritual_note_found"
+      ],
       "mood": "unease",
       "next_location_type": "indoor"
     },
     {
       "id": "to_study",
       "label": "搜索一楼书房",
-      "provides_clues": ["blood_trail_found", "hidden_diary_found"],
+      "provides_clues": [
+        "blood_trail_found",
+        "hidden_diary_found"
+      ],
       "mood": "unease",
       "next_location_type": "indoor"
     }
@@ -36,15 +50,30 @@
       "description": "沉重的橡木门在身后合上，发出沉闷的回响。门厅布满蛛网，空气中弥漫着霉味和若有若无的腥甜气息。墙上挂着褪色的家族肖像，凝视着闯入者。一道暗色拖痕从门厅延伸至通往地下室的石阶。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "f1", "text": "检查地板上的暗色拖痕（侦查）——是新鲜血迹，往地下室方向"},
-        {"id": "f2", "text": "查看墙上的家族肖像（知识/历史）——这个家族在1920年全部失踪"},
-        {"id": "f3", "text": "搜索门厅的旧家具（侦查）——发现一封半完成的信，内容提到'仪式将在满月完成'"}
+        {
+          "id": "f1",
+          "text": "检查地板上的暗色拖痕（侦查）——是新鲜血迹，往地下室方向"
+        },
+        {
+          "id": "f2",
+          "text": "查看墙上的家族肖像（知识/历史）——这个家族在1920年全部失踪"
+        },
+        {
+          "id": "f3",
+          "text": "搜索门厅的旧家具（侦查）——发现一封半完成的信，内容提到'仪式将在满月完成'"
+        }
       ],
       "secrets": [
-        {"id": "fs1", "text": "肖像中的男人是屋主阿瑟·惠特利，失踪前是密斯卡托尼克大学的考古学教授，专攻中东古代遗迹"}
+        {
+          "id": "fs1",
+          "text": "肖像中的男人是屋主阿瑟·惠特利，失踪前是密斯卡托尼克大学的考古学教授，专攻中东古代遗迹"
+        }
       ],
       "vote_prompt": "门厅调查完了。上楼去图书室，还是先搜一楼的书房？",
-      "leads_to": ["foyer_study", "library"],
+      "leads_to": [
+        "foyer_study",
+        "library"
+      ],
       "exit_labels": {
         "foyer_study": "搜索一楼书房（可能有隐藏物品）",
         "library_research::library": "上楼去图书室"
@@ -60,13 +89,24 @@
       "description": "书房藏在楼梯下方，像是一个被刻意遗忘的空间。厚重的丝绒窗帘紧闭，一张巨大的橡木书桌上落满了二十年的灰。一截烧到一半的蜡烛熔进了桌面。你们在书桌暗格里找到一个小铁盒，里面是惠特利失踪前写的私人日记。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "fy1", "text": "阅读惠特利日记（知识）——揭示了石板带回后前三天的影响：先是遗忘小事的名字，然后是遗忘人脸，最后遗忘家人的存在"},
-        {"id": "fy2", "text": "检查墙上考古草图（克苏鲁神话）——惠特利在美索不达米亚挖掘的遗迹平面图，结构与阿卡姆周边的地形惊人地对应"}
+        {
+          "id": "fy1",
+          "text": "阅读惠特利日记（知识）——揭示了石板带回后前三天的影响：先是遗忘小事的名字，然后是遗忘人脸，最后遗忘家人的存在"
+        },
+        {
+          "id": "fy2",
+          "text": "检查墙上考古草图（克苏鲁神话）——惠特利在美索不达米亚挖掘的遗迹平面图，结构与阿卡姆周边的地形惊人地对应"
+        }
       ],
       "secrets": [
-        {"id": "fys1", "text": "日记最后一行被划掉了。用铅笔拓印还原：'它在教我说它的语言。一旦说出口，我就不是我了。'"}
+        {
+          "id": "fys1",
+          "text": "日记最后一行被划掉了。用铅笔拓印还原：'它在教我说它的语言。一旦说出口，我就不是我了。'"
+        }
       ],
-      "leads_to": ["library"],
+      "leads_to": [
+        "library"
+      ],
       "guidance": "书房提供惠特利的心理变化时间线——从兴奋的学者到恐惧的囚徒，只用了三天。"
     },
     {
@@ -78,13 +118,24 @@
       "description": "阁楼的楼梯在二楼走廊尽头，窄得只能一人通过。上面堆满了盖着白布的旧家具——不是搬家，像是有人想盖住什么。天窗透进惨白的月光，照在一架落了灰的留声机上。唱针还压在唱片上，仿佛按下去就能听到二十年前的声音。角落里有什么东西在动。",
       "npcs_here": [],
       "opportunities": [
-        {"id": "fa1", "text": "打开留声机（机械维修）——唱片录制的是惠特利的声音，但内容令人毛骨悚然：他在复述石板上记录的咒语，试图'练习发音'"},
-        {"id": "fa2", "text": "检查盖着白布的家具（侦查）——所有的镜子都被白布盖住了。不是防尘——二十年前有人不想在任何反射面里看到什么东西"}
+        {
+          "id": "fa1",
+          "text": "打开留声机（机械维修）——唱片录制的是惠特利的声音，但内容令人毛骨悚然：他在复述石板上记录的咒语，试图'练习发音'"
+        },
+        {
+          "id": "fa2",
+          "text": "检查盖着白布的家具（侦查）——所有的镜子都被白布盖住了。不是防尘——二十年前有人不想在任何反射面里看到什么东西"
+        }
       ],
       "secrets": [
-        {"id": "fas1", "text": "留声机唱片录制于惠特利失踪前最后一晚。他的发音已经接近完美——咒语几乎可以念出来了。但他在最后一段停了十几秒，然后用完全不像他的声音说：'现在轮到你听了。'"}
+        {
+          "id": "fas1",
+          "text": "留声机唱片录制于惠特利失踪前最后一晚。他的发音已经接近完美——咒语几乎可以念出来了。但他在最后一段停了十几秒，然后用完全不像他的声音说：'现在轮到你听了。'"
+        }
       ],
-      "leads_to": ["foyer_converge"],
+      "leads_to": [
+        "foyer_converge"
+      ],
       "guidance": "阁楼是可选探索——提供氛围信息但非必需。留声机录音可触发SAN检定。"
     },
     {
@@ -103,7 +154,8 @@
         "library_research::library": "上楼去惠特利的图书室",
         "sanitarium_visit::ward14": "去阿卡姆疯人院找马丁"
       },
-      "guidance": "三条出口给了调查员方向选择。博物馆=学术路线，图书室=深入古屋，疯人院=直奔证人。"
+      "guidance": "三条出口给了调查员方向选择。博物馆=学术路线，图书室=深入古屋，疯人院=直奔证人。",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, Victorian mansion foyer investigation table at midnight, Whitley leather diary with crazed handwriting and occult diagrams, ancient phonograph with cracked record, dusty family portraits staring from walls, iron key to basement on velvet cloth, map of Arkham with university and asylum circled in red ink, evidence assembled, truth emerging, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and artifacts, deep shadows, dramatic chiaroscuro lighting, oppressive darkness"
     }
   ],
   "npcs": [],

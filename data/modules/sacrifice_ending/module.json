@@ -1,0 +1,36 @@
+{
+  "id": "sacrifice_ending",
+  "title": "结局·意识连接",
+  "genre": [
+    "horror",
+    "underground"
+  ],
+  "difficulty": 5,
+  "is_ending": true,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "ritual_preparations_witnessed",
+      "celestial_event_imminent"
+    ],
+    "mood": "despair"
+  },
+  "exits": [],
+  "scenes": [
+    {
+      "id": "ritual_circle",
+      "leads_to": "connection",
+      "description": "星辰归位了。石板网络全面激活——每一块碎片同时发出统一的绿光。远古文字提到如果一个人自愿成为石板的锚定点，以自身意识连接网络可以从内部逆转它的指向。代价——意识被永久分散在整个网络中，成为它的一部分。不死，也不是活着。在每一块石头里。",
+      "image_prompt": "underground ritual circle, all stone fragments glowing in unison green light, single figure stepping into center, Ink Frenzy style, ultimate sacrifice, transcendence and loss, deep shadows, dramatic chiaroscuro lighting, oppressive darkness, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture"
+    },
+    {
+      "id": "connection",
+      "exit_labels": {},
+      "description": "走入光圈。数以千计的碎片同时连接——你看到了一切：古文明沉入海中、惠特利的第一个夜晚、每一个失踪者的最后时刻、海底最深处沉睡的存在。你理解了它们的语言。你不再是单独的意志——是门，也是钥匙。门转向了内部。星辰的对齐过去了，门没有完全打开。【结局：意识连接】阿卡姆得救了——尽管无人知晓。海底的东西继续沉睡。刻着符号的石板碎片依然静静躺在各处。偶尔在安静时刻，也许会听到它们低声说话。不是威胁。是感谢。",
+      "image_prompt": "figure dissolving into thousands of green-glowing stone fragments, network of connections spreading through darkness, transcendent moment, Ink Frenzy style, monochrome with single muted green accent, dark cosmic horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture"
+    }
+  ]
+}

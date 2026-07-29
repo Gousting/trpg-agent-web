@@ -1,0 +1,59 @@
+{
+  "id": "cave_entrance",
+  "title": "洞穴入口·钟乳石殿",
+  "genre": [
+    "investigation",
+    "underground"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "underground_access_found"
+    ],
+    "mood": "mystery"
+  },
+  "exits": [
+    {
+      "id": "to_tunnel",
+      "label": "洞穴连接到地下通道网络",
+      "provides_clues": [
+        "cave_entrance_discovered",
+        "tunnel_network_mapped"
+      ],
+      "mood": "mystery",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "to_chamber",
+      "label": "洞穴深处有远古建筑",
+      "provides_clues": [
+        "cave_entrance_discovered"
+      ],
+      "mood": "awe",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "opening",
+      "description": "隐蔽在枯树根下的洞口一进去就豁然开朗——不是粗糙的天然洞穴，而是一个被后期修整过的钟乳石大厅。柱状的钟乳石被人为削平，上面刻着不同时代的文字——拉丁文、古希腊文、以及更古老的不属于任何已知语言的楔形符号。中央的石台上放着一盏还在燃烧的油灯。",
+      "image_prompt": "cavern entrance opening into stalactite hall, columns carved with multilanguage inscriptions from different eras, oil lamp still burning on central stone platform, Ink Frenzy style, ancient meeting place, subterranean cathedral",
+      "leads_to": "junction"
+    },
+    {
+      "id": "junction",
+      "description": "大厅后方分出三条通道。左边一条有新鲜脚印，空气中还残留着淡淡的焚香；中间一条传来水声，通道壁上有旧式的矿灯支架；右边一条最窄，但地面上有拖动重物的痕迹，墙壁上还有没干透的——血。",
+      "image_prompt": "cavern junction with three dark tunnels, fresh footprints in left tunnel, miner lanterns in middle, blood smears on right tunnel wall, Ink Frenzy style, subterranean crossroads, choose your descent, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "vote_prompt": "进哪条通道？",
+      "exit_labels": {
+        "underground_chamber::crypt_stairs": "左——新鲜脚印和焚香（追踪仪式的路径）",
+        "tunnel_crossroads::junction": "中——水声和矿灯（原始地下通道系统）",
+        "creature_lair::nest": "右——血迹和拖痕（面对猎食者）"
+      }
+    }
+  ]
+}

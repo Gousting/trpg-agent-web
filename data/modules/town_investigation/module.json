@@ -1,12 +1,20 @@
 {
   "id": "town_investigation",
   "title": "阿卡姆镇调查",
-  "genre": ["horror", "investigation"],
+  "genre": [
+    "horror",
+    "investigation"
+  ],
   "difficulty": 1,
   "duration_estimate": "3-5 turns",
   "entry": {
-    "location_types": ["outdoor", "urban"],
-    "required_clues": ["town_arrived"],
+    "location_types": [
+      "outdoor",
+      "urban"
+    ],
+    "required_clues": [
+      "town_arrived"
+    ],
     "forbidden_clues": [],
     "mood": null
   },
@@ -14,7 +22,13 @@
     {
       "id": "town_done",
       "label": "调查完毕，前往古屋",
-      "provides_clues": ["town_investigated", "whitley_history_known"],
+      "provides_clues": [
+        "missing_persons_known",
+        "plant_origin_swamp",
+        "town_investigated",
+        "whitley_history_known",
+        "whitley_property_secret"
+      ],
       "mood": "determined",
       "next_location_type": "indoor"
     }
@@ -27,16 +41,31 @@
       "scene_type": "城镇广场",
       "image_prompt": "1920s New England small town square at dusk, cobblestone streets wet from recent rain, a wrought-iron gas lamp flickering in the center, old colonial buildings with darkened windows, a wooden notice board covered in faded missing person posters, an old man feeding pigeons on a bench watching suspiciously, few people on streets all avoiding eye contact, ominous quiet small town atmosphere, Ink Frenzy style",
       "description": "阿卡姆镇的广场在黄昏时分显得异常安静。石板街道被傍晚的雨水浸湿，反射着中央铁煤气灯的光。公告板上贴满了褪色的寻人启事——最早的一张日期是三周前，恰好是惠特利回到镇上的时间。长椅上喂鸽子的老人用怀疑的目光审视着你们这些外地人。镇上的人都知道出事了，但没人愿意谈。",
-      "npcs_here": ["喂鸽老人"],
+      "npcs_here": [
+        "喂鸽老人"
+      ],
       "opportunities": [
-        {"id": "t1", "text": "查看公告板上的寻人启事（侦查）——三周内失踪了七个人。全是独居的镇上老人。惠特利回来后开始的"},
-        {"id": "t2", "text": "与喂鸽老人搭话（交涉）——如果取得信任，他会低声告诉你们：'失踪的人最后都被看到往山上的老宅方向走了。像被叫过去的。'"}
+        {
+          "id": "t1",
+          "text": "查看公告板上的寻人启事（侦查）——三周内失踪了七个人。全是独居的镇上老人。惠特利回来后开始的"
+        },
+        {
+          "id": "t2",
+          "text": "与喂鸽老人搭话（交涉）——如果取得信任，他会低声告诉你们：'失踪的人最后都被看到往山上的老宅方向走了。像被叫过去的。'"
+        }
       ],
       "secrets": [
-        {"id": "ts1", "text": "失踪的七个人都是独居——没有家人会发现他们不见了。石板选择性地'召唤'那些不会被立刻怀念的人"}
+        {
+          "id": "ts1",
+          "text": "失踪的七个人都是独居——没有家人会发现他们不见了。石板选择性地'召唤'那些不会被立刻怀念的人"
+        }
       ],
       "vote_prompt": "镇上有三个地方可以去。先查哪？",
-      "leads_to": ["town_newspaper", "town_antique", "town_church"],
+      "leads_to": [
+        "town_newspaper",
+        "town_antique",
+        "town_church"
+      ],
       "exit_labels": {
         "town_newspaper": "去报社查旧档案",
         "town_antique": "去古董店问中东文物",
@@ -51,15 +80,28 @@
       "scene_type": "报社",
       "image_prompt": "1920s small town newspaper office at night, cluttered desks with typewriters and stacks of yellowed newspapers, a single green banker's lamp illuminating a young reporter working late, walls covered in pinned news clippings connected by red string, filing cabinets half-open with folders spilling out, cigarette smoke hanging in the air, detective noir atmosphere, Ink Frenzy style",
       "description": "阿卡姆公报的办公室在二楼，楼梯踩上去嘎吱作响。一个年轻记者还在加班，绿色台灯下的烟灰缸已经满了。墙上钉着用红线串联的剪报——从三周前开始，密密麻麻。记者看到你们翻看旧报纸，递过来一个文件夹：'你们在查惠特利？我整理了所有涉及他的报道。但有些事报纸没登——镇上失踪那七个人，最后出现的地方都在他家附近。'",
-      "npcs_here": ["年轻记者"],
+      "npcs_here": [
+        "年轻记者"
+      ],
       "opportunities": [
-        {"id": "tn1", "text": "翻阅报纸存档（图书馆使用）——惠特利回镇前后一年内，阿卡姆的异常事件报告翻了五倍"},
-        {"id": "tn2", "text": "查看记者的调查笔记（侦查）——他标注了七个人的失踪时间线，全部指向同一个日期：惠特利回到镇上的第二天"}
+        {
+          "id": "tn1",
+          "text": "翻阅报纸存档（图书馆使用）——惠特利回镇前后一年内，阿卡姆的异常事件报告翻了五倍"
+        },
+        {
+          "id": "tn2",
+          "text": "查看记者的调查笔记（侦查）——他标注了七个人的失踪时间线，全部指向同一个日期：惠特利回到镇上的第二天"
+        }
       ],
       "secrets": [
-        {"id": "tns1", "text": "记者私下告诉你：警察局压下了失踪报告。不是腐败——警察局长上周也失踪了"}
+        {
+          "id": "tns1",
+          "text": "记者私下告诉你：警察局压下了失踪报告。不是腐败——警察局长上周也失踪了"
+        }
       ],
-      "leads_to": ["town_converge"],
+      "leads_to": [
+        "town_converge"
+      ],
       "guidance": "报社提供最高信息密度的背景情报。记者是可招募NPC——如果玩家取得他的信任。"
     },
     {
@@ -67,17 +109,30 @@
       "title": "老威尔逊古董店",
       "part": 1,
       "scene_type": "古董店",
-      "image_prompt": "cramped 1920s antique shop interior, floor to ceiling shelves overflowing with curiosities from around the world, Egyptian canopic jars next to Roman coins, a glass display case with a rectangular dust-free spot where something was recently removed, the elderly shopkeeper peering through thick spectacles nervously, strange shadows cast by objects that shouldn't cast shadows, cluttered occult atmosphere, Ink Frenky style",
+      "image_prompt": "cramped 1920s antique shop, floor to ceiling shelves packed with curiosities, empty display space where something was removed, thick dust, Ink Frenzy style, monochrome sepia palette, claustrophobic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "老威尔逊的古董店塞满了来自世界各地的奇物——埃及陶罐、罗马钱币、南洋面具。但玻璃柜台正中央有一块干净的矩形痕迹。那里不久前还放着什么东西。威尔逊推了推厚眼镜，看到你们问中东文物时脸色变了：'你们是来问那块黑石板的。惠特利两周前拿来要我鉴定。我摸了一下——只有一下——然后就把它还给他了。老头子我见过很多怪东西，但那块石头是活的。它在摸我。'",
-      "npcs_here": ["老威尔逊"],
+      "npcs_here": [
+        "老威尔逊"
+      ],
       "opportunities": [
-        {"id": "ta1", "text": "询问石板细节（交涉）——威尔逊形容石板'温度恒定在体温'，'表面的铭文会自己移动'，'放在黑暗里会发出呼吸节奏的光'"},
-        {"id": "ta2", "text": "检查玻璃柜台（侦查）——柜台被石板压过的位置，玻璃密度变得异常，硬币放上去会自己滑动"}
+        {
+          "id": "ta1",
+          "text": "询问石板细节（交涉）——威尔逊形容石板'温度恒定在体温'，'表面的铭文会自己移动'，'放在黑暗里会发出呼吸节奏的光'"
+        },
+        {
+          "id": "ta2",
+          "text": "检查玻璃柜台（侦查）——柜台被石板压过的位置，玻璃密度变得异常，硬币放上去会自己滑动"
+        }
       ],
       "secrets": [
-        {"id": "tas1", "text": "威尔逊没有说实话。他不是只摸了一下——他把石板在店里留了一整晚。第二天醒来发现自己站在店外，不记得怎么出去的。柜台里少了三件古董——全是与克苏鲁神话有关联的文物。石板在'收集'同类"}
+        {
+          "id": "tas1",
+          "text": "威尔逊没有说实话。他不是只摸了一下——他把石板在店里留了一整晚。第二天醒来发现自己站在店外，不记得怎么出去的。柜台里少了三件古董——全是与克苏鲁神话有关联的文物。石板在'收集'同类"
+        }
       ],
-      "leads_to": ["town_converge"],
+      "leads_to": [
+        "town_converge"
+      ],
       "guidance": "古董店提供石板物理特性的第一手观察——活的、有体温、会收集同类文物。"
     },
     {
@@ -85,17 +140,30 @@
       "title": "圣玛丽老教堂",
       "part": 1,
       "scene_type": "教堂",
-      "image_prompt": "old New England colonial church interior at night, wooden pews worn smooth by centuries of use, stained glass windows depicting biblical scenes but one panel shows something wrong, the altar candle burning with an unnatural green flame, an elderly priest kneeling in prayer muttering latin verses, heavy oppressive religious atmosphere, gothic horror, Ink Frenzy style",
+      "image_prompt": "old New England colonial church interior at night, wooden pews worn smooth by centuries of use, stained glass windows depicting biblical scenes but one panel shows something wrong, the altar candle burning with an unnatural green flame, an elderly priest kneeling in prayer muttering latin verses, heavy oppressive religious atmosphere, gothic horror, Ink Frenzy style, no legible English text, no readable signage, no letters on any surface, clear defined forms, distinct architectural details, not abstract, not loose ink wash, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
       "description": "圣玛丽教堂建于殖民时期，是镇上最老的建筑。推开厚重的橡木门，教堂里只有一个老神父在跪着祈祷。祭坛上的蜡烛燃烧着不自然的绿色火焰。你们走近时注意到一面彩绘玻璃不对劲——描绘天使报喜的场景中，天使的脸是空白的。不是被破坏，是从来就没有画上去。神父抬头，眼神绝望：'上帝已经离开了阿卡姆。三周前开始的。我的祈祷没有人听。'",
-      "npcs_here": ["老神父"],
+      "npcs_here": [
+        "老神父"
+      ],
       "opportunities": [
-        {"id": "tc1", "text": "与神父对话（交涉/心理学）——他承认绿色火焰是无法熄灭的——每次吹灭它都会自己复燃。他认为山下有东西在'取代'上帝的位置"},
-        {"id": "tc2", "text": "检查异常彩绘玻璃（克苏鲁神话）——无脸的使者是深渊之物的仆从。当它能被凡人画出时，说明它已经进入了这个世界"}
+        {
+          "id": "tc1",
+          "text": "与神父对话（交涉/心理学）——他承认绿色火焰是无法熄灭的——每次吹灭它都会自己复燃。他认为山下有东西在'取代'上帝的位置"
+        },
+        {
+          "id": "tc2",
+          "text": "检查异常彩绘玻璃（克苏鲁神话）——无脸的使者是深渊之物的仆从。当它能被凡人画出时，说明它已经进入了这个世界"
+        }
       ],
       "secrets": [
-        {"id": "tcs1", "text": "神父抽屉里藏着一把银匕首——不是用来伤害人的。是他在考虑用来结束自己的。但他不敢，因为他怕死后的世界也被'它'接管了"}
+        {
+          "id": "tcs1",
+          "text": "神父抽屉里藏着一把银匕首——不是用来伤害人的。是他在考虑用来结束自己的。但他不敢，因为他怕死后的世界也被'它'接管了"
+        }
       ],
-      "leads_to": ["town_converge"],
+      "leads_to": [
+        "town_converge"
+      ],
       "guidance": "教堂线提供精神/信仰维度的恐怖——石板的影响超出了物理层面，开始侵蚀宗教信仰。"
     },
     {
@@ -112,9 +180,11 @@
       "exit_labels": {
         "foyer_investigation::foyer": "直接上山去惠特利老宅",
         "hotel_room::room": "先去海风旅馆找惠特利的遗物",
-        "museum_archives::archive_room": "去大学博物馆查考古档案"
+        "museum_archives::archive_room": "去大学博物馆查考古档案",
+        "newspaper_archives::archive_room": "去报社档案室查失踪者报道"
       },
-      "guidance": "三条出口给了充分的路线选择。镇上调是可选模块——提供额外背景但不阻塞主线。"
+      "guidance": "三条出口给了充分的路线选择。镇上调是可选模块——提供额外背景但不阻塞主线。",
+      "image_prompt": "Arkham town square evidence gathering at twilight, cobblestones wet from evening rain, gas lamp illuminating investigation board pinned to church notice board, newspaper clippings linked with red thread, antique shop empty display space where black stone once sat, stained glass window design sketch showing angel with blank face, Ink Frenzy style, the whole town knows but no one speaks, full moon one day left, mountain mansion like a black tooth on horizon, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and artifacts"
     }
   ],
   "npcs": [

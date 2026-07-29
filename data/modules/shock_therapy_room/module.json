@@ -1,0 +1,48 @@
+{
+  "id": "shock_therapy_room",
+  "title": "疯人院·电击治疗室",
+  "genre": [
+    "horror",
+    "institutional"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "institutional",
+      "basement"
+    ],
+    "required_clues": [
+      "patient_testimony"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_underground",
+      "label": "电击室地下有通道",
+      "provides_clues": [
+        "therapy_records",
+        "underground_passage_found"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "room",
+      "description": "电击治疗室的设备被改装过——不是医疗设备，而是一台庞大的变压器，将城市电网的电力集中到一张金属手术床上。床边堆满记录：每一次'治疗'的精确电压、持续时间，以及病人的'意识漂移距离'。最后一页记录了一个病人被'送到很远的地方，带回了有用的信息'。",
+      "image_prompt": "1920s shock therapy room converted into something worse, massive transformer, metal surgical bed, stack of records documenting 'consciousness drift distance', Ink Frenzy style, medical horror, electricity as occult tool, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture",
+      "leads_to": "trapdoor"
+    },
+    {
+      "id": "trapdoor",
+      "description": "手术床下的地板有一个暗门——电源线全部从这里延伸到地下。打开暗门，下面不是医院地下室，而是天然石阶，砌着你们已经熟悉的符号。通道两侧的墙壁上每隔几步就有一个壁龛，里面放着——人的颅骨，每个颅骨顶都钻了孔。",
+      "image_prompt": "dark atmospheric Ink Frenzy illustration, desaturated muted palette, strictly no bright colors, no comic book aesthetic, no manga style, trapdoor under surgical bed, power cables running down stone stairs, wall niches with trepanned human skulls, descent into industrial-occult horror, gateway below institution, deep shadows, dramatic chiaroscuro lighting, oppressive darkness, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "exit_labels": {
+        "underground_chamber::crypt_stairs": "下去——这些石阶通向地下仪式场所",
+        "asylum_cells::ward": "先回病房区释放其他病人"
+      }
+    }
+  ]
+}

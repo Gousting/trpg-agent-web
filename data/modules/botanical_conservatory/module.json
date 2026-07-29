@@ -1,0 +1,48 @@
+{
+  "id": "botanical_conservatory",
+  "title": "大学植物温室·异常植物",
+  "genre": [
+    "investigation",
+    "academic"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "academic",
+      "indoor"
+    ],
+    "required_clues": [
+      "microbial_life_discovered"
+    ],
+    "mood": "unease"
+  },
+  "exits": [
+    {
+      "id": "to_swamp",
+      "label": "植物原产地——沼泽",
+      "provides_clues": [
+        "plant_toxin_identified",
+        "plant_origin_swamp"
+      ],
+      "mood": "dread",
+      "next_location_type": "swamp"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "greenhouse",
+      "description": "热带温室在夜间闷热潮湿。守夜的研究员带你们看一株三周前从南太平洋送来的未知品种藤蔓——它顺着支架爬满了整个角落，但所有叶子都朝同一个方向生长：朝向古屋的方向。研究员说它晚上会'发出声音'。",
+      "image_prompt": "1920s botanical greenhouse at night, mysterious vine from South Pacific climbing supports, all leaves pointing in same direction, humid atmosphere, glass panes fogged, Ink Frenzy style, unnatural botany, greenhouse horror",
+      "leads_to": "lab_notes"
+    },
+    {
+      "id": "lab_notes",
+      "description": "植物学家的实验记录：该植物提取物与石板微生物存在共生关系。更可怕的是——浇灌了稀释提取物的小白鼠开始做出有组织的集体行为，就像被同一个意志控制。植物的原生采集地点是阿卡姆西北方向的沼泽深处。",
+      "image_prompt": "botanist lab notes with sketches of vine and rats, microscope slides, specimen jars, disturbed findings, Ink Frenzy style, scientific evidence of horror, methodical documentation, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
+      "exit_labels": {
+        "swamp_shack::approach": "去沼泽深处找植物原产地",
+        "pine_barrens::clearing": "先调查附近的森林异常地带"
+      }
+    }
+  ]
+}

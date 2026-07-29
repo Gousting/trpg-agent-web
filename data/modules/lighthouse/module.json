@@ -1,21 +1,76 @@
 {
-  "id": "lighthouse", "title": "礁石灯塔", "genre": ["horror", "maritime"], "difficulty": 3, "duration_estimate": "2-3 turns",
-  "entry": {"location_types": ["outdoor", "coastal"], "required_clues": ["dockside_horror_witnessed"], "forbidden_clues": [], "mood": null},
+  "id": "lighthouse",
+  "title": "礁石灯塔",
+  "genre": [
+    "horror",
+    "maritime"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "coastal",
+      "indoor"
+    ],
+    "required_clues": [
+      "dockside_horror_witnessed"
+    ],
+    "forbidden_clues": [],
+    "mood": null
+  },
   "scenes": [
-    {"id": "lighthouse_ext", "title": "灯塔外", "part": 1, "scene_type": "海岸",
+    {
+      "id": "lighthouse_ext",
+      "title": "灯塔外",
+      "part": 1,
+      "scene_type": "海岸",
       "image_prompt": "remote lighthouse on a rocky outcrop at night, waves crashing violently against the rocks below sending spray high into the air, the lighthouse beam sweeping across the black ocean but illuminating something massive just beneath the surface between sweeps, the keeper's cottage next to the tower with all lights off and door swinging open, storm brewing on the horizon, maritime cosmic horror, Ink Frenzy style",
       "description": "灯塔坐落在离岸礁石上，只有一条被海浪反复冲刷的石堤连接。看守人的小屋黑着灯，门被风撞得来回摆动。灯塔的光束照过海面时，你们看到了——光束扫过之处，海面下有一个巨大的黑影。下一圈扫过时它还在。再下一圈，更近了。",
-      "npcs_here": [], "opportunities": [{"id": "lh1", "text": "观察海下黑影（侦查）——不是鲸鱼。轮廓大致是人形，但大得多——和灯塔一样高"}],
-      "secrets": [{"id": "lhs1", "text": "石板碎片中最重的一块被惠特利扔进了海里。它在海底生根了——在生长"}],
-      "leads_to": ["lighthouse_lantern"], "guidance": "灯塔线揭示石板碎片的海洋生态——海水加速了它的生长。"
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "lh1",
+          "text": "观察海下黑影（侦查）——不是鲸鱼。轮廓大致是人形，但大得多——和灯塔一样高"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "lhs1",
+          "text": "石板碎片中最重的一块被惠特利扔进了海里。它在海底生根了——在生长"
+        }
+      ],
+      "leads_to": [
+        "lighthouse_lantern"
+      ],
+      "guidance": "灯塔线揭示石板碎片的海洋生态——海水加速了它的生长。"
     },
-    {"id": "lighthouse_lantern", "title": "灯室", "part": 1, "scene_type": "塔顶",
+    {
+      "id": "lighthouse_lantern",
+      "title": "灯室",
+      "part": 1,
+      "scene_type": "塔顶",
       "image_prompt": "lighthouse lantern room at the top of spiral stairs, the massive fresnel lens rotating slowly casting beams of light, the keeper slumped against the glass with his eyes wide open but completely white, his logbook open to the last entry describing 'a light under the water answering mine', the view through the glass showing the ocean surface boiling with bioluminescent green shapes, claustrophobic maritime horror, Ink Frenzy style",
       "description": "螺旋楼梯尽头，看守人靠坐在灯室的玻璃上。他的眼睛睁着，但瞳孔完全白了。航海日志翻开到最后——最后一条写：'海底有光在回应我的灯。它在学我的节奏。我不应该回应它的。它在往上游。'透过玻璃望出去——海面正在沸腾，幽绿色的生物荧光在水下形成一个巨大的图案——和石板上刻的符号一模一样。",
-      "npcs_here": [], "opportunities": [{"id": "ll1", "text": "检查看守人的眼睛（医学）——视网膜被烧穿了，从内侧。他看到了不该被肉眼看到的光"}],
-      "secrets": [{"id": "lls1", "text": "海底那块碎片已经长到了原石碑的三分之一大小。它在海底建造自己的立石圈"}],
-      "leads_to": [], "exit_labels": {"escape_chase::woods": "海底的东西浮上来了——快跑", "docks_warehouse::warehouse_ext": "回码头——惠特利是从码头扔下碎片的"}
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "ll1",
+          "text": "检查看守人的眼睛（医学）——视网膜被烧穿了，从内侧。他看到了不该被肉眼看到的光"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "lls1",
+          "text": "海底那块碎片已经长到了原石碑的三分之一大小。它在海底建造自己的立石圈"
+        }
+      ],
+      "leads_to": [],
+      "exit_labels": {
+        "escape_chase::woods": "海底的东西浮上来了——快跑",
+        "docks_warehouse::warehouse_ext": "回码头——惠特利是从码头扔下碎片的"
+      }
     }
   ],
-  "npcs": [], "variance": {}
+  "npcs": [],
+  "variance": {}
 }

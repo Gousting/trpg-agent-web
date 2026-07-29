@@ -1,0 +1,58 @@
+{
+  "id": "church_yard",
+  "title": "老石教堂·墓地调查",
+  "genre": [
+    "investigation",
+    "religious"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "religious"
+    ],
+    "required_clues": [
+      "parish_records_found"
+    ],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "to_crypt",
+      "label": "墓地线索指向地下墓穴",
+      "provides_clues": [
+        "graveyard_disturbed",
+        "whitley_crypt_opened"
+      ],
+      "mood": "horror",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "to_swamp",
+      "label": "新坟的土来自沼泽方向",
+      "provides_clues": [
+        "graveyard_disturbed"
+      ],
+      "mood": "dread",
+      "next_location_type": "swamp"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "churchyard",
+      "description": "老石教堂后的墓地笼罩在薄雾中。惠特利家的家族墓穴铁门虚掩，台阶上有新鲜泥土。附近六个坟的墓碑上都被刻了同样的符号——和古屋里发现的一模一样。",
+      "image_prompt": "old stone church graveyard in mist, Whitley family crypt with iron gate ajar, fresh dirt on stone steps, strange symbols carved on six tombstones, moonlight through bare trees, Ink Frenzy style, gothic horror, church spire silhouetted against night sky",
+      "leads_to": "crypt_entrance"
+    },
+    {
+      "id": "crypt_entrance",
+      "description": "墓穴入口处丢着一把铁锹和一个空麻袋——有人最近来过。往下看，台阶消失在黑暗中，隐约能听到深处有低沉的呢喃声。新鲜的泥土拖痕通向森林方向。",
+      "image_prompt": "old stone crypt entrance in foggy graveyard, iron gate leading into darkness below, moss-covered stonework, fresh dirt nearby, Ink Frenzy style, gothic horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "vote_prompt": "往哪个方向追？",
+      "exit_labels": {
+        "underground_chamber::crypt_stairs": "下去追查墓穴深处的声音",
+        "pine_barrens::clearing": "沿着拖痕追入森林"
+      }
+    }
+  ]
+}
