@@ -8,3 +8,5 @@ data/sessions/*/state.json
 data/sessions/*/history.jsonl
 !data/sessions/default/characters.json
 data/saves/
+data/tts_cache/
+trpg_agent_web/static/maps/current_*.png

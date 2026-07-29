@@ -302,7 +302,8 @@ def _dice_consequence(dice_context: str, inv_state) -> dict | None:
 async def event_stream(host: str, kp_model: str, player_model: str,
                        turns: int, seed: int | None, mode: str,
                        compose_modules: bool = False,
-                       kp_api_key: str = ""):
+                       kp_api_key: str = "",
+                       force_pickup: bool = False):
     """SSE 事件流 — 完整的游戏循环。"""
     
     # ── 模块组合模式 ──────────────────────────
@@ -459,13 +460,23 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         if mode == "ai":
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             action = ""
-            async for token in _ai_player_stream(host, player_model, inv_data, inv_state,
-                                                  rc, last_narration, speaker):
-                action += token
-                yield _sse("player_token", {"text": token, "speaker": speaker})
-            if not action.strip():
-                action = f"（{speaker} 谨慎地观察四周）"
-                yield _sse("player_token", {"text": action, "speaker": speaker})
+            # force_pickup: 首轮强制拾取房间物品
+            if force_pickup and turn == 0:
+                room_items = dmap.current_room.items if dmap.current_room else []
+                if room_items:
+                    action = f"{speaker}捡起{room_items[0]}"
+                    yield _sse("player_token", {"text": action, "speaker": speaker})
+                else:
+                    action = f"（{speaker} 谨慎地观察四周）"
+                    yield _sse("player_token", {"text": action, "speaker": speaker})
+            else:
+                async for token in _ai_player_stream(host, player_model, inv_data, inv_state,
+                                                      rc, last_narration, speaker):
+                    action += token
+                    yield _sse("player_token", {"text": token, "speaker": speaker})
+                if not action.strip():
+                    action = f"（{speaker} 谨慎地观察四周）"
+                    yield _sse("player_token", {"text": action, "speaker": speaker})
             yield _sse("player_stream_end", {"speaker": speaker})
             await asyncio.sleep(0.2)
         else:
@@ -716,6 +727,7 @@ async def stream(
     mode: str = "ai",
     compose_modules: bool = True,
     kp_api_key: str = "",
+    force_pickup: bool = False,
 ):
     try:
         seed_val = int(seed) if seed else None
@@ -723,7 +735,7 @@ async def stream(
         seed_val = None
     return StreamingResponse(
         event_stream(host, kp, player, turns, seed_val, mode, compose_modules,
-                     kp_api_key=kp_api_key),
+                     kp_api_key=kp_api_key, force_pickup=force_pickup),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

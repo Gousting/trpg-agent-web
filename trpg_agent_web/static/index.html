@@ -359,6 +359,9 @@ function startGame() {
     kp_api_key: document.getElementById('kp-api-key').value,
   });
   if (document.getElementById('compose-modules').checked) params.append('compose_modules', 'true');
+  // 从 URL 获取 force_pickup
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('force_pickup') === 'true') params.append('force_pickup', 'true');
 
   es = new EventSource('/api/stream?' + params);
 
