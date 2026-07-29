@@ -11,6 +11,7 @@ import argparse
 import asyncio
 import hashlib
 import json
+import logging
 import os
 import shutil
 from datetime import datetime
@@ -25,11 +26,14 @@ from pydantic import BaseModel
 
 from trpg_agent.session import Session
 from trpg_agent.llm.client import OllamaClient
+from trpg_agent.llm.remote_client import RemoteClient
 from trpg_agent.memory.game_state import Investigator
 from trpg_agent.mapgen import DungeonMap
 from trpg_agent.scene_matcher import SceneMatcher
 from trpg_agent.adventure.module_composer import ModuleComposer
 from trpg_agent.adventure import Adventure
+
+log = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════
 # 配置
@@ -66,8 +70,8 @@ BGM_DIR = DATA_DIR / "bgm"
 CHARS_DIR = DATA_DIR / "characters" / "Userimage"
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-app.mount("/images/scenes", StaticFiles(directory=str(SCENES_DIR)), name="scenes")
 app.mount("/images/scenes/modules", StaticFiles(directory=str(MODULES_DIR)), name="module_scenes")
+app.mount("/images/scenes", StaticFiles(directory=str(SCENES_DIR)), name="scenes")
 app.mount("/images/characters", StaticFiles(directory=str(CHARS_DIR)), name="characters")
 app.mount("/audio/bgm", StaticFiles(directory=str(BGM_DIR)), name="bgm")
 
@@ -94,7 +98,17 @@ async def index() -> str:
     return (STATIC_DIR / "index.html").read_text(encoding="utf-8")
 
 
-# ── 工具函数 ────────────────────────────────────
+def _is_remote_host(host: str) -> bool:
+    """判断是否为远程 API（非 Ollama）。"""
+    return "/v1" in host or host.startswith("https://")
+
+
+def _make_client(host: str, model: str, api_key: str = "", *,
+                 num_ctx: int = 8192, timeout: float = 300):
+    """根据 host 创建 OllamaClient 或 RemoteClient。"""
+    if _is_remote_host(host):
+        return RemoteClient(host, model, api_key, timeout=timeout)
+    return OllamaClient(host, model, num_ctx=num_ctx, timeout=timeout)
 
 
 def _scene_matcher() -> SceneMatcher:
@@ -106,7 +120,8 @@ def _scene_matcher() -> SceneMatcher:
 
 def _state_snapshot(session: Session) -> dict:
     """调查员状态快照。"""
-    return {
+    import sys
+    snap = {
         inv.name: {
             "hp": inv.hp, "max_hp": inv.max_hp,
             "san": inv.san, "max_san": inv.max_san,
@@ -116,11 +131,13 @@ def _state_snapshot(session: Session) -> dict:
         }
         for inv in session.state.investigators
     }
+    print(f"SNAPSHOT: { {n: s['san'] for n,s in snap.items()} }", file=sys.stderr, flush=True)
+    return snap
 
 
-async def _chat_stream(client: OllamaClient, system: str, user_msg: str,
+async def _chat_stream(client, system: str, user_msg: str,
                        temperature: float = 0.8, max_tokens: int = 2000):
-    """流式聊天，yield token（状态机过滤 GS 标记，最小缓冲）。"""
+    """流式聊天，yield token（状态机过滤 GS 标记，最小缓冲）。兼容 OllamaClient 和 RemoteClient。"""
     buf = ""
     in_marker = False
     _GS_START = "<!--GS"
@@ -269,18 +286,23 @@ def _dice_consequence(dice_context: str, inv_state) -> dict | None:
     r = random.random()
     if r < 0.5:
         loss = random.randint(1, 2)
+        old = inv_state.san
         inv_state.san = max(0, inv_state.san - loss)
+        import sys
+        print(f"DICE_CONS: {inv_state.name} SAN {old}→{inv_state.san} (r={r:.3f} loss={loss})", file=sys.stderr, flush=True)
         return {"type": "san_loss", "amount": loss, "text": f"SAN -{loss}"}
     elif r < 0.8:
         dmg = 1
         inv_state.take_damage(dmg)
+        log.info("DICE_CONS: %s HP -%d", inv_state.name, dmg)
         return {"type": "damage", "amount": dmg, "text": f"HP -{dmg}"}
     return None
 
 
 async def event_stream(host: str, kp_model: str, player_model: str,
                        turns: int, seed: int | None, mode: str,
-                       compose_modules: bool = False):
+                       compose_modules: bool = False,
+                       kp_api_key: str = ""):
     """SSE 事件流 — 完整的游戏循环。"""
     
     # ── 模块组合模式 ──────────────────────────
@@ -306,19 +328,20 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         "image": dmap.relative_path,
     })
 
-    # ── 模型检查 ──────────────────────────────
-    try:
-        async with httpx.AsyncClient(timeout=5) as cl:
-            resp = await cl.get(f"{host}/api/tags")
-            available = [m["name"] for m in resp.json().get("models", [])]
-    except Exception:
-        available = []
+    # ── 模型检查（仅 Ollama）──────────────────
+    use_remote = _is_remote_host(host)
+    if not use_remote:
+        try:
+            async with httpx.AsyncClient(timeout=5) as cl:
+                resp = await cl.get(f"{host}/api/tags")
+                available = [m["name"] for m in resp.json().get("models", [])]
+        except Exception:
+            available = []
+        if available and kp_model not in available:
+            yield _sse("error", {"text": f"KP模型 {kp_model} 不可用"})
+            return
 
-    if available and kp_model not in available:
-        yield _sse("error", {"text": f"KP模型 {kp_model} 不可用"})
-        return
-
-    kp_client = OllamaClient(host, kp_model, num_ctx=8192, timeout=180)
+    kp_client = _make_client(host, kp_model, kp_api_key, timeout=300)
 
     # ── Session ───────────────────────────────
     sid = f"web_{datetime.now().strftime('%m%d_%H%M%S')}"
@@ -328,12 +351,21 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     session = Session(sid, auto_save_interval=0, max_context=8192)
 
     for inv_data in INVESTIGATORS:
-        inv = Investigator(
-            name=inv_data["name"], hp=inv_data["hp"], max_hp=inv_data["max_hp"],
-            san=inv_data["san"], max_san=inv_data["max_san"], luck=inv_data["luck"],
-            skills=inv_data["skills"], inventory=list(inv_data.get("inventory", [])),
-        )
-        session.state.investigators.append(inv)
+        # 避免重复：characters.json 可能已经加载过
+        existing = session.state.find_investigator(inv_data["name"])
+        if existing:
+            existing.hp = inv_data.get("hp", existing.hp)
+            existing.san = inv_data.get("san", existing.san)
+            existing.max_hp = inv_data.get("max_hp", existing.max_hp)
+            existing.max_san = inv_data.get("max_san", existing.max_san)
+            existing.luck = inv_data.get("luck", existing.luck)
+        else:
+            inv = Investigator(
+                name=inv_data["name"], hp=inv_data["hp"], max_hp=inv_data["max_hp"],
+                san=inv_data["san"], max_san=inv_data["max_san"], luck=inv_data["luck"],
+                skills=inv_data["skills"], inventory=list(inv_data.get("inventory", [])),
+            )
+            session.state.investigators.append(inv)
     session.state.location = current_room.name if current_room else ""
 
     # ── 模块模式：注入冒险上下文 ──────────────
@@ -394,7 +426,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     yield _sse("kp_stream_start", {})
     opening_text = ""
     async for token in _chat_stream(kp_client, system_prompt, coc_directive,
-                                    temperature=0.8, max_tokens=2500):
+                                    temperature=0.8, max_tokens=4000):
         opening_text += token
         yield _sse("kp_token", {"text": token})
     if not opening_text:
@@ -514,7 +546,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         yield _sse("kp_stream_start", {})
         narration = ""
         async for token in _chat_stream(kp_client, system_prompt, kp_user,
-                                        temperature=0.8, max_tokens=2500):
+                                        temperature=0.8, max_tokens=4000):
             narration += token
             yield _sse("kp_token", {"text": token})
         if not narration:
@@ -598,7 +630,7 @@ async def _ai_player_stream(host: str, player_model: str,
     try:
         async for token in player_client.chat_stream(
             player_system, [{"role": "user", "content": player_msg}],
-            options={"temperature": 0.9, "num_predict": 2000},
+            options={"temperature": 0.9},
         ):
             yield token
     except Exception:
@@ -682,14 +714,16 @@ async def stream(
     turns: int = 12,
     seed: str = "",
     mode: str = "ai",
-    compose_modules: bool = False,
+    compose_modules: bool = True,
+    kp_api_key: str = "",
 ):
     try:
         seed_val = int(seed) if seed else None
     except ValueError:
         seed_val = None
     return StreamingResponse(
-        event_stream(host, kp, player, turns, seed_val, mode, compose_modules),
+        event_stream(host, kp, player, turns, seed_val, mode, compose_modules,
+                     kp_api_key=kp_api_key),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

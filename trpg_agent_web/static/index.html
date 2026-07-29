@@ -235,12 +235,15 @@
 <!-- 顶部控制 -->
 <div id="controls">
   <button id="btn-start" onclick="startGame()">▶ 开始跑团</button>
-  <label>Host</label><input id="ollama-host" value="http://localhost:11434" style="width:180px">
-  <label>KP</label><select id="kp-model"><option>gemma4:12b</option><option>qwen3.6:27b</option></select>
+  <label>Host</label><input id="ollama-host" value="http://192.168.0.108:11434" style="width:180px">
+  <label>KP Key</label><input id="kp-api-key" type="password" placeholder="远程API必填" style="width:140px">
+  <label>KP</label><input id="kp-model" list="kp-models" value="gemma4:12b" style="width:180px">
+  <datalist id="kp-models"><option value="gemma4:12b"><option value="qwen3.6:27b"><option value="deepseek-v4-flash-free"><option value="ornith:9b"></datalist>
   <label>玩家</label><select id="player-model"><option>ornith:9b</option><option>gemma4:12b</option></select>
   <label>轮</label><input id="turns" type="number" value="10" min="3" max="30" style="width:40px">
   <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
   <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option></select>
+  <label><input type="checkbox" id="compose-modules" checked> 模块</label>
   <span id="status">就绪</span>
 </div>
 
@@ -353,7 +356,9 @@ function startGame() {
     turns: totalTurns,
     seed: document.getElementById('seed').value || '',
     mode: document.getElementById('mode').value,
+    kp_api_key: document.getElementById('kp-api-key').value,
   });
+  if (document.getElementById('compose-modules').checked) params.append('compose_modules', 'true');
 
   es = new EventSource('/api/stream?' + params);
 
@@ -402,7 +407,7 @@ function startGame() {
     if (d.state) updateState(d.state);
     if (d.scene) {
       const img = document.getElementById('scene-img');
-      img.src = '/images/scenes/' + d.scene.image;
+      img.src = d.scene.image;  // image 已包含完整路径
       img.classList.add('active');
       document.getElementById('scene-label').textContent = d.scene.location || '';
       document.getElementById('scene-mood').textContent = d.scene.mood || '';
@@ -456,11 +461,37 @@ function startGame() {
   es.addEventListener('damage', (e) => {
     const d = JSON.parse(e.data);
     addLog('damage', '', '💥 ' + d.speaker + ' 受到 ' + d.amount + ' 點傷害 (' + (d.source||'') + ')');
+    // 即时更新 HP 显示
+    const hpEl = document.getElementById('hp-' + d.speaker);
+    if (hpEl) {
+      const parts = hpEl.textContent.split('/');
+      const cur = Math.max(0, parseInt(parts[0]) - d.amount);
+      hpEl.textContent = cur + '/' + (parts[1] || '?');
+      const hpBar = document.getElementById('hpbar-' + d.speaker);
+      if (hpBar) {
+        const max = parseInt(parts[1]) || 1;
+        const pct = cur / max * 100;
+        hpBar.style.width = pct + '%';
+        hpBar.style.background = pct > 50 ? '#8b0000' : pct > 25 ? '#a06020' : '#c0392b';
+      }
+    }
   });
 
   es.addEventListener('san_loss', (e) => {
     const d = JSON.parse(e.data);
     addLog('damage', '', '🧠 ' + d.speaker + ' 理智受損 ' + d.amount + ' 點');
+    // 即时更新 SAN 显示
+    const sanEl = document.getElementById('san-' + d.speaker);
+    if (sanEl) {
+      const parts = sanEl.textContent.split('/');
+      const cur = Math.max(0, parseInt(parts[0]) - d.amount);
+      sanEl.textContent = cur + '/' + (parts[1] || '?');
+      const sanBar = document.getElementById('sanbar-' + d.speaker);
+      if (sanBar) {
+        const max = parseInt(parts[1]) || 1;
+        sanBar.style.width = (cur / max * 100) + '%';
+      }
+    }
   });
 
   es.addEventListener('room_change', (e) => {

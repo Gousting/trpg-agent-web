@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 
 from .memory.game_state import GameState, Investigator, Npc, Quest, ATTITUDE_LABELS
@@ -443,7 +444,7 @@ class Session:
         return None
 
     async def classify_and_resolve(
-        self, client: OllamaClient, player_input: str,
+        self, client, player_input: str,
     ) -> tuple[str, RollRequest | None]:
         """分类玩家行动是否需要检定，如需则执行并返回上下文。
 
@@ -461,13 +462,19 @@ class Session:
         try:
             schema = classifier_schema(skills, ["常规", "困难", "极难"])
             prompt = classifier_prompt(skills, ["常规", "困难", "极难"])
+            # 不使用 format=schema（gemma4 thinking 模式会超时）
+            # 改为纯文本 JSON 输出 + regex 提取
+            prompt += "\n\n你必须只输出一行 JSON，格式：{\"needs_test\": true/false, \"skill\": \"技能名\", \"character\": \"角色名\", \"difficulty\": \"常规\"}。不要输出任何其他内容。"
             raw = await client.chat(
                 prompt,
                 [{"role": "user", "content": player_input}],
-                format=schema,
-                options={"temperature": 0.2},
+                options={"temperature": 0.2, "num_predict": 300},
             )
-            data = _json.loads(raw)
+            # 从文本中提取 JSON
+            m = re.search(r'\{[^{}]*\}', raw)
+            if not m:
+                raise ValueError("无法从输出中提取JSON")
+            data = _json.loads(m.group())
             request = parse_router_response(data)
         except _json.JSONDecodeError as e:
             log.info("分类器 JSON 解析失败（模型输出格式错误）: %s", e)
