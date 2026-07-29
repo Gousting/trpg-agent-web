@@ -95,9 +95,10 @@
       "leads_to": [],
       "exit_labels": {
         "museum_archives::archive_room": "去大学博物馆查考古档案",
-        "foyer_investigation::foyer": "直接上山去废弃老宅"
+        "foyer_investigation::foyer": "直接上山去废弃老宅",
+        "ritual_grounds::ritual_stones": "绕去山顶立石圈先探查仪式准备情况"
       },
-      "guidance": "museum_archives 提供更深层背景情报，foyer 直接进入行动。"
+      "guidance": "museum_archives 提供更深层背景情报，foyer 直接进入行动，ritual_grounds 提前掌握仪式细节但更危险。"
     }
   ],
   "npcs": [],

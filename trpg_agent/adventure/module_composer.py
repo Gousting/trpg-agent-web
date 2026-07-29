@@ -117,6 +117,9 @@ class ModuleMeta:
     # 出口状态（多分支）
     exits: list[ExitState] = field(default_factory=list)
 
+    # 结局标记——true 表示这是叙事终点（胜利/逃脱等），组合引擎不会再往下续接分支
+    is_ending: bool = False
+
     @classmethod
     def from_dict(cls, d: dict) -> "ModuleMeta":
         entry = d.get("entry", {}) or {}
@@ -147,6 +150,7 @@ class ModuleMeta:
             entry_forbidden_clues=[str(c) for c in entry.get("forbidden_clues", []) or []],
             entry_mood=entry.get("mood"),
             exits=exits,
+            is_ending=bool(d.get("is_ending", False)),
         )
 
 
@@ -490,8 +494,14 @@ class ModuleComposer:
                 continue
 
             mod = node.module
+            if mod.meta.is_ending:
+                # 结局模块（胜利/逃脱等）——不再继续往下分支，避免叙事割裂
+                continue
+
             exits = mod.meta.exits
-            if not exits:
+            authored_targets = self._authored_external_targets(mod)
+            if not exits and not authored_targets:
+                # 既没有出口状态，也没有场景里手写的显式跳转——真正的终点模块
                 continue
 
             used_ids = {n.meta.id for n in self._collect_nodes(root)}
@@ -504,21 +514,28 @@ class ModuleComposer:
                 )
                 exit_contexts.append((exit_idx, exit_state, full_clues, candidates))
 
-            authored_targets = self._authored_external_targets(mod)
+            # 本节点已经连出去的模块 id——防止手写目标和随机候选重复连同一个模块
+            node_targets: set[str] = set()
+            claimed_exits: set[int] = set()
+
             if authored_targets:
-                claimed_exits: set[int] = set()
                 for target_id in authored_targets:
                     child_mod = self._resolve_explicit_target(target_id, difficulty_range)
-                    if child_mod is None or child_mod.meta.id in used_ids:
+                    if child_mod is None or child_mod.meta.id in used_ids or child_mod.meta.id in node_targets:
                         continue
 
-                    exit_idx, exit_state, full_clues = self._pick_exit_for_target(
-                        mod,
-                        target_id,
-                        exit_contexts,
-                        claimed_exits,
-                    )
+                    if exit_contexts:
+                        exit_idx, exit_state, full_clues = self._pick_exit_for_target(
+                            mod,
+                            target_id,
+                            exit_contexts,
+                            claimed_exits,
+                        )
+                    else:
+                        # 模块没有声明 meta.exits，完全依赖场景手写的 exit_labels/exit_requires
+                        exit_idx, exit_state, full_clues = 0, ExitState(id="default"), pool_clues
                     claimed_exits.add(exit_idx)
+                    node_targets.add(child_mod.meta.id)
 
                     if child_mod.meta.id in node_map:
                         child = node_map[child_mod.meta.id]
@@ -538,13 +555,15 @@ class ModuleComposer:
                             if mod.scenes else None
                         ) or exit_state.requires_element,
                     ))
-                continue
 
+            # 随机兼容匹配作为补充——即使出口已经有手写目标，仍可叠加其它兼容候选，
+            # 以恢复"多出口分支图组合引擎"原本的随机多样性（此前手写目标会完全屏蔽随机匹配）。
             for exit_idx, exit_state, full_clues, candidates in exit_contexts:
-                if not candidates:
-                    continue
-
                 for candidate_mod in candidates:
+                    if candidate_mod.meta.id in node_targets:
+                        continue
+                    node_targets.add(candidate_mod.meta.id)
+
                     if candidate_mod.meta.id in node_map:
                         child = node_map[candidate_mod.meta.id]
                     else:

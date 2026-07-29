@@ -14,14 +14,14 @@
     {
       "id": "to_basement_weak",
       "label": "立刻去地下室（石板未完全觉醒）",
-      "provides_clues": ["destruction_method_known", "slab_not_awake"],
+      "provides_clues": ["destruction_method_known", "slab_not_awake", "patient_zero_found"],
       "mood": "determined",
       "next_location_type": "basement"
     },
     {
       "id": "to_basement_prepared",
       "label": "准备工具再去（战斗加成）",
-      "provides_clues": ["destruction_method_known"],
+      "provides_clues": ["destruction_method_known", "patient_zero_found"],
       "mood": "prepared",
       "next_location_type": "basement"
     }
@@ -98,9 +98,10 @@
       "leads_to": [],
       "exit_labels": {
         "basement_confrontation::basement": "直奔惠特利古屋地下室",
-        "museum_archives::archive_room": "先去大学博物馆找更多资料"
+        "museum_archives::archive_room": "先去大学博物馆找更多资料",
+        "asylum_cells::asylum_isolation": "先去地下隔离区——马丁不是第一个被石板盯上的人"
       },
-      "guidance": "两条出口：直奔地下室（石板未完全觉醒，敌人削弱）或博物馆（获得额外情报加成）。"
+      "guidance": "两条出口：直奔地下室（石板未完全觉醒，敌人削弱）或博物馆（获得额外情报加成），也可先探查地下隔离区确认患者零号线索。"
     }
   ],
   "npcs": [

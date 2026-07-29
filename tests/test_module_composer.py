@@ -136,11 +136,13 @@ class TestModuleComposer:
             for e in exits
             if adv.get_scene(e.target_id) is not None and adv.get_scene(e.target_id).leads_to
         }
-        assert targets == {
+        # 手写的显式跳转必须始终存在；组合引擎现在还会叠加随机兼容候选作为额外分支，
+        # 因此这里只断言手写目标是实际目标的子集，而非精确相等。
+        assert {
             "basement_confrontation::basement",
             "museum_archives::archive_room",
             "sanitarium_visit::ward14",
-        }
+        } <= targets
 
         required_ids = {e.required_element for e in exits if e.required_element}
         assert required_ids == {"l1", "l2"}
@@ -171,11 +173,12 @@ class TestModuleComposer:
             for e in exits
             if adv.get_scene(e.target_id) is not None and adv.get_scene(e.target_id).leads_to
         }
-        assert targets == {
+        # 手写目标必须始终保留；随机兼容匹配可能叠加额外候选，因此用子集断言。
+        assert {
             "foyer_investigation::foyer",
             "docks_warehouse::warehouse_ext",
             "sanitarium_visit::ward14",
-        }
+        } <= targets
 
     def test_starting_branch_module_keeps_both_exits(self):
         composer = ModuleComposer(MODULES_DIR)

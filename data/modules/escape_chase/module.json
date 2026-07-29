@@ -4,6 +4,7 @@
   "genre": ["horror", "chase"],
   "difficulty": 3,
   "duration_estimate": "2-3 turns",
+  "is_ending": true,
   "entry": {
     "location_types": ["outdoor"],
     "required_clues": ["cursed_slab_found"],

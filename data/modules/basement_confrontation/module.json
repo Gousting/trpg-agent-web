@@ -4,6 +4,7 @@
   "genre": ["horror", "climax"],
   "difficulty": 3,
   "duration_estimate": "3-4 turns",
+  "is_ending": true,
   "entry": {
     "location_types": ["basement", "indoor"],
     "required_clues": ["cursed_slab_found"],
