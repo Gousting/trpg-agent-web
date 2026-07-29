@@ -228,6 +228,69 @@
     background: #1a1a1a; z-index: 20;
   }
   #progress-bar { height: 100%; background: var(--blood); width: 0%; transition: width 0.3s; }
+
+  /* ═══ 投票条 ═══ */
+  #vote-bar {
+    display: none; grid-column: 1 / -1;
+    background: var(--surface); border-bottom: 1px solid rgba(201,168,76,0.12);
+    padding: 6px 16px; gap: 12px; align-items: center;
+    font-size: 12px; z-index: 9;
+  }
+  #vote-bar.active { display: flex; }
+  #vote-bar .vote-title {
+    color: var(--gold); font-family: var(--font-display);
+    font-size: 11px; letter-spacing: 2px; white-space: nowrap;
+    opacity: 0.7;
+  }
+  #vote-bar .vote-options { display: flex; gap: 12px; flex: 1; }
+  .vote-item {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    padding: 4px 10px; border: 1px solid rgba(201,168,76,0.08);
+    background: rgba(201,168,76,0.03); border-radius: 2px;
+    cursor: pointer; transition: background 0.15s, border-color 0.15s;
+  }
+  .vote-item:hover { background: rgba(201,168,76,0.08); }
+  .vote-item.chosen {
+    border-color: var(--blood); background: rgba(139,26,26,0.15);
+    animation: votePulse 0.4s ease-out;
+  }
+  @keyframes votePulse {
+    0% { background: rgba(139,26,26,0.4); }
+    100% { background: rgba(139,26,26,0.15); }
+  }
+  .vote-keycap {
+    width: 22px; height: 22px; border-radius: 2px;
+    background: var(--surface-alt); border: 1px solid rgba(201,168,76,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; font-family: var(--font-mono);
+    color: var(--gold); flex-shrink: 0;
+  }
+  .vote-text {
+    flex: 1; color: var(--text-dim); font-size: 11px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .vote-bar-track {
+    width: 60px; height: 4px; background: rgba(255,255,255,0.06);
+    border-radius: 2px; overflow: hidden; flex-shrink: 0;
+  }
+  .vote-bar-fill {
+    height: 100%; background: var(--blood); width: 0%;
+    transition: width 0.3s ease;
+  }
+  .vote-num {
+    width: 24px; text-align: right; font-size: 11px;
+    font-family: var(--font-mono); color: var(--text-dim); flex-shrink: 0;
+  }
+  .vote-timer {
+    font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+    color: var(--gold); min-width: 36px; text-align: center;
+    padding: 2px 8px; border-left: 1px solid rgba(201,168,76,0.08);
+  }
+  .vote-timer.urgent { color: var(--blood); animation: timerPulse 0.5s infinite; }
+  @keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
 </style>
 </head>
 <body>
@@ -245,6 +308,32 @@
   <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option></select>
   <label><input type="checkbox" id="compose-modules" checked> 模块</label>
   <span id="status">就绪</span>
+</div>
+
+<!-- 投票条 -->
+<div id="vote-bar">
+  <div class="vote-title">⚡ 抉择</div>
+  <div class="vote-options">
+    <div class="vote-item" data-key="a" onclick="castVote('a')">
+      <div class="vote-keycap">A</div>
+      <div class="vote-text">—</div>
+      <div class="vote-bar-track"><div class="vote-bar-fill"></div></div>
+      <div class="vote-num">0</div>
+    </div>
+    <div class="vote-item" data-key="b" onclick="castVote('b')">
+      <div class="vote-keycap">B</div>
+      <div class="vote-text">—</div>
+      <div class="vote-bar-track"><div class="vote-bar-fill"></div></div>
+      <div class="vote-num">0</div>
+    </div>
+    <div class="vote-item" data-key="c" onclick="castVote('c')">
+      <div class="vote-keycap">C</div>
+      <div class="vote-text">—</div>
+      <div class="vote-bar-track"><div class="vote-bar-fill"></div></div>
+      <div class="vote-num">0</div>
+    </div>
+  </div>
+  <div class="vote-timer">30s</div>
 </div>
 
 <!-- BGM 指示器 -->
@@ -521,6 +610,11 @@ function startGame() {
     resetBtn();
   });
 
+  es.addEventListener('vote', (e) => {
+    const d = JSON.parse(e.data);
+    showVoteBar(d.options || {});
+  });
+
   es.onerror = () => {
     document.getElementById('status').textContent = '連接斷開';
     resetBtn();
@@ -532,7 +626,98 @@ function resetBtn() {
   const btn = document.getElementById('btn-start');
   btn.disabled = false; btn.textContent = '▶ 重新開始';
   if (es) { es.close(); es = null; }
+  hideVoteBar();
 }
+
+/* ── 投票条 ── */
+let voteCounts = {a: 0, b: 0, c: 0};
+let voteChosen = null;
+let voteTimerId = null;
+let voteSessionId = '';
+const VOTE_DURATION = 30;
+
+function showVoteBar(opts) {
+  const bar = document.getElementById('vote-bar');
+  ['a','b','c'].forEach(k => {
+    const item = bar.querySelector(`[data-key="${k}"]`);
+    item.querySelector('.vote-text').textContent = opts[k] || '—';
+  });
+  voteCounts = {a: 0, b: 0, c: 0};
+  voteChosen = null;
+  voteSessionId = opts.session_id || '';
+  bar.querySelectorAll('.vote-item').forEach(el => el.classList.remove('chosen'));
+  bar.classList.add('active');
+  updateVoteCounts();
+  startVoteTimer();
+}
+
+function hideVoteBar() {
+  document.getElementById('vote-bar').classList.remove('active');
+  voteChosen = null;
+  clearVoteTimer();
+}
+
+function startVoteTimer() {
+  clearVoteTimer();
+  let remaining = VOTE_DURATION;
+  const timerEl = document.querySelector('.vote-timer');
+  timerEl.textContent = remaining + 's';
+  timerEl.classList.remove('urgent');
+
+  voteTimerId = setInterval(() => {
+    remaining--;
+    timerEl.textContent = remaining + 's';
+    if (remaining <= 5) timerEl.classList.add('urgent');
+    if (remaining <= 0) {
+      clearVoteTimer();
+      if (!voteChosen) castVote('a'); // 超时默认选 A
+    }
+  }, 1000);
+}
+
+function clearVoteTimer() {
+  if (voteTimerId) { clearInterval(voteTimerId); voteTimerId = null; }
+  const timerEl = document.querySelector('.vote-timer');
+  if (timerEl) timerEl.classList.remove('urgent');
+}
+
+function castVote(key) {
+  if (voteChosen) return;
+  voteChosen = key;
+  voteCounts[key]++;
+  clearVoteTimer();
+  const bar = document.getElementById('vote-bar');
+  bar.querySelector(`[data-key="${key}"]`).classList.add('chosen');
+  updateVoteCounts();
+  document.querySelector('.vote-timer').textContent = '✓';
+  // 发送选择到服务器
+  fetch('/api/vote', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({choice: key, counts: voteCounts, session_id: voteSessionId})
+  }).catch(() => {});
+}
+
+function updateVoteCounts() {
+  const total = voteCounts.a + voteCounts.b + voteCounts.c;
+  const bar = document.getElementById('vote-bar');
+  ['a','b','c'].forEach(k => {
+    const item = bar.querySelector(`[data-key="${k}"]`);
+    item.querySelector('.vote-num').textContent = voteCounts[k];
+    const pct = total > 0 ? (voteCounts[k] / total * 100) : 0;
+    item.querySelector('.vote-bar-fill').style.width = pct + '%';
+  });
+}
+
+/* ── 键盘监听 ── */
+document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('vote-bar').classList.contains('active')) return;
+  const key = e.key.toLowerCase();
+  if (key === 'a' || key === 'b' || key === 'c') {
+    e.preventDefault();
+    castVote(key);
+  }
+});
 
 /* ── 行動日誌 ── */
 function addLog(type, speaker, text, color) {

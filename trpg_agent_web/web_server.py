@@ -92,6 +92,10 @@ except Exception:
 
 app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
 
+# ── 投票同步 ───────────────────────────────
+_vote_events: dict[str, asyncio.Event] = {}
+_vote_choices: dict[str, str] = {}
+
 
 @app.get("/", response_class=HTMLResponse)
 async def index() -> str:
@@ -480,12 +484,43 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             yield _sse("player_stream_end", {"speaker": speaker})
             await asyncio.sleep(0.2)
         else:
-            # 人类模式：等待前端发来玩家输入
-            yield _sse("await_player", {
-                "speaker": speaker, "color": inv_data["color"],
-                "room": rc,
+            # 人类模式 / 投票模式：展示选项，等待键盘投票
+            vote_options = {
+                "a": "深入调查当前的线索",
+                "b": "与同伴讨论接下来的行动",
+                "c": "谨慎地搜索房间的每个角落",
+            }
+            # 用当前房间场景定制选项
+            room_name = rc.get("name", "") if rc else ""
+            if "办公室" in room_name or "书房" in room_name:
+                vote_options = {"a": "翻查桌上的文件和信件", "b": "检查书架后的隐藏空间", "c": "仔细观察墙上的照片和地图"}
+            elif "走廊" in room_name:
+                vote_options = {"a": "贴着墙壁缓慢前进", "b": "检查地面的脚印和痕迹", "c": "倾听周围的异常声响"}
+            elif "病房" in room_name or "医院" in room_name:
+                vote_options = {"a": "查看病床上的约束带痕迹", "b": "翻阅床头柜的病历记录", "c": "检查窗户是否通向外部"}
+
+            yield _sse("vote", {
+                "options": vote_options,
+                "session_id": sid,
+                "speaker": speaker,
             })
-            return  # 人类模式一轮后交给前端轮询
+
+            # 等待前端投票
+            evt = asyncio.Event()
+            _vote_events[sid] = evt
+            try:
+                await asyncio.wait_for(evt.wait(), timeout=35)
+                choice = _vote_choices.pop(sid, "a")
+            except asyncio.TimeoutError:
+                choice = "a"
+            finally:
+                _vote_events.pop(sid, None)
+
+            action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
+            yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
+            yield _sse("player_token", {"text": action, "speaker": speaker})
+            yield _sse("player_stream_end", {"speaker": speaker})
+            await asyncio.sleep(0.2)
 
         # ── 房间物品拾取 ───────────────────────
         items_picked = _handle_pickup(dmap, inv_state, action)
@@ -739,6 +774,34 @@ async def stream(
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# ── 投票端点 ───────────────────────────────
+
+class VoteRequest(BaseModel):
+    choice: str  # "a" | "b" | "c"
+    counts: dict = {}  # {a: 0, b: 0, c: 0}
+    session_id: str = ""
+
+
+@app.post("/api/vote")
+async def handle_vote(req: VoteRequest):
+    """接收前端投票请求（键盘 a/b/c 或点击）。
+    将选择注入到等待中的 event_stream，驱动游戏继续。
+    """
+    log.info("投票: choice=%s counts=%s", req.choice, req.counts)
+    sid = req.session_id
+    if not sid:
+        # 无 session_id 时使用最近一个等待中的投票
+        for _sid, evt in list(_vote_events.items()):
+            if not evt.is_set():
+                sid = _sid
+                break
+    if sid and sid in _vote_events:
+        _vote_choices[sid] = req.choice
+        _vote_events[sid].set()
+        return {"accepted": True, "choice": req.choice}
+    return {"accepted": False, "reason": "no waiting vote"}
 
 
 # ── 入口 ─────────────────────────────────────
