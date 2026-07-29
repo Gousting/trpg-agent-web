@@ -258,6 +258,12 @@
     0% { background: rgba(139,26,26,0.4); }
     100% { background: rgba(139,26,26,0.15); }
   }
+  .vote-item.voted {
+    border-color: #50c878; background: rgba(80,200,120,0.08);
+  }
+  .vote-item.voted .vote-keycap {
+    background: rgba(80,200,120,0.15); border-color: #50c878;
+  }
   .vote-keycap {
     width: 22px; height: 22px; border-radius: 2px;
     background: var(--surface-alt); border: 1px solid rgba(201,168,76,0.2);
@@ -615,6 +621,15 @@ function startGame() {
     showVoteBar(d.options || {});
   });
 
+  es.addEventListener('vote_tally', (e) => {
+    const d = JSON.parse(e.data);
+    if (d.tally) {
+      // 服务器端权威计数覆盖本地计数，实时反映所有观众投票
+      voteCounts = {...voteCounts, ...d.tally};
+      updateVoteCounts();
+    }
+  });
+
   es.onerror = () => {
     document.getElementById('status').textContent = '連接斷開';
     resetBtn();
@@ -645,7 +660,7 @@ function showVoteBar(opts) {
   voteCounts = {a: 0, b: 0, c: 0};
   voteChosen = null;
   voteSessionId = opts.session_id || '';
-  bar.querySelectorAll('.vote-item').forEach(el => el.classList.remove('chosen'));
+  bar.querySelectorAll('.vote-item').forEach(el => el.classList.remove('chosen', 'voted'));
   bar.classList.add('active');
   updateVoteCounts();
   startVoteTimer();
@@ -670,7 +685,9 @@ function startVoteTimer() {
     if (remaining <= 5) timerEl.classList.add('urgent');
     if (remaining <= 0) {
       clearVoteTimer();
-      if (!voteChosen) castVote('a'); // 超时默认选 A
+      if (!voteChosen) castVote('a'); // 超时自动投 A
+      timerEl.textContent = '计票中…';
+      timerEl.classList.remove('urgent');
     }
   }, 1000);
 }
@@ -685,12 +702,11 @@ function castVote(key) {
   if (voteChosen) return;
   voteChosen = key;
   voteCounts[key]++;
-  clearVoteTimer();
+  // 不停止倒计时——投票窗口保持开放，其他人仍可投票
   const bar = document.getElementById('vote-bar');
-  bar.querySelector(`[data-key="${key}"]`).classList.add('chosen');
+  bar.querySelector(`[data-key="${key}"]`).classList.add('voted');
   updateVoteCounts();
-  document.querySelector('.vote-timer').textContent = '✓';
-  // 发送选择到服务器
+  // 发送选择到服务器（服务器端累加 tally 并通过 SSE 广播）
   fetch('/api/vote', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},

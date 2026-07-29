@@ -94,9 +94,10 @@ except Exception:
 app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
 
 # ── 投票同步 ───────────────────────────────
-# 投票不再由第一个 POST 立即决定结果，而是在整个投票窗口内累加计数，
-# 窗口结束后取多数票——这样多个观众（相同 session_id）同时投票才能真正聚合。
+# 投票窗口内累加计数，每次投票通过 Queue 推送 tally 到 SSE 流，
+# 前端实时更新票数分布。窗口结束后取多数票。
 _vote_tallies: dict[str, dict[str, int]] = {}
+_vote_queues: dict[str, asyncio.Queue] = {}
 VOTE_WINDOW_SECONDS = 32  # 略长于前端 30s 倒计时，确保超时自动投的那一票也能被计入
 
 # EXIT 标记：AI 玩家模式下，KP 叙述末尾可附加 <<EXIT n>> 请求移动到第 n 个场景出口
@@ -528,9 +529,24 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 "speaker": speaker,
             })
 
-            # 投票窗口：累加整个窗口期内收到的所有票，结束后取多数票
+            # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
             _vote_tallies[sid] = {}
-            await asyncio.sleep(VOTE_WINDOW_SECONDS)
+            vote_queue: asyncio.Queue = asyncio.Queue()
+            _vote_queues[sid] = vote_queue
+            deadline = asyncio.get_event_loop().time() + VOTE_WINDOW_SECONDS
+            try:
+                while True:
+                    remaining = deadline - asyncio.get_event_loop().time()
+                    if remaining <= 0:
+                        break
+                    try:
+                        await asyncio.wait_for(vote_queue.get(), timeout=remaining)
+                        current_tally = _vote_tallies.get(sid, {})
+                        yield _sse("vote_tally", {"tally": dict(current_tally)})
+                    except asyncio.TimeoutError:
+                        break
+            finally:
+                _vote_queues.pop(sid, None)
             tally = _vote_tallies.pop(sid, {})
             if tally:
                 choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
@@ -900,6 +916,12 @@ async def handle_vote(req: VoteRequest):
         tally = _vote_tallies[sid]
         tally[req.choice] = tally.get(req.choice, 0) + 1
         log.info("投票: session=%s choice=%s tally=%s", sid, req.choice, tally)
+        # 推送到 SSE 流，实时通知所有客户端
+        if sid in _vote_queues:
+            try:
+                _vote_queues[sid].put_nowait(tally.copy())
+            except asyncio.QueueFull:
+                pass
         return {"accepted": True, "choice": req.choice, "tally": tally}
     return {"accepted": False, "reason": "no active vote"}
 
