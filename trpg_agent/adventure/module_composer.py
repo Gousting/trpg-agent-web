@@ -516,6 +516,65 @@ class ModuleComposer:
     def module_ids(self) -> list[str]:
         return sorted(self._modules.keys())
 
+    def validate(self) -> list[str]:
+        """静态校验模块池——返回发现的问题列表，空列表表示无问题。
+
+        检查项：
+        - 起始模块数量（无 required_clues 且非结局标记的模块）
+        - 死线索（required_clues 无任何模块产出）
+        - 孤岛 location_type（entry.location_types 与全池出口无交集）
+        - 死胡同模块（无 exits、无手写跳转、非结局标记）
+        """
+        issues: list[str] = []
+
+        # ── 收集全池数据 ──
+        produced_clues: set[str] = set()
+        all_exit_locs: set[str] = set()
+        for mod in self._modules.values():
+            for exit_state in mod.meta.exits:
+                for clue in exit_state.provides_clues:
+                    produced_clues.add(clue)
+                if exit_state.next_location_type:
+                    all_exit_locs.add(exit_state.next_location_type)
+
+        # ── 逐模块检查 ──
+        for mod_id, mod in self._modules.items():
+            # 死线索
+            for clue in mod.meta.entry_required_clues:
+                if clue not in produced_clues:
+                    issues.append(
+                        f"模块 '{mod_id}' 要求线索 '{clue}'，"
+                        f"但没有任何模块的 exits 产出此线索"
+                    )
+
+            # 孤岛 location_type
+            if mod.meta.entry_location_types and mod.meta.entry_required_clues:
+                if not (set(mod.meta.entry_location_types) & all_exit_locs):
+                    issues.append(
+                        f"模块 '{mod_id}' 的 entry.location_types "
+                        f"{list(mod.meta.entry_location_types)} "
+                        f"与全池出口无交集（可能仅由手写跳转进入，如果不是请检查）"
+                    )
+
+            # 死胡同：无 exits + 无手写跳转 + 非结局
+            if not mod.meta.is_ending and not mod.meta.exits:
+                authored = self._authored_external_targets(mod)
+                if not authored:
+                    issues.append(
+                        f"模块 '{mod_id}' 既无 exits 也无手写跳转，"
+                        f"且未标记 is_ending——BFS 到此会成死胡同"
+                    )
+
+        # ── 起始模块 ──
+        start_mods = [
+            m.meta.id for m in self._modules.values()
+            if not m.meta.entry_required_clues and not m.meta.is_ending
+        ]
+        if not start_mods:
+            issues.append("没有可选的起始模块（所有模块都有 required_clues 或 is_ending）")
+
+        return issues
+
     # ── 组合 ────────────────────────────────────
 
     def compose(
