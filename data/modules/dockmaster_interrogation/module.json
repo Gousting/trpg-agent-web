@@ -42,7 +42,9 @@
       "id": "office",
       "description": "港务长办公室弥漫着廉价威士忌的气味。墙上的航运图上，用红笔圈出了四处港口——每处旁边都标注了日期，恰好和失踪事件吻合。港务长看到你们盯着图，脸色瞬间发白。",
       "image_prompt": "1920s dockmaster office, wooden desk with whiskey bottle and shipping manifests, wall chart with harbor routes, period-authentic furnishings, absolutely no modern technology, no screens, Ink Frenzy style, noir atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
-      "leads_to": "confrontation"
+      "leads_to": [
+        "confrontation"
+      ]
     },
     {
       "id": "confrontation",

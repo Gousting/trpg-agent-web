@@ -1,0 +1,84 @@
+{
+  "id": "photograph_analysis",
+  "title": "照片分析",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "occult"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "whitley_diary_found"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "revealed",
+      "label": "发现照片中的隐藏信息",
+      "provides_clues": [
+        "hidden_ritual_site",
+        "cult_member_photos"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "traced",
+      "label": "追踪照片拍摄地点",
+      "provides_clues": [
+        "photograph_locations_mapped"
+      ],
+      "mood": "urgency",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "darkroom",
+      "description": "惠特利的日记里夹着十几张发黄的照片。大部分是他在中东考古现场的合影——但有三张不一样。这三张是在阿卡姆拍的：古屋门前的全家福、庇护所奠基仪式的合影、以及一张拍得模糊不清的夜景。当你们用放大镜仔细观察那张夜景时，背景里古屋楼上的窗户有一个不该存在的人影——它太高太瘦了，不像人类。照片日期是1919年12月21日。冬至。",
+      "image_prompt": "darkroom with red safelight, photographs in developer trays, magnifying glass over blurry photo, Ink Frenzy style, photographic investigation, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "p1",
+          "text": "用放大镜仔细检查每张照片的背景（侦查/摄影）——每张阿卡姆照片的背景里都有同样的影子"
+        },
+        {
+          "id": "p2",
+          "text": "冲洗底片获取更多细节（摄影/化学）——底片上的影子比相纸上更清晰，它没有脸"
+        },
+        {
+          "id": "p3",
+          "text": "对照古屋和庇护所的现状照片（知识/导航）——庇护所的奠基石位置恰好压在一个更古老的石板上"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ps1",
+          "text": "这三张照片不是偶然——它们的拍摄位置在地图上构成一个三角形，中心点在山顶采石场"
+        }
+      ],
+      "leads_to": [
+        "revelation"
+      ],
+      "san_check": {
+        "trigger": "在底片中看清那个人影的细节",
+        "level": "MINOR"
+      }
+    },
+    {
+      "id": "revelation",
+      "description": "你们用底片投影仪把那张夜景放大了二十倍。古屋窗户里的人影变得清晰——那不是人。那是一团由触手和薄膜组成的、半透明的东西，正在从窗户向外凝视。而且它不在玻璃后面——它在玻璃里面。这张照片证明了1919年就已经有东西被召唤到这个世界了。但它回去了。或者说，它被送回去了——被某些人。惠特利在照片背面用铅笔写了四个字：'封印不稳。'",
+      "image_prompt": "enlarged photograph projection on wall, revealed monstrosity in window, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "发现了1919年的仪式证据——下一步？",
+      "exit_labels": {
+        "church_yard::graveyard": "去惠特利家族墓穴寻找更多证据",
+        "ritual_grounds::ritual_stones": "去古屋附近寻找当年的仪式场地"
+      }
+    }
+  ]
+}

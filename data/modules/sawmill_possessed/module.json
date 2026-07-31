@@ -1,0 +1,146 @@
+{
+  "id": "sawmill_possessed",
+  "title": "锯木厂·被附身的机械",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "industrial",
+    "possession"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "industrial",
+      "indoor"
+    ],
+    "required_clues": [
+      "sawmill_worker_disappeared"
+    ],
+    "forbidden_clues": [],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "破坏附身核心，解救工厂",
+      "provides_clues": [
+        "sawmill_cleared",
+        "possession_source_identified"
+      ],
+      "mood": "relief",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "defeat",
+      "label": "被机械吞噬",
+      "provides_clues": [
+        "sawmill_claimed"
+      ],
+      "mood": "despair",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "flee",
+      "label": "逃出锯木厂",
+      "provides_clues": [
+        "sawmill_locked_down"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "possessed_machine",
+      "name": "附身锯木机",
+      "hp": 25,
+      "armor": 4,
+      "attack_bonus": 2,
+      "damage": "2d6",
+      "abilities": [
+        {
+          "name": "锯片喷射",
+          "effect": "远程喷射旋转锯片（伤害 1d8，命中后锯片回弹可攻击第二目标）"
+        },
+        {
+          "name": "吸取生命力",
+          "effect": "命中调查员后恢复 3 HP"
+        }
+      ],
+      "behavior": "固定在厂房中央无法移动，但 360° 攻击范围，优先攻击最远的（锯片喷射）",
+      "count": 1
+    },
+    {
+      "id": "possessed_worker",
+      "name": "被控制的工人",
+      "hp": 5,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d4+1",
+      "abilities": [
+        {
+          "name": "自我牺牲",
+          "effect": "会冲向调查员自爆（1d6 范围伤害），自爆后锯木机恢复 3 HP"
+        }
+      ],
+      "behavior": "眼神空洞地走向调查员，不躲避攻击",
+      "count": 3
+    }
+  ],
+  "environment": {
+    "terrain": "昏暗的锯木厂房，中央的巨型锯木机发出不自然的嗡鸣——锯齿上不是木屑，是暗红色的血迹",
+    "hazards": [
+      "传送带——可将敌人送入锯木机（秒杀普通敌人，对锯木机本体造成 3d6 伤害）",
+      "油桶——打翻并点燃，持续 1d3 回合的火焰伤害（锯木机在火中失去再生）",
+      "悬挂的原木——可割断绳索砸下（2d6 伤害，击晕范围内敌人 1 回合）"
+    ],
+    "lighting": "industrial"
+  },
+  "rules": [
+    "锯木机核心是一块嵌入机器的石板碎片——摧毁碎片（HP 8，AC 10）可立刻结束战斗",
+    "每击杀一个被控制工人，全体调查员 SAN 0/1（他们是无辜的）",
+    "可以用技术维修技能尝试逆向运转传送带（INT 检定）"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "摧毁石板碎片或破坏锯木机",
+      "provides_clues": [
+        "sawmill_cleared",
+        "possession_source_identified"
+      ],
+      "next_location_type": "indoor",
+      "reward": "石板碎片与古屋地下室的是同一块石板的碎块——它们是被故意分散存放的",
+      "consequence": "石板碎片爆裂时释放出一团黑雾，消散后锯木机终于停止了转动"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0",
+      "provides_clues": [
+        "sawmill_claimed"
+      ],
+      "next_location_type": "indoor",
+      "consequence": "传送带缓缓将最后一个倒下的调查员送向轰鸣的锯片"
+    },
+    "flee": {
+      "condition": "任意调查员逃出厂房",
+      "provides_clues": [
+        "sawmill_locked_down"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "厂房大门在身后重重合上，里面机器的嗡鸣声仍不停歇"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "被控制的工人 +1",
+      "possessed_machine_hp": 5
+    }
+  },
+  "image_prompt": "dim sawmill interior, massive circular saw blade stained dark red, conveyor belts, hanging logs, oil drums, industrial machinery humming unnaturally, Ink Frenzy style, 1920s industrial horror, possessed machine, flickering industrial lights, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "锯木机自己启动了——旋转的锯片发出刺耳的尖啸声。被附身的工人开始将活人推向锯片（STR 对抗）。",
+    "传送带开始运转——上面堆满了带钉的木料。任何靠近传送带的人需要 DEX 检定，否则被卷入（2d4 伤害 + 被传送带到锯片旁）。",
+    "天花板上的铁链开始自主摆动——末端的铁钩像活物一样择人而噬。每回合随机一个调查员被铁钩攻击（1d6+1 穿刺）。",
+    "整个锯木厂变成了绞肉机——所有机械都活了。锯片从墙上弹射而出，斧头从工具架上飞起。每回合每个人受到 1d4 环境伤害，除非找到并摧毁附身的核心。"
+  ]
+}

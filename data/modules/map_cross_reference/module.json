@@ -1,0 +1,75 @@
+{
+  "id": "map_cross_reference",
+  "title": "地图交叉比对",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "geography"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "artifact_origin_traced"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "mapped",
+      "label": "标记出完整仪式网络",
+      "provides_clues": [
+        "ritual_network_mapped",
+        "ley_lines_identified"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "map_room",
+      "description": "考古系的地下仓库里收藏着整个新英格兰地区的详细地形图。你们把从各个地点找到的地理信息全部标注上去：美索不达米亚出土石板的坐标、阿卡姆港接收货物的来源港口、庇护所地下隧道延伸的方向。当所有数据叠在一起时，一条惊人的规律浮现了——所有这些地点都落在同一条直线上。古人称它为'灵线'。克苏鲁神话里叫它'深渊裂隙的投影'。",
+      "image_prompt": "underground archive, large maps with pins, compass and protractor, cartographic, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "m1",
+          "text": "用三角测量法验证位置关系（数学/导航）——误差不到0.5度，这是刻意为之的精确设计"
+        },
+        {
+          "id": "m2",
+          "text": "对比地质图和石板出土位置（地质学/考古学）——石板都发现于地质断层上"
+        },
+        {
+          "id": "m3",
+          "text": "查阅古代航海图（历史/导航）——300年前的航海图就已经标注了这条线的存在"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ms1",
+          "text": "这条线不仅穿过阿卡姆——它贯穿全球。南太平洋、中东、新英格兰呈一条完美的弧线。这不是人类能完成的测量"
+        }
+      ],
+      "leads_to": [
+        "conclusion"
+      ],
+      "san_check": {
+        "trigger": "意识到这条线的精确度不可能来自人类文明",
+        "level": "MINOR"
+      }
+    },
+    {
+      "id": "conclusion",
+      "description": "最后一步——把目前的仪式活动地点标上去。古屋、庇护所、采石场、港口仓库。它们精确地分布在灵线的两侧，构成一个完美的等边六边形。最后一个点——六边形空着的那个顶点——在地图上是一片空地。实地考察记录显示那里有一座废弃的采石场，在山顶。你们已经知道那里有什么。那就是后天晚上一切终结的地方。",
+      "image_prompt": "completed map with hexagonal pattern, compass rose, cosmic geometry, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "发现了最终仪式地点——行动？",
+      "exit_labels": {
+        "final_confrontation::summit": "前往山顶采石场",
+        "town_hall_archives::filing_room": "去市政厅查那片土地的所有权记录"
+      }
+    }
+  ]
+}

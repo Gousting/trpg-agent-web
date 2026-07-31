@@ -1,0 +1,72 @@
+{
+  "id": "cliff_ruins",
+  "title": "悬崖遗迹",
+  "module_type": "exploration",
+  "genre": [
+    "outdoor",
+    "coastal"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "coastal"
+    ],
+    "required_clues": [
+      "low_tide_access"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "发现海蚀洞穴入口",
+      "provides_clues": [
+        "ruins_explored",
+        "sea_cave_entrance"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "退潮后的悬崖底部暴露出了一片被海水侵蚀的岩石平台。平台上的建筑遗迹不属于任何已知的文明——石块的切面太精确了，像是被某种远超人类技术的工具切割而成。遗迹的中心有一口竖井，直径约三米，深不见底。井壁上每隔一段距离就嵌着一块发着微弱绿光的石板碎片，像一串通往地底的阶梯灯。",
+      "image_prompt": "悬崖遗迹 scene, 退潮后的悬崖底部暴露出了一片被海水侵蚀的岩石平台。平台上的建筑遗迹不属于任何已知的文明——石块的切面太精确了，像是被某种远超人类技术的工具切割而成。遗迹的中心有一口竖井，直径约三米，深不见底。井壁上每隔一段距离就嵌着一块发着微弱绿光的石板碎片，像一串通往地底的阶梯灯。, Ink Frenzy style, 1920s exploration, dark cosmic horror atmosphere, 16:9 widescreen composition",
+      "opportunities": [
+        {
+          "id": "c1",
+          "text": "检查石块的切割面（地质学/工程学）——切面光滑到显微镜都看不出凿痕，更像是被高温瞬间熔化后凝固的"
+        },
+        {
+          "id": "c2",
+          "text": "用绳索下降到竖井中（攀爬/DEX）——井壁上的人工凿痕说明有人频繁上下"
+        },
+        {
+          "id": "c3",
+          "text": "研究石板碎片的光源（物理学/神秘学）——绿光不是反射，是自主发光的，而且光强与潮汐同步变化"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "cs1",
+          "text": "竖井底部有一扇巨大的石门，门上的浮雕描绘了一个非人的存在被六个人形生物囚禁在深海中的场景"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "竖井的底部是一个巨大的海蚀洞。洞壁上刻着比远古密室更古老的符号——但内容是反过来的。不是在描述召唤，是在描述封印。六个人形生物代表的是六块石板碎片——它们不是用来召唤深渊存在的工具，是用来困住它的牢笼部件。有人在把牢笼一块一块地拆开。",
+      "image_prompt": "悬崖遗迹 scene, 竖井的底部是一个巨大的海蚀洞。洞壁上刻着比远古密室更古老的符号——但内容是反过来的。不是在描述召唤，是在描述封印。六个人形生物代表的是六块石板碎片——它们不是用来召唤深渊存在的工具，是用来困住它的牢笼部件。有人在把牢笼一块一块地拆开。, Ink Frenzy style, 1920s exploration, dark cosmic horror atmosphere, 16:9 widescreen composition",
+      "vote_prompt": "发现了深渊封印系统——下一步？",
+      "exit_labels": {
+        "coastal_cave::inner_cave": "搜索洞内寻找更多封印证据",
+        "ancient_chamber::entrance_hall": "把浮雕图案带回密室对照"
+      }
+    }
+  ]
+}

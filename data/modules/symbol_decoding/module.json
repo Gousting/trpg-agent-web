@@ -1,0 +1,76 @@
+{
+  "id": "symbol_decoding",
+  "title": "符号破译",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "occult"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "underground"
+    ],
+    "required_clues": [
+      "ancient_writing_translated"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "decoded",
+      "label": "完全破译符号系统",
+      "provides_clues": [
+        "symbol_system_understood",
+        "ritual_function_known"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "symbol_study",
+      "description": "远古密室的墙壁上刻满了符号。起初你们以为它们是文字——但翻译出来的内容毫无意义。直到你们把符号的排列顺序画在纸上，才发现了一个可怕的规律：这些符号不是用来读的，是用来看的。它们的排列方式构成了一张星图——当你退后几步眯眼看时，整个墙壁上的符号形成了一幅完整的星座排列图。深渊中的存在不是被召唤来的——它是被这些符号画进这个世界的。",
+      "image_prompt": "ancient chamber wall covered with occult symbols, paper with symbol analysis and constellation overlay, candlelight revealing pattern, Ink Frenzy style, archaeological investigation, 1920s occult research, dark cosmic revelation, 16:9 widescreen composition",
+      "opportunities": [
+        {
+          "id": "s1",
+          "text": "把符号按排列画在纸上找规律（历史/艺术）——符号之间的距离精确对应星际距离"
+        },
+        {
+          "id": "s2",
+          "text": "对照天文学星图（天文学/数学）——符号排列与猎户座完全一致，但多出了六颗不存在的星"
+        },
+        {
+          "id": "s3",
+          "text": "研究符号的颜色和材质（考古学/化学）——不同深度和颜色的符号代表了不同的仪式阶段"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ss1",
+          "text": "多出的六颗星不是恒星——是行星。六颗行星的排列构成一个六边形，精确对应阿卡姆周围的六个仪式地点"
+        }
+      ],
+      "leads_to": [
+        "conclusion"
+      ],
+      "san_check": {
+        "trigger": "看出整个墙壁是一幅三米高的星图",
+        "level": "MINOR"
+      }
+    },
+    {
+      "id": "conclusion",
+      "description": "当你们把六颗行星的位置标在阿卡姆地图上时——古屋、庇护所、采石场、港口、沼泽、松林。六边形的中心是山顶采石场。而整个符号系统的最后一个阶段——根据颜色最深、位置最高的符号群判断——是在所有行星对齐时，在山顶完成吟诵。那就是后天晚上。你们已经读懂了他们的整个计划。",
+      "image_prompt": "completed six-point pattern on map, occult symbols, Ink Frenzy style, breakthrough, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "读懂了最终仪式——如何阻止？",
+      "exit_labels": {
+        "final_confrontation::summit": "直接前往山顶",
+        "observatory::telescope_room": "去天文台确认行星位置"
+      }
+    }
+  ]
+}

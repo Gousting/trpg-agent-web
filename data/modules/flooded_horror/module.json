@@ -1,0 +1,152 @@
+{
+  "id": "flooded_horror",
+  "title": "淹没区·深渊渗透",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "underground",
+    "mythos",
+    "water"
+  ],
+  "difficulty": 4,
+  "duration_estimate": "4-6 turns",
+  "entry": {
+    "location_types": [
+      "underground",
+      "flooded"
+    ],
+    "required_clues": [
+      "flooded_tunnel_crossed"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "封印裂隙，通过淹没区",
+      "provides_clues": [
+        "flooded_section_cleared",
+        "rift_sealed"
+      ],
+      "mood": "triumph",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "defeat",
+      "label": "被吸入深渊裂隙",
+      "provides_clues": [
+        "rift_claimed"
+      ],
+      "mood": "despair",
+      "next_location_type": "waterfront"
+    },
+    {
+      "id": "flee",
+      "label": "退回未淹没区域",
+      "provides_clues": [
+        "flooded_retreat"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "underground"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "rift_horror",
+      "name": "裂隙触须体",
+      "hp": 24,
+      "armor": 2,
+      "attack_bonus": 3,
+      "damage": "1d10",
+      "abilities": [
+        {
+          "name": "多重触须",
+          "effect": "每回合可攻击两个不同目标"
+        },
+        {
+          "name": "深渊低语",
+          "effect": "全场 POW 检定，失败则被吸引向裂隙移动 10 英尺（靠近裂隙每回合 SAN 1/1d3）"
+        },
+        {
+          "name": "维度拉扯",
+          "effect": "第 4 回合起蓄力，第 5 回合所有人 STR 对抗，失败被拉入裂隙"
+        }
+      ],
+      "behavior": "固守在裂隙中无法移动，触须覆盖整个房间",
+      "count": 1
+    },
+    {
+      "id": "deep_spawn",
+      "name": "深渊幼体",
+      "hp": 4,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d4",
+      "abilities": [
+        {
+          "name": "寄生",
+          "effect": "命中后附着在调查员身上，每回合 1 伤害并 -1 所有检定（可 DEX 检定甩掉）"
+        }
+      ],
+      "behavior": "从裂隙中持续涌出，优先攻击最近的调查员",
+      "count": 2
+    }
+  ],
+  "environment": {
+    "terrain": "被地下水淹没的隧道末端，墙壁上裂开了一道散发着紫色光芒的裂隙——水面上漂浮着不属于这个维度的生物残骸",
+    "hazards": [
+      "不断上涨的水位——每两回合水位上升 1 英尺（三回合后所有人移动减半，五回合后需游泳）",
+      "紫色裂隙——靠近 5 英尺内每回合 SAN 1/1d6，但也是封印裂隙的唯一位置",
+      "漂浮残骸——可攀附作为临时掩体（远程攻击 -2），但可能翻覆"
+    ],
+    "lighting": "rift_glow"
+  },
+  "rules": [
+    "裂隙是战斗核心——需要用石板碎片或封印咒语关闭（需要三回合连续 INT 检定，期间无法做其他行动）",
+    "每回合从裂隙中涌出 1d2 只深渊幼体",
+    "触须体在裂隙中被削弱（攻击 -2），但一旦裂隙扩大（水位升到最高），触须体获得 +3 攻击",
+    "SAN 检定（看到裂隙中的景象）：SAN 1d6/2d10"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "成功封印裂隙",
+      "provides_clues": [
+        "flooded_section_cleared",
+        "rift_sealed"
+      ],
+      "next_location_type": "underground",
+      "reward": "裂隙最后吐出了一块完整的石板——上面刻着最终仪式需要的星辰排列日期",
+      "consequence": "裂隙在刺耳的尖啸中合拢，水面迅速退去，只留下潮湿的地面和满地垂死的深渊幼体"
+    },
+    "defeat": {
+      "condition": "全体调查员被拉入裂隙或 HP=0",
+      "provides_clues": [
+        "rift_claimed"
+      ],
+      "next_location_type": "waterfront",
+      "consequence": "裂隙在身后闭合，你们发现自己漂浮在一片紫色的虚空中，周围是无尽的饥饿的存在"
+    },
+    "flee": {
+      "condition": "任意调查员退回干燥区域并封住通道",
+      "provides_clues": [
+        "flooded_retreat"
+      ],
+      "next_location_type": "underground",
+      "consequence": "用炸药封住了通道，紫光从石缝中渗出，但至少暂时被挡住了"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "深渊幼体 +1",
+      "rift_horror_hp": 5
+    }
+  },
+  "image_prompt": "flooded tunnel dead end, purple dimensional rift glowing in wall, water rising, floating alien biological debris, stone debris as improvised platforms, rift light reflecting on water surface, Ink Frenzy style, underground water horror, 1920s cosmic invasion, otherworldly purple glow, 16:9 widescreen composition",
+  "escalation": [
+    "水位已经没到腰部——移动速度减半。水面上开始出现涟漪，有什么东西在水下游动。",
+    "水下的东西开始撞击你们的腿——每回合随机一个调查员需要进行 STR 检定，失败则被拖入水下（溺水 1d4/回合，需队友救援）。",
+    "墙壁开始渗水——管道破裂，水压正在撕裂整个空间。本回合结束时，水位将上升到胸部。",
+    "天花板开始坍塌——巨大的水泥块坠入水中。如果不在本回合结束战斗，整个空间将被水灌满，所有人溺亡。"
+  ]
+}

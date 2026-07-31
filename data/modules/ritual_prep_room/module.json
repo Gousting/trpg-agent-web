@@ -33,7 +33,9 @@
       "id": "room",
       "description": "这个房间是仪式前最后的准备站。三张长桌上摆着仪式需要的全部物品：蚀刻了所有人名的石板碎片、盛在铜碗里的深色液体、以及一把和考古系仓库里同源的黑曜石刀。最显眼的是一个巨大的沙盘模型——精确复制了阿卡姆海湾的海底地形和地下通道网络。以斯拉的名字刻在沙盘中央的控制点上。",
       "image_prompt": "ritual preparation room, three long tables with stone fragments, copper bowls of dark liquid, obsidian knife, large sand table model of Arkham bay topography and tunnel network, Ink Frenzy style, operational evil, war room aesthetic, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
-      "leads_to": "confrontation"
+      "leads_to": [
+        "confrontation"
+      ]
     },
     {
       "id": "confrontation",

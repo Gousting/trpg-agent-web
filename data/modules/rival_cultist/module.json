@@ -1,0 +1,72 @@
+{
+  "id": "rival_cultist",
+  "title": "变节教徒审讯",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "institutional"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "industrial"
+    ],
+    "required_clues": [
+      "cult_shipping_manifest"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "获得教团核心成员名单",
+      "provides_clues": [
+        "cultist_confession",
+        "inner_circle_names"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "你们在港口仓库抓到的这个教徒已经被关了六个小时。他不肯开口——直到你们把从他口袋里找到的家人照片放在他面前。他有三岁女儿。他说：如果我不合作他们会杀了她。你们告诉他合作的话你们会保护她。他沉默了很久，然后说：名单在我鞋底。然后他问了一个你们无法回答的问题：你们是要阻止仪式——还是要摧毁石板。阻止仪式只能拖到下个冬至。摧毁石板必须用活人做引子。你们准备牺牲谁？",
+      "image_prompt": "interrogation room, captured cultist, family photo on table, 1920s police, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "r1",
+          "text": "获取名单（侦查）——鞋底的纸片上写了十二个人名和各自在仪式中的角色"
+        },
+        {
+          "id": "r2",
+          "text": "追问摧毁石板的方法（说服/心理学）——需要一个人在石板完整时用手直接触碰核心，触碰者必死"
+        },
+        {
+          "id": "r3",
+          "text": "安排保护他的家人（社交/领导力）——可以把他家人送到镇民组织的安全屋"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rs2",
+          "text": "名单上有一个名字不在任何已知记录里——庇护所注册护士，伊芙琳·哈罗威，首席护工的妹妹"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "变节教徒最后说了几句话：我见过石板的核心。它是活的。它会读你的记忆——它用你最怕的东西攻击你。所长曾经也是有家人的——石板把他记忆里的家人都吞噬了。他现在不记得自己有过妻子。他只记得石板想让他记住的东西。摧毁石板的那一刻你会看到它吸食过的所有记忆——几百人的一生。你在那一秒里会活几百年然后死掉。",
+      "image_prompt": "list of cult inner circle names, cultist's confession, Ink Frenzy style, breakthrough, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "了解了摧毁石板的代价——下一步？",
+      "exit_labels": {
+        "asylum_director_office::office": "去庇护所找伊芙琳·哈罗威",
+        "final_confrontation::summit": "带着名单和情报前往山顶"
+      }
+    }
+  ]
+}

@@ -33,7 +33,9 @@
       "id": "room",
       "description": "人工开凿的大储藏室整齐地码放着木箱和陶罐，和港口仓库里的一模一样。靠墙的架子上是黑袍——至少三十件，意味着至少三十个成员。桌上摊着物资分配清单，以斯拉的签名出现在每一页。墙角堆着成捆的乙醚罐和你们在植物园见过的那种藤蔓样本。",
       "image_prompt": "underground cult storage room, neat stacks of crates and clay jars matching harbor warehouse, rack with 30+ black robes, supply manifest with Ezra signature, ether cans and vine samples, Ink Frenzy style, organized evil, inventory of horror, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
-      "leads_to": "roster"
+      "leads_to": [
+        "roster"
+      ]
     },
     {
       "id": "roster",

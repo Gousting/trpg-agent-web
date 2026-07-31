@@ -33,7 +33,9 @@
       "id": "dorm",
       "description": "惠特利教授带过的三个研究生住同一间宿舍。两人已经一周没来上课了。剩下那个叫弗兰克的，锁着门不肯出来。门缝下塞出一张纸条：'他们晚上会来。是教授让我们加入那个社团的。我们不知道会变成这样。'",
       "image_prompt": "1920s university dormitory corridor at night, one door slightly open, note slipping under door, shadows under other doors, Ink Frenzy style, academic paranoia, institutional dread",
-      "leads_to": "frank_room"
+      "leads_to": [
+        "frank_room"
+      ]
     },
     {
       "id": "frank_room",

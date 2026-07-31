@@ -37,7 +37,9 @@
         "trigger": "看到病人的竖瞳和墙上的符号与石板一模一样",
         "level": "MAJOR"
       },
-      "leads_to": "cell_7"
+      "leads_to": [
+        "cell_7"
+      ]
     },
     {
       "id": "cell_7",

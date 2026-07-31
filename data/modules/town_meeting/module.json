@@ -1,0 +1,73 @@
+{
+  "id": "town_meeting",
+  "title": "镇民大会",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "urban"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "urban",
+      "underground"
+    ],
+    "required_clues": [
+      "cult_member_roster"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "获得镇民支持组织民兵",
+      "provides_clues": [
+        "town_support",
+        "militia_formed"
+      ],
+      "mood": "tension",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "市政厅的紧急镇民大会挤满了人。过去一个月里七个家庭有人失踪，所有人都把矛头指向了庇护所。但庇护所的律师——一个穿灰色西装的瘦削男人——站在讲台上用平稳的语气否定一切：庇护所是慈善机构，失踪案件请找警局。直到你们站起来，把从庇护所找到的证据摆在了桌上。石板碎片的照片、病房的改造记录、以及那份被划掉十一人的献祭名单。",
+      "image_prompt": "town hall meeting, angry citizens, asylum lawyer at podium, 1920s civic tension, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "t1",
+          "text": "公开陈述调查发现（话术/魅力）——证据详实，听众开始窃窃私语"
+        },
+        {
+          "id": "t2",
+          "text": "要求律师回答（法律/威吓）——他在看到病历记录时第一次失去了镇定"
+        },
+        {
+          "id": "t3",
+          "text": "动员镇民组织搜索队（领导力/说服）——七个家庭愿意提供人力支援"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ts2",
+          "text": "律师的手腕上有一个六芒星纹身——他和庇护所不是雇佣关系"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "律师在众人注视下夺门而出。但这不重要了——镇民们已经在自发组织。几个退伍军人提出可以武装护卫，失踪者家属组成了三支搜索队。你们有了一支平民武装。不是正规军，但至少明天晚上你们不是孤军作战。镇长在会后单独找到你们：我在二十年前见过惠特利最后一面。他当时的样子已经不像人了。",
+      "image_prompt": "citizens organizing search parties, maps and lanterns, community action, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "获得了镇民支援——下一步？",
+      "exit_labels": {
+        "final_confrontation::summit": "带民兵队去山顶",
+        "town_hall_archives::filing_room": "向镇长了解更多惠特利的信息"
+      }
+    }
+  ]
+}

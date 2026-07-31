@@ -1,0 +1,145 @@
+{
+  "id": "tunnel_beast",
+  "title": "地下隧道·穴居兽",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "underground"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "underground",
+      "tunnel"
+    ],
+    "required_clues": [
+      "tunnel_junction_mapped"
+    ],
+    "forbidden_clues": [],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "猎杀穴居兽，通过隧道",
+      "provides_clues": [
+        "tunnel_secured",
+        "beast_origin_discovered"
+      ],
+      "mood": "triumph",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "defeat",
+      "label": "被兽群分食",
+      "provides_clues": [
+        "tunnel_lost"
+      ],
+      "mood": "despair",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "flee",
+      "label": "退回交叉路口",
+      "provides_clues": [
+        "tunnel_blocked"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "underground"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "tunnel_beast_alpha",
+      "name": "穴居兽母体",
+      "hp": 18,
+      "armor": 2,
+      "attack_bonus": 1,
+      "damage": "1d10",
+      "abilities": [
+        {
+          "name": "啃咬投掷",
+          "effect": "咬住目标后可将调查员投掷到 15 英尺外（1d6 撞击伤害）"
+        },
+        {
+          "name": "回声定位",
+          "effect": "即使黑暗中也能精准攻击，不受黑暗惩罚"
+        }
+      ],
+      "behavior": "守卫巢穴深处，不会追出巢穴范围",
+      "count": 1
+    },
+    {
+      "id": "tunnel_beast_young",
+      "name": "穴居兽幼崽",
+      "hp": 4,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d4",
+      "abilities": [
+        {
+          "name": "群体围攻",
+          "effect": "同目标有三个以上幼崽时攻击 +2"
+        }
+      ],
+      "behavior": "一拥而上围攻最近的调查员",
+      "count": 5
+    }
+  ],
+  "environment": {
+    "terrain": "狭窄的地下隧道交叉口，洞壁上布满了爪痕和黏液，空气中是浓烈的腥臭味",
+    "hazards": [
+      "松动的支撑梁——可击毁引发局部塌方（封住一侧隧道，区域内 2d6 伤害）",
+      "甲烷气穴——灯笼靠近引燃，产生 3d6 爆炸并消耗所有氧气（接下来 3 回合所有人 CON 检定呼吸困难）",
+      "地下水流——可引导水流冲走幼崽（力量对抗）"
+    ],
+    "lighting": "torchlight"
+  },
+  "rules": [
+    "回声——枪声或爆炸会吸引双倍数量的幼崽（下一回合增援 +1d4）",
+    "母体巢穴在隧道尽头，可以绕过——但绕过意味着后续可能被背后袭击",
+    "SAN 检定（看到堆积如山的骨骸）：SAN 0/1d3"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒穴居兽母体",
+      "provides_clues": [
+        "tunnel_secured",
+        "beast_origin_discovered"
+      ],
+      "next_location_type": "underground",
+      "reward": "母体巢穴中发现被啃食的邪教徒遗骸和一本浸血的日记——记载了石板碎片的运输路线",
+      "consequence": "母体倒下时整个隧道都在震动，碎石灰尘簌簌落下"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0",
+      "provides_clues": [
+        "tunnel_lost"
+      ],
+      "next_location_type": "underground",
+      "consequence": "幼崽一拥而上，隧道中回荡着啃噬声，持续了很久"
+    },
+    "flee": {
+      "condition": "任意调查员逃回交叉路口",
+      "provides_clues": [
+        "tunnel_blocked"
+      ],
+      "next_location_type": "underground",
+      "consequence": "用炸药或塌方封住了隧道，至少暂时挡住了兽群"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "穴居兽幼崽 +2",
+      "tunnel_beast_alpha_hp": 4
+    }
+  },
+  "image_prompt": "monster lair deep underground, pile of human bones in corner, claw marks gouged into stone walls, faint bioluminescent fungi, absolute darkness, no sunlight, no modern elements, no graffiti, Ink Frenzy style, 1920s subterranean horror, monochrome sepia tones, Lovecraftian dread, 16:9 widescreen composition",
+  "escalation": [
+    "野兽的咆哮在隧道中回荡——声音大到震落了混凝土块。随机位置发生小型塌方（1d4 伤害，并改变隧道地形）。",
+    "隧道深处传出尖锐的刮擦声——不止一只。从侧洞中又钻出两只幼兽（HP 减半的迷你版）。",
+    "地面开始震动——地铁隧道上方有列车经过。天花板的裂缝迅速扩大，碎石灰尘如雨般落下。所有移动需 DEX 检定。",
+    "隧道结构正在完全崩溃——支撑梁一根接一根弯折。如果本回合不能解决战斗，整段隧道将坍塌，埋葬所有人。"
+  ]
+}

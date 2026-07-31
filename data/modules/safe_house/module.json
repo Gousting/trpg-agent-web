@@ -1,0 +1,69 @@
+{
+  "id": "safe_house",
+  "title": "安全屋休整",
+  "module_type": "rest",
+  "genre": [
+    "rest",
+    "residential"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "恢复体力整理线索",
+      "provides_clues": [
+        "rest_complete",
+        "morale_restored"
+      ],
+      "mood": "relief",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "玛格丽特记者把她祖母的空置老房子借给了你们。深夜的客厅里壁炉烧得很旺，你们把所有的证据摊在咖啡桌上——时间线、地图、证人证词、照片、收据。在战斗中无暇思考的问题在安静中逐渐清晰。你们各喝了一杯热茶，开始重新审视那些之前忽略的细节。线索与线索之间还有微弱的关系没有被发现——但今晚你们需要先休息。",
+      "image_prompt": "grandmother's old house, fireplace burning, evidence spread on coffee table, Ink Frenzy style, 1920s safe haven, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "opportunities": [
+        {
+          "id": "r1",
+          "text": "整理所有已收集线索（知识/图书馆使用）——梳理出三条独立叙事线：庇护所的人体实验、以斯拉的个人动机、石板的物理性质"
+        },
+        {
+          "id": "r2",
+          "text": "队员之间交流各自的发现（社交）——拼凑出各自的碎片信息后画面更完整了"
+        },
+        {
+          "id": "r3",
+          "text": "短暂休息恢复体力（医学/生存）——确定接下来几小时的行动计划"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rs4",
+          "text": "你们已经收集了足够多的信息——现在的关键是决定后天晚上的行动方案和优先级"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "明天的行动方案逐渐成型。三条叙事线最终汇合到同一点：山顶采石场的最终仪式。不管从哪个方向切入，你们都会在星辰归位之时抵达那里。但抵达之后的选择——是摧毁石板、是阻止以斯拉、还是和深渊之子面对面——那不是今晚能决定的。今晚你们只需要休息。明天，一切都会终结。",
+      "image_prompt": "morning light through curtains, plan for final day, Ink Frenzy style, resolve, 16:9 widescreen",
+      "vote_prompt": "休整完毕——天亮了，最后的行动日开始了。",
+      "exit_labels": {
+        "final_confrontation::summit": "出发去山顶——最后一战",
+        "observatory::telescope_room": "出发前先去天文台最后确认时间"
+      }
+    }
+  ]
+}

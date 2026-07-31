@@ -1,0 +1,83 @@
+{
+  "id": "ledger_analysis",
+  "title": "账簿追踪",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "detective"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "industrial"
+    ],
+    "required_clues": [
+      "smuggler_ledger_seized"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "traced",
+      "label": "追踪到资金源头",
+      "provides_clues": [
+        "cult_funding_source",
+        "ezra_financial_trail"
+      ],
+      "mood": "urgency",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "identified",
+      "label": "找出买家身份",
+      "provides_clues": [
+        "buyer_list",
+        "asylum_shipment_details"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "accounting_room",
+      "description": "走私者的账簿用了自创的简写和暗语——但你们在港务长办公室找到的货物清单可以作为对照。你们用一个下午的时间逐行比对：化学试剂、考古设备、大批量乙醚。每一项的收货地址都不一样，但付款方都汇入同一家银行——阿卡姆第一国民银行，账户名是'阿卡姆慈善医学研究会'。那不是一个真实存在的慈善机构。",
+      "image_prompt": "office with ledgers and shipping manifests, adding machine, financial investigation, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "l1",
+          "text": "追踪银行账户流水（会计/法律）——捐款方都是已经死了的人，签名日期在他们死后"
+        },
+        {
+          "id": "l2",
+          "text": "比对收货地址和城市地图（侦查/导航）——三个地址在地图上构成一个精确的等边三角形"
+        },
+        {
+          "id": "l3",
+          "text": "查找'慈善医学研究会'的注册文件（图书馆使用/法律）——注册人是庇护所的前任院长"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ls1",
+          "text": "这个账号还在接收来自欧洲和南太平洋的汇款——这个邪教组织比你想象的庞大得多"
+        }
+      ],
+      "leads_to": [
+        "conclusion"
+      ],
+      "guidance": "这是一个纯智力调查场景。调查员的分析技能直接决定获得多少信息。"
+    },
+    {
+      "id": "conclusion",
+      "description": "当你们把所有数据铺在地图上时，一幅令人不安的画面浮现了。庇护所、采石场、港口仓库——这三个地点的连线中心正好是古屋所在的山丘。而所有的资金流、货物流、人员流动都指向后天晚上——星辰对齐的那个时间。他们不是在下个月行动，是后天。而且你们在记账本的最后页发现了一个新地址：山顶废弃采石场。那里有你们要找的最后一块石板。",
+      "image_prompt": "map with red pins and string forming triangle, financial documents, Ink Frenzy style, detective breakthrough, 16:9 widescreen",
+      "vote_prompt": "发现了后天就是仪式日期——追哪条线？",
+      "exit_labels": {
+        "harbor_warehouse::loading_dock": "去港口仓库拦截最后一批物资",
+        "asylum_director_office::office": "拿着证据去庇护所对质"
+      }
+    }
+  ]
+}

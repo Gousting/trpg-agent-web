@@ -42,7 +42,9 @@
       "id": "churchyard",
       "description": "老石教堂后的墓地笼罩在薄雾中。惠特利家的家族墓穴铁门虚掩，台阶上有新鲜泥土。附近六个坟的墓碑上都被刻了同样的符号——和古屋里发现的一模一样。",
       "image_prompt": "old stone church graveyard in mist, Whitley family crypt with iron gate ajar, fresh dirt on stone steps, strange symbols carved on six tombstones, moonlight through bare trees, Ink Frenzy style, gothic horror, church spire silhouetted against night sky",
-      "leads_to": "crypt_entrance"
+      "leads_to": [
+        "crypt_entrance"
+      ]
     },
     {
       "id": "crypt_entrance",

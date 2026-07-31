@@ -1,0 +1,72 @@
+{
+  "id": "coastal_bluffs",
+  "title": "海崖侦察",
+  "module_type": "exploration",
+  "genre": [
+    "outdoor",
+    "coastal"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "coastal"
+    ],
+    "required_clues": [
+      "ocean_ritual_coordinates"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "在海上发现可疑船只",
+      "provides_clues": [
+        "bluffs_surveyed",
+        "ritual_ship_sighted"
+      ],
+      "mood": "urgency",
+      "next_location_type": "waterfront"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "你们按照从废弃货船上找到的坐标来到海崖边。凌晨三点的大西洋漆黑一片——但在地平线上，有一艘没有亮灯的船。望远镜里可以看到甲板上的人在搬运什么东西。木箱——和港口仓库里见过的一模一样。船身上用白漆刷了一个六芒星符号。这艘船不属于阿卡姆港的任何一家航运公司。",
+      "image_prompt": "ocean cliff at night, unlit ship on horizon, telescope view, maritime surveillance, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "b1",
+          "text": "用望远镜详细观察（侦查）——甲板上大约十二个人，全部穿黑袍，其中一个在指挥"
+        },
+        {
+          "id": "b2",
+          "text": "对照潮汐表计算靠岸时间（导航/数学）——明天上午十点刚好满潮，船可以靠港"
+        },
+        {
+          "id": "b3",
+          "text": "绘制海崖地形图（导航/绘画）——选一个隐蔽的观察点，可以作为伏击位置"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "bs2",
+          "text": "船上有一个人始终戴着面具——即使在漆黑的甲板上。面具的形状和以斯拉描述完全一致"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "在望远镜里，你们看到他们搬出了一块比人还高的石板。它在黑暗中发着微弱的绿光——不需要任何灯光就能看清。六个黑袍人把它竖在甲板中央，开始围着它转圈——你们在沼泽和松林里见过同样的仪式。这艘船是最后一块石板——最大的一块——正在被运往某个地方。根据船的航向，目的地是采石场下方的海岸。",
+      "image_prompt": "black-robed figures on ship deck, massive glowing stone slab, Ink Frenzy style, ritual at sea, 16:9 widescreen",
+      "vote_prompt": "发现了最后一块石板的运输船——下一步？",
+      "exit_labels": {
+        "harbor_warehouse::loading_dock": "去港口拦截卸货",
+        "dockside_arrival::docks": "去码头收集更多情报"
+      }
+    }
+  ]
+}

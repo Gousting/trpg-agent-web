@@ -42,7 +42,9 @@
       "id": "storage",
       "description": "考古系地下仓库的灯光忽明忽暗。一排编号木箱中有一个被撬开了——里面的南太平洋石雕和你们见过的石板纹路完全一致。箱子标签写着惠特利教授的名字和'待销毁'三个红字。系主任似乎想销毁证据。",
       "image_prompt": "university archaeology department basement storage, numbered crates, one pried open revealing Pacific stone carvings matching slab patterns, flickering lights, Ink Frenzy style, academic cover-up, institutional horror",
-      "leads_to": "director_office"
+      "leads_to": [
+        "director_office"
+      ]
     },
     {
       "id": "director_office",

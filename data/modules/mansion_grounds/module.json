@@ -1,0 +1,74 @@
+{
+  "id": "mansion_grounds",
+  "title": "古屋庭院",
+  "module_type": "exploration",
+  "genre": [
+    "outdoor",
+    "rural"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "rural",
+      "underground",
+      "swamp"
+    ],
+    "required_clues": [
+      "graveyard_disturbed"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "发现惠特利家族地下陵墓",
+      "provides_clues": [
+        "grounds_searched",
+        "family_mausoleum"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "古屋后面的庭院已经彻底荒废了。齐腰高的杂草中倒着两座倒塌的温室，一座干涸的喷泉里堆满了枯叶。但庭院的东南角有一块空地——周围的植物全部枯死了，土壤呈现不自然的灰白色。空地中央是一块被杂草半掩的石板——不是你们在找的那种石板，是一块普通的墓碑。上面刻着惠特利家的纹章和一行小字：眠于此者非我族人。",
+      "image_prompt": "overgrown mansion garden, dead plants, ancient tombstone in clearing, Ink Frenzy style, gothic grounds, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "g1",
+          "text": "挖掘墓碑周围（力量/考古学）——墓碑不是立在棺材上，是立在一个通往地下的石阶入口上"
+        },
+        {
+          "id": "g2",
+          "text": "分析枯死植物和土壤（生物学/化学）——土壤中有和石板碎片相同的高浓度未知物质"
+        },
+        {
+          "id": "g3",
+          "text": "研究墓碑铭文（历史/神秘学）——眠于此者非我族人是古拉丁文的翻译，原文是Non Sunt Qui Sumus"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "gs2",
+          "text": "石阶入口没有封死——推开的痕迹不超过一个月"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "你们推开墓碑露出了一个窄小的石阶。走下去大约二十级后，空气变得冰冷干燥。前方是一个地下的圆形石室，周围墙上嵌着六个壁龛——每个壁龛里放着一块巴掌大的石板碎片。这是惠特利家族的地下陵墓——但棺材不在墓穴里。它们在壁龛里，被石板碎片围绕着。惠特利家族的尸体不是用来安葬的——是用来喂养这些碎片的。",
+      "image_prompt": "underground circular crypt, stone slab fragments in wall niches, Ink Frenzy style, family mausoleum, 16:9 widescreen",
+      "vote_prompt": "发现了惠特利家族的地下陵墓——下一步？",
+      "exit_labels": {
+        "ancient_chamber::entrance_hall": "带一块碎片去远古密室对照",
+        "church_yard::graveyard": "检查其他惠特利族人的墓地"
+      }
+    }
+  ]
+}

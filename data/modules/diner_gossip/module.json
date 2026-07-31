@@ -43,7 +43,9 @@
       "id": "diner",
       "description": "深夜的阿卡姆路边餐馆，几个喝咖啡的卡车司机在角落窃窃私语。墙上贴满寻人启事。",
       "image_prompt": "1920s roadside diner at night, steam rising from coffee cups, posters on walls, tired truckers whispering in corner booth, neon sign flickering outside rain-streaked window, Ink Frenzy style, Edward Hopper atmosphere, deep shadows, film noir lighting, 1920s New England Americana, avoid human figures, focus on environment and architecture",
-      "leads_to": "waitress"
+      "leads_to": [
+        "waitress"
+      ]
     },
     {
       "id": "waitress",

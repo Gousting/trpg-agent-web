@@ -72,7 +72,8 @@
       "vote_prompt": "门厅调查完了。上楼去图书室，还是先搜一楼的书房？",
       "leads_to": [
         "foyer_study",
-        "library"
+        "foyer_attic",
+        "foyer_converge"
       ],
       "exit_labels": {
         "foyer_study": "搜索一楼书房（可能有隐藏物品）",
@@ -105,9 +106,12 @@
         }
       ],
       "leads_to": [
-        "library"
+        "foyer_converge"
       ],
-      "guidance": "书房提供惠特利的心理变化时间线——从兴奋的学者到恐惧的囚徒，只用了三天。"
+      "guidance": "书房提供惠特利的心理变化时间线——从兴奋的学者到恐惧的囚徒，只用了三天。",
+      "exit_labels": {
+        "library_research::library": "上楼去图书室"
+      }
     },
     {
       "id": "foyer_attic",

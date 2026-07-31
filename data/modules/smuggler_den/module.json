@@ -39,7 +39,9 @@
         "hp": 8,
         "armor": 0
       },
-      "leads_to": "interrogation"
+      "leads_to": [
+        "interrogation"
+      ]
     },
     {
       "id": "interrogation",

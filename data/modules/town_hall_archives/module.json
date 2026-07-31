@@ -42,7 +42,9 @@
       "id": "filing_room",
       "description": "市政厅地下档案室的荧光灯管嗡嗡作响。土地登记册显示惠特利家族在过去五十年间以极低价格收购了镇郊七块土地——包括废弃的采石场和沼泽地。",
       "image_prompt": "town hall basement filing room, fluorescent lights flickering, old leather-bound land registry books open on wooden table, hand-drawn property maps showing circled locations, Ink Frenzy style, bureaucratic horror, sterile government atmosphere with wrongness creeping in, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
-      "leads_to": "clerk_office"
+      "leads_to": [
+        "clerk_office"
+      ]
     },
     {
       "id": "clerk_office",

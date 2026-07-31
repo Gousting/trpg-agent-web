@@ -1,0 +1,73 @@
+{
+  "id": "abandoned_subway",
+  "title": "废弃地铁站",
+  "module_type": "exploration",
+  "genre": [
+    "exploration",
+    "urban",
+    "underground"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "underground",
+      "indoor"
+    ],
+    "required_clues": [
+      "underground_passage_found"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "找到通往庇护所的秘密通道",
+      "provides_clues": [
+        "subway_mapped",
+        "hidden_tunnel_found"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "阿卡姆的地铁系统在1915年就废弃了——但今晚的入口铁门却是虚掩着的。生锈的铁轨消失在黑暗中，手电筒的光柱只能照到二十米外。墙上的瓷砖大片脱落，露出后面更古老的石砌结构——那不是地铁站的原始建筑。有人在废弃之后继续在这里施工。而且不是市政工程。",
+      "image_prompt": "abandoned subway station, rusted tracks, ancient stonework behind fallen tiles, underground horror, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "e1",
+          "text": "沿铁轨深入探索（侦查/导航）——铁轨在隧道尽头突然转向，延伸进了一个明显不是地铁系统的天然洞穴"
+        },
+        {
+          "id": "e2",
+          "text": "检查古老石砌结构（考古学/地质学）——石材和庇护所地基使用的是同一种岩石，都有石板碎片的残留"
+        },
+        {
+          "id": "e3",
+          "text": "搜索废弃站台（侦查）——售票亭里找到一本手写的施工日志，署名是惠特利"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "es1",
+          "text": "这条隧道直接通往庇护所的地下室——他们一直在用废弃地铁运送仪式物资和人体"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "隧道尽头的石墙上刻着和远古密室相同的符号。地上散落着空乙醚罐和血迹斑斑的绷带。你们顺着隧道继续走了大约十五分钟，头顶传来了庇护所地下室的锅炉声。惠特利的施工队把庇护所、采石场和港口全部用这条隧道系统连接起来了——一座地下城市，藏在所有人的脚下。",
+      "image_prompt": "underground junction with cables and pipes, medical waste scattered, stone wall with occult symbols, distant boiler sound, Ink Frenzy style, hidden network revealed, 1920s subterranean horror, 16:9 widescreen composition",
+      "vote_prompt": "发现了地下隧道网络——走哪边？",
+      "exit_labels": {
+        "asylum_cells::asylum_isolation": "沿隧道进入庇护所地下室",
+        "underground_tunnels::tunnel_entrance": "探索隧道其他分支"
+      }
+    }
+  ]
+}

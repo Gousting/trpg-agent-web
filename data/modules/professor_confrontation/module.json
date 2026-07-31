@@ -1,0 +1,72 @@
+{
+  "id": "professor_confrontation",
+  "title": "教授对质",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "institutional"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional"
+    ],
+    "required_clues": [
+      "secret_society_exposed"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "揭开大学与企业勾结真相",
+      "provides_clues": [
+        "professor_testimony",
+        "university_complicity"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "考古系的柯林斯教授坐在办公室里——但这次他没有试图否认。他看着你们拿出的证据，慢慢摘下眼镜，用袖子擦了擦。他问：你们知道为什么密大要雇佣惠特利吗。因为他的发现太重要了不能落在别人手里。大学不是庇护所的敌人——大学的研究经费里有三分之一来自同一个慈善基金。那个慈善基金的名字你们现在已经很熟了。",
+      "image_prompt": "archaeology professor's office, confrontation, evidence on desk, 1920s academic tension, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "p1",
+          "text": "逼问他的参与程度（威吓/法律）——他没有直接参与仪式，但他知道每一批从考古系运出的设备去了哪里"
+        },
+        {
+          "id": "p2",
+          "text": "要求交出所有相关研究文件（说服/知识）——他犹豫了很久，最后打开了保险柜"
+        },
+        {
+          "id": "p3",
+          "text": "询问关于惠特利的真相（心理学/知识）——惠特利在沙漠里找到的不只是石板。他在那座地下城市里被什么东西附身了"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ps3",
+          "text": "柯林斯本人也接触过石板碎片——他的左手无名指被切掉了，因为碎片侵蚀了他的手指"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "柯林斯说出了一个关键细节：惠特利在最后清醒的时刻写了一份忏悔书。不是给警察的——是给后来的调查员的。他把忏悔书藏在了古屋图书室的一本假书里。那本书的书脊上烫金的拉丁文标题翻译过来是：关于非自然存在之十二种假设——作者阿瑟·惠特利。找到它你们就会知道怎么彻底摧毁石板。",
+      "image_prompt": "hidden book with gold Latin title on spine, library shelves, Ink Frenzy style, discovery, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "发现了惠特利的忏悔书——下一步？",
+      "exit_labels": {
+        "library_research::library_restricted": "去古屋图书室找那本假书",
+        "asylum_director_office::office": "先带教授去庇护所对质所长"
+      }
+    }
+  ]
+}

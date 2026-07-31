@@ -46,7 +46,9 @@
         "trigger": "收音机里传来不应该存在的水下声音",
         "level": "MAJOR"
       },
-      "leads_to": "hold"
+      "leads_to": [
+        "hold"
+      ]
     },
     {
       "id": "hold",

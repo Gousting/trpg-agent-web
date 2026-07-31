@@ -1,0 +1,79 @@
+{
+  "id": "ritual_artifact_study",
+  "title": "仪式器物鉴定",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "occult",
+    "archaeology"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional",
+      "cave",
+      "underground"
+    ],
+    "required_clues": [
+      "cult_supplies_found"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "identified",
+      "label": "鉴定出所有物品用途",
+      "provides_clues": [
+        "ritual_items_cataloged",
+        "sacrifice_method_known"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "artifact_room",
+      "description": "从邪教储藏室里查获的物品铺满了整张长桌：六把黑曜石祭祀刀、三套仪式黑袍、十二个装满不明液体的玻璃罐、和一块巴掌大的石板碎片——当你们的手接近它时，皮肤上的汗毛会直立起来。考古系的老教授戴着厚手套将每件物品分类，他的表情从学术好奇逐渐变成了恐惧：这些刀是美索不达米亚的——至少三千年前——但打磨痕迹是今年才留下的。有人在用三千年前的工艺制作新的祭祀工具。",
+      "image_prompt": "archaeological table with ritual daggers and black robes, professor examining, occult research, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "r1",
+          "text": "鉴定石板碎片的年代和来源（考古学/地质学）——这块碎片上有不属于地球的同位素比例"
+        },
+        {
+          "id": "r2",
+          "text": "分析玻璃罐液体成分（化学/药学）——是乙醚、鸦片酊和一种未知生物分泌物的混合物"
+        },
+        {
+          "id": "r3",
+          "text": "检查黑袍内侧（侦查/纺织）——每件黑袍内侧口袋里有手写的角色分配：祭品、见证、容器、通道"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rs1",
+          "text": "容器角色的黑袍内侧有大量血迹——而且是新的。扮演这个角色的人很可能已经死了，或者离死不远了"
+        }
+      ],
+      "leads_to": [
+        "revelation"
+      ],
+      "san_check": {
+        "trigger": "用手指触碰石板碎片",
+        "level": "MINOR"
+      }
+    },
+    {
+      "id": "revelation",
+      "description": "当你们把所有证据拼接起来时，仪式的完整流程变得清晰：六名祭品、一名容器、一名通道（以斯拉自己）、以及见证者。你们在黑袍口袋里找到了一张纸条——上面用红墨水写着十二个人名。其中十一个已经被划掉了。最后一个名字没有划掉，旁边写了一行字：容器已就位——庇护所B区14号病房。",
+      "image_prompt": "ritual robe showing role assignments, crossed-out names list, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "发现了献祭名单——现在？",
+      "exit_labels": {
+        "patient_ward::ward": "立刻去庇护所14号病房救人",
+        "police_station::police_front": "去警局申请大规模搜查"
+      }
+    }
+  ]
+}

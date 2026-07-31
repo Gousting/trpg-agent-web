@@ -39,7 +39,9 @@
         "hp": 10,
         "armor": 2
       },
-      "leads_to": "generator_room"
+      "leads_to": [
+        "generator_room"
+      ]
     },
     {
       "id": "generator_room",

@@ -1,26 +1,86 @@
 {
-  "id": "asylum_cells", "title": "疯人院地下病房", "genre": ["horror", "psychological"], "difficulty": 3, "duration_estimate": "2-3 turns",
-  "entry": {"location_types": ["indoor", "asylum"], "required_clues": ["patient_zero_found"], "forbidden_clues": [], "mood": null},
+  "id": "asylum_cells",
+  "title": "疯人院地下病房",
+  "genre": [
+    "horror",
+    "psychological"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "indoor",
+      "asylum"
+    ],
+    "required_clues": [
+      "patient_zero_found"
+    ],
+    "forbidden_clues": [],
+    "mood": null
+  },
   "scenes": [
-    {"id": "asylum_isolation", "title": "隔离区", "part": 1, "scene_type": "病房",
+    {
+      "id": "asylum_isolation",
+      "title": "隔离区",
+      "part": 1,
+      "scene_type": "病房",
       "image_prompt": "underground asylum isolation wing, rows of identical white padded cells with heavy iron doors, each door has a small observation window showing patients frozen in identical positions as if time stopped, the air is heavy and silent except for a single low frequency hum, one cell at the end has no door at all just an open archway into absolute darkness, the nurse's station abandoned with a half-drunk cup of tea still warm, clinical horror, Ink Frenzy style",
       "description": "护士长说地下隔离层已经封闭了二十年。你们撬开了消防通道的锁下去了。走廊两侧的病房里，每个病人都保持着完全相同的姿势——不是站岗或祈祷，像是被按下了暂停键。走廊尽头的房间没有门——只有一个空洞，里面是绝对的黑暗。护士站桌上的茶还是温的。",
-      "npcs_here": [], "opportunities": [{"id": "ai1", "text": "观察一个病人（侦查/心理学）——他们不是被暂停了。他们在以极度缓慢的速度移动。一个人正在完成一个眨眼动作，但已经有二十年了"}],
-      "secrets": [{"id": "ais1", "text": "这个区域的时间被石板扭曲了。石板最初的碎片——最大的一块——就是从这里出土的。疯人院建在石板母体碎片的正上方"}],
-      "leads_to": ["asylum_chamber"], "guidance": "地下隔离区的物理规律不正常——时间和空间都在扭曲。"
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "ai1",
+          "text": "观察一个病人（侦查/心理学）——他们不是被暂停了。他们在以极度缓慢的速度移动。一个人正在完成一个眨眼动作，但已经有二十年了"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ais1",
+          "text": "这个区域的时间被石板扭曲了。石板最初的碎片——最大的一块——就是从这里出土的。疯人院建在石板母体碎片的正上方"
+        }
+      ],
+      "leads_to": [
+        "asylum_chamber"
+      ],
+      "guidance": "地下隔离区的物理规律不正常——时间和空间都在扭曲。"
     },
-    {"id": "asylum_chamber", "title": "零号室", "part": 1, "scene_type": "核心",
+    {
+      "id": "asylum_chamber",
+      "title": "零号室",
+      "part": 1,
+      "scene_type": "核心",
       "image_prompt": "a room that should not exist underground, the walls are not walls but compressed layers of different eras visible in cross section, the floor is transparent showing a massive black stone fragment embedded deep in the earth below pulsing with green light, the air vibrates visibly with sound waves at exactly 23Hz, a figure stands at the edge of the transparent floor looking down at the stone, the figure has no discernible features, cosmic horror threshold, Ink Frenzy style",
       "description": "走廊尽头的房间不存在于建筑平面图上。墙壁不是墙——是压缩的地质层，你们能看到不同年代的岩层剖面。地板是透明的，底下深处嵌着一块巨大的黑色石板碎片，比任何你们见过的都大，在深处脉动。空气中可见到23Hz的声波振动。一个没有五官的人形站在透明地板边缘，低头看着下面。它不是雕像。它在呼吸。",
-      "npcs_here": ["无面人形"],
-      "opportunities": [{"id": "ac1", "text": "观察无面人形（克苏鲁神话/勇气检定）——它不是深渊之物本身。它是被深渊之物派来的'收集者'，在收集所有碎片回归母体"}],
-      "secrets": [{"id": "acs1", "text": "疯人院地下是碎片网络的中心节点。所有碎片最终都会汇集到这里。摧毁这块母体碎片——其他碎片会失去连接。"}],
-      "leads_to": [], "exit_labels": {
+      "npcs_here": [
+        "无面人形"
+      ],
+      "opportunities": [
+        {
+          "id": "ac1",
+          "text": "观察无面人形（克苏鲁神话/勇气检定）——它不是深渊之物本身。它是被深渊之物派来的'收集者'，在收集所有碎片回归母体"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "acs1",
+          "text": "疯人院地下是碎片网络的中心节点。所有碎片最终都会汇集到这里。摧毁这块母体碎片——其他碎片会失去连接。"
+        }
+      ],
+      "leads_to": [],
+      "exit_labels": {
         "basement_confrontation::basement": "去老宅地下室——惠特利手里还有最后一块",
         "escape_chase::woods": "无面人形注意到你了——跑"
       }
     }
   ],
-  "npcs": [{"name": "无面人形", "attitude": "alien", "description": "不是生物——是碎片网络的节点管理者。没有敌意，也没有善意。它在完成一个任务。", "secret": "它在等最后一块碎片归位。当所有碎片汇集时，它会变成门——深渊之物将从它体内穿过。"}],
-  "variance": {}
+  "npcs": [
+    {
+      "name": "无面人形",
+      "attitude": "alien",
+      "description": "不是生物——是碎片网络的节点管理者。没有敌意，也没有善意。它在完成一个任务。",
+      "secret": "它在等最后一块碎片归位。当所有碎片汇集时，它会变成门——深渊之物将从它体内穿过。"
+    }
+  ],
+  "variance": {},
+  "is_ending": true
 }

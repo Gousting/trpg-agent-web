@@ -1,0 +1,82 @@
+{
+  "id": "witness_interviews",
+  "title": "证人交叉比对",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "social"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional"
+    ],
+    "required_clues": [
+      "student_testimony_obtained"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "compiled",
+      "label": "拼出完整目击记录",
+      "provides_clues": [
+        "cult_meeting_pattern",
+        "suspect_descriptions"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "contradiction",
+      "label": "发现证词矛盾",
+      "provides_clues": [
+        "witness_contradiction",
+        "cult_infiltrator_suspected"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "interview_room",
+      "description": "七个目击者的证词堆在桌上。三个学生说看到黑袍人在校园北边的树林里集会，两个说在南边，一个说在图书馆地下室。所有的描述都不同——人数、时间、领头人的长相。但有一个细节在所有证词里完全一致：每次集会时天空都是阴天，看不到任何星星。七个目击、七个不同的地点、七次阴天——只有阿卡姆的天气数据记录显示，那七天的夜晚全是晴空。有人在操纵这些学生看到的东西。",
+      "image_prompt": "interview room with witness statements, weather reports, city map, Ink Frenzy style, detective, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "opportunities": [
+        {
+          "id": "w1",
+          "text": "交叉比对所有证词找共同点（侦查/心理学）——所有人都在提到领头人时使用了完全相同的形容词"
+        },
+        {
+          "id": "w2",
+          "text": "调取天气记录（图书馆使用/法律）——七次目击都是晴空，但证人一致认为阴天，这是集体幻觉"
+        },
+        {
+          "id": "w3",
+          "text": "重新访谈一位证人（话术/心理学）——当你提到阴天时他的反应不对——像在背诵"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ws1",
+          "text": "最一致的那个证人每次都在事后收到了一封没有署名的信。信里只有一行字：你做得很好。"
+        }
+      ],
+      "leads_to": [
+        "conclusion"
+      ]
+    },
+    {
+      "id": "conclusion",
+      "description": "当你们把七个目击地点的真实位置——而不是证人声称的位置——标在地图上时，它们形成了一个完美的同心圆。圆心在大学后山的废弃天文观测台旧址。那里早在五年前就被关闭了——但今晚，透过望远镜你们能看到那栋建筑里有光。有人在里面。证词中的领头人描述完全一致不是因为巧合——是因为他们看到的都是同一个人。以斯拉。他一直在用那台旧望远镜追踪星辰的移动。",
+      "image_prompt": "map with concentric circle pattern, witness statements highlighted, breakthrough, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "锁定以斯拉的位置——下一步？",
+      "exit_labels": {
+        "observatory::telescope_room": "去废弃天文台追踪以斯拉",
+        "police_station::police_front": "去警局申请搜查令"
+      }
+    }
+  ]
+}

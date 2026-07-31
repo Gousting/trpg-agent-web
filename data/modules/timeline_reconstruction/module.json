@@ -1,0 +1,73 @@
+{
+  "id": "timeline_reconstruction",
+  "title": "时间线重建",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "detective"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "whitley_articles_found"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "complete",
+      "label": "完成时间线，发现仪式规律",
+      "provides_clues": [
+        "ritual_pattern_identified",
+        "next_ritual_date",
+        "whitley_timeline_complete"
+      ],
+      "mood": "urgency",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "archive_room",
+      "description": "报社的档案室里堆着二十年的过期报纸。你们把所有关于惠特利家族、庇护所、和阿卡姆地区异常死亡的报道全部摊在桌上。一开始只是一堆杂乱的事件——直到你们开始按日期排列。家族的失踪、庇护所的扩建、每次满月时附近的失踪人口报告。它们不是孤立的悲剧。它们是一个持续了二十年的计划。",
+      "image_prompt": "newspaper archive, yellowed papers arranged by date, red annotations, journalism, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "t1",
+          "text": "按时间排列所有事件（历史/图书馆使用）——发现了精确的三年周期：1920、1923、1926，每次都发生在冬至"
+        },
+        {
+          "id": "t2",
+          "text": "交叉引用庇护所入院记录和失踪人口（侦查/法律）——入院高峰总是在失踪事件后一周"
+        },
+        {
+          "id": "t3",
+          "text": "查找惠特利在失踪前的学术活动（考古学/人类学）——他每次回国后庇护所就会扩建一次"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ts1",
+          "text": "惠特利并不是1920年才开始的——他在1912年就已经从美索不达米亚带回了第一块石板碎片"
+        }
+      ],
+      "leads_to": [
+        "pinboard"
+      ],
+      "guidance": "这个场景的核心是让调查员意识到事件的规模和计划性。给两到三轮让他们发现规律。"
+    },
+    {
+      "id": "pinboard",
+      "description": "你们把所有线索钉在墙上，用红线连接。图案令人胆寒。这二十年间的每个关键事件都完美契合——像有人提前写好了剧本，而阿卡姆的所有人都只是按部就班地演出。而现在，剧本的最后一幕即将在两天后上演。你们在时间线的终点看到了它：冬至日，星辰归位，采石场山顶。那就是最终仪式的时间和地点。",
+      "image_prompt": "evidence board with clippings and red string, timeline marked with dates, investigation, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "只剩两天了——如何阻止？",
+      "exit_labels": {
+        "final_confrontation::summit": "直接前往山顶仪式场设伏",
+        "observatory::telescope_room": "先去天文台确认星辰位置"
+      }
+    }
+  ]
+}

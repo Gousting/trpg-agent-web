@@ -469,6 +469,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
         # ── 玩家行动 ───────────────────────────
         moved_scene = None  # 投票驱动的模块场景切换结果（仅模块模式下可能非 None）
+        trans_meta = None   # 过渡元数据链（供 KP 过渡指令构建）
         if mode == "ai":
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             action = ""
@@ -558,7 +559,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             if adventure is not None and target_scene_id:
                 moved_scene = session.move_to_scene(target_scene_id, adventure)
                 if moved_scene is not None:
-                    moved_scene = _auto_advance_transitions(session, adventure, moved_scene)
+                    moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
 
             action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
@@ -632,7 +633,24 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             context_parts.append(f"[获得物品] {', '.join(items_picked)}")
         # 模块模式：投票已经把队伍移动到了新场景——告知 KP 描述抵达
         if moved_scene is not None:
-            context_parts.append(f"[场景切换] 队伍来到了新地点——{moved_scene.title}：{moved_scene.description}")
+            if trans_meta:
+                # 有过渡元数据 → 构建结构化 KP 过渡指令
+                tm = trans_meta[0]  # 使用第一条过渡元数据（通常只有一条）
+                from_type_label = {"combat": "战斗", "exploration": "调查", "story": "剧情"}.get(tm.get("from_type", ""), tm.get("from_type", ""))
+                to_type_label = {"combat": "战斗", "exploration": "调查", "story": "剧情"}.get(tm.get("to_type", ""), tm.get("to_type", ""))
+                trans_parts = [
+                    "[场景过渡]",
+                    f"队伍离开了「{tm['from_title']}」（{from_type_label}场景），现在来到了「{tm['to_title']}」（{to_type_label}场景）。",
+                ]
+                if tm.get("to_desc"):
+                    trans_parts.append(f"抵达后的景象：{tm['to_desc']}")
+                trans_parts.append(
+                    "请用2-3句话叙述从离开到抵达的自然过渡。如果是不同类型场景的切换（如调查→战斗），"
+                    "叙述应体现氛围升级；同类型场景切换用简洁的1-2句即可。不要使用模板化句式。"
+                )
+                context_parts.append("\n".join(trans_parts))
+            else:
+                context_parts.append(f"[场景切换] 队伍来到了新地点——{moved_scene.title}：{moved_scene.description}")
         # 模块模式 + AI 玩家：告知可用的场景出口，允许 KP 用 <<EXIT n>> 请求移动
         if adventure is not None and mode == "ai":
             current_exits = adventure.scene_exits(
@@ -671,7 +689,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                         current_exits[exit_choice - 1].target_id, adventure,
                     )
                     if moved_scene is not None:
-                        moved_scene = _auto_advance_transitions(session, adventure, moved_scene)
+                        moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
 
         session.record_turn(action, narration, speaker=speaker)
         last_narration = narration
@@ -833,17 +851,23 @@ def _detect_move(dmap: DungeonMap, action: str) -> dict | None:
 
 
 def _auto_advance_transitions(session: Session, adventure: Adventure, scene):
-    """自动走完模块间的 __trans__ 过渡场景（无需玩家互动，见 module_composer 里的
-    "guidance: 过渡场景。无需玩家互动，自动推进"），直到落在一个真实场景为止。
+    """自动走完模块间的 __trans__ 过渡场景（无需玩家互动），直到落在一个真实场景为止。
+    
+    Returns:
+        (final_scene, transitions_meta) — transitions_meta 是沿途收集的过渡元数据列表，
+        供 web_server 构建 KP 过渡指令。
     """
+    transitions_meta = []
     guard = 0
     while scene is not None and scene.id.startswith("__trans__") and scene.leads_to and guard < 5:
+        if getattr(scene, 'transition', None):
+            transitions_meta.append(scene.transition)
         next_scene = session.move_to_scene(scene.leads_to[0], adventure)
         if next_scene is None:
             break
         scene = next_scene
         guard += 1
-    return scene
+    return scene, transitions_meta
 
 
 def _sse(event: str, data: dict) -> str:

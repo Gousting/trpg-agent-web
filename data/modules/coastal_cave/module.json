@@ -33,7 +33,9 @@
       "id": "entrance",
       "description": "退潮后的悬崖底部露出一个低矮的洞口。洞壁上刻满了和石板一样的符号，但在这里它们是活的——随潮水声脉动，发出微弱的绿光。地上散落着鱼骨和被海水泡烂的仪式袍。",
       "image_prompt": "low cave entrance at cliff base during low tide, walls covered in glowing symbols pulsing with green light, scattered fish bones and waterlogged robes, Ink Frenzy style, oceanic horror, dark tunnel leading deeper",
-      "leads_to": "inner_cave"
+      "leads_to": [
+        "inner_cave"
+      ]
     },
     {
       "id": "inner_cave",

@@ -72,5 +72,6 @@
     }
   ],
   "npcs": [],
-  "variance": {}
+  "variance": {},
+  "is_ending": true
 }

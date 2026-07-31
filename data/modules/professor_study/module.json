@@ -42,7 +42,9 @@
       "id": "study",
       "description": "惠特利教授的办公室被翻得很乱，但翻找的人显然没注意到壁炉后的暗格。里面藏着教授的私人研究笔记：他相信那块石板来自比已知文明更古老的深海遗迹，并且认为它可以'连接意识'。最后一页写着：'我已经让以斯拉帮忙把它运回来。我不该这么做的。'",
       "image_prompt": "1920s university professor study, overturned books and papers, hidden compartment behind fireplace, leather-bound research notes with disturbing diagrams, Ink Frenzy style, academic horror, scholarly mystery, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
-      "leads_to": "specimen"
+      "leads_to": [
+        "specimen"
+      ]
     },
     {
       "id": "specimen",

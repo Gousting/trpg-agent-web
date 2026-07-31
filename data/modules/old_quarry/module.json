@@ -33,7 +33,9 @@
       "id": "entrance",
       "description": "采石场早已停工，但重型设备都被移到了最深处的矿坑边上，围成一个圈——像是什么仪式的观众席。坑底的矿壁被凿穿了一个不规则的洞，洞口边缘的石头不是被砸碎的，而是像被什么东西从内部融化后重新凝结的。洞口吹出温热的风，带着海水的腥味。",
       "image_prompt": "abandoned quarry at night, heavy equipment arranged in circle around deep pit, irregular hole in quarry wall with melted edges, warm sea-smelling air rising, Ink Frenzy style, industrial meets primordial horror, vast scale",
-      "leads_to": "descent"
+      "leads_to": [
+        "descent"
+      ]
     },
     {
       "id": "descent",

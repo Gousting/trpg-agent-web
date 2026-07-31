@@ -1,0 +1,73 @@
+{
+  "id": "librarian_access",
+  "title": "图书管理员许可",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "institutional"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional",
+      "basement"
+    ],
+    "required_clues": [
+      "keepers_trust"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "获得禁书区访问权限",
+      "provides_clues": [
+        "restricted_access",
+        "hidden_collection"
+      ],
+      "mood": "tension",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "密斯卡托尼克大学的图书管理员埃弗里特先生是一个干瘦的老头，他的眼镜片厚得像瓶底。你们上一次来的时候他拒绝让你们进入禁书区——但今天他主动叫住了你们。他听到了你们在珍稀手稿室里讨论的内容。他从抽屉里拿出一把黄铜钥匙，犹豫了很久才开口：大学董事会禁止任何人进入那个区域——但你们要找的东西不在禁书区。在禁书区下面。",
+      "image_prompt": "university library, old librarian with brass key, bookshelves, Ink Frenzy style, 1920s academic, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "l1",
+          "text": "询问禁书区下面的内容（说服/知识）——大学的地下室还藏着第二层，用于存放不能存在于任何目录中的藏品"
+        },
+        {
+          "id": "l2",
+          "text": "说服他亲自带路（魅力/心理学）——他在四十年前亲手把那件东西锁了进去，至今没有告诉过任何人"
+        },
+        {
+          "id": "l3",
+          "text": "询问他害怕什么（心理学）——不是恐惧书里的内容，是书本身——它在呼吸"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ls2",
+          "text": "埃弗里特年轻时也是一名调查员——他和惠特利曾经是朋友，直到惠特利从中东回来"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "埃弗里特带你们穿过禁书区的一扇伪装的暗门，走下一条没有灯的石阶。台阶底部是一扇铁门。他把钥匙插进锁孔的瞬间，你们听到了——铁门后面传来了低沉而有节奏的嗡鸣。像心跳。像呼吸。埃弗里特说：惠特利从中东带回来的不仅仅是石板——还有石板的主人。一个还活着的东西。我们把它锁在这里四十年了。四十年它都没有停止成长。",
+      "image_prompt": "hidden iron door beneath library, stone stairs descending into darkness, secret passage, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "发现了密大地下锁着活体深渊存在——下一步？",
+      "exit_labels": {
+        "basement_confrontation::basement": "进入铁门面对那个东西",
+        "rare_manuscript_room::manuscript_room": "先去查埃弗里特的旧笔记了解背景"
+      }
+    }
+  ]
+}

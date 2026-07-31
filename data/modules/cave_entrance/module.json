@@ -42,7 +42,9 @@
       "id": "opening",
       "description": "隐蔽在枯树根下的洞口一进去就豁然开朗——不是粗糙的天然洞穴，而是一个被后期修整过的钟乳石大厅。柱状的钟乳石被人为削平，上面刻着不同时代的文字——拉丁文、古希腊文、以及更古老的不属于任何已知语言的楔形符号。中央的石台上放着一盏还在燃烧的油灯。",
       "image_prompt": "cavern entrance opening into stalactite hall, columns carved with multilanguage inscriptions from different eras, oil lamp still burning on central stone platform, Ink Frenzy style, ancient meeting place, subterranean cathedral",
-      "leads_to": "junction"
+      "leads_to": [
+        "junction"
+      ]
     },
     {
       "id": "junction",

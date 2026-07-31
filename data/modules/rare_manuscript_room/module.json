@@ -46,7 +46,9 @@
         "trigger": "读懂兽皮纸上的完整召唤仪式",
         "level": "MAJOR"
       },
-      "leads_to": "translation"
+      "leads_to": [
+        "translation"
+      ]
     },
     {
       "id": "translation",

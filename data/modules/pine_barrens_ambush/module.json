@@ -1,0 +1,145 @@
+{
+  "id": "pine_barrens_ambush",
+  "title": "松林·暗影突袭",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "wilderness"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "3-5 turns",
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "wilderness"
+    ],
+    "required_clues": [
+      "pine_barrens_ritual_site"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击退暗影，净化仪式场",
+      "provides_clues": [
+        "pine_barrens_cleared",
+        "ritual_components_seized"
+      ],
+      "mood": "triumph",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "defeat",
+      "label": "被拖入地下洞穴",
+      "provides_clues": [
+        "underground_captive"
+      ],
+      "mood": "despair",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "flee",
+      "label": "撤离松林，另寻路径",
+      "provides_clues": [
+        "pine_barrens_mapped"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "shadow_beast",
+      "name": "松林暗影兽",
+      "hp": 16,
+      "armor": 1,
+      "attack_bonus": 2,
+      "damage": "1d8",
+      "abilities": [
+        {
+          "name": "林间穿梭",
+          "effect": "在松树阴影间瞬移，每两回合移动后获得一次自由攻击（伤害+2）"
+        },
+        {
+          "name": "恐惧嚎叫",
+          "effect": "锥形 SAN 检定 0/1d4，失败者下回合只能防御"
+        }
+      ],
+      "behavior": "游击战术——攻击一轮消失一轮，从不站定硬拼",
+      "count": 1
+    },
+    {
+      "id": "twisted_root",
+      "name": "扭曲树根",
+      "hp": 8,
+      "armor": 3,
+      "attack_bonus": -1,
+      "damage": "1d6",
+      "abilities": [
+        {
+          "name": "缠绕",
+          "effect": "命中后自动缠绕目标，STR 对抗挣脱，缠绕期间无法移动"
+        }
+      ],
+      "behavior": "固定在地面，自动攻击进入范围者",
+      "count": 2
+    }
+  ],
+  "environment": {
+    "terrain": "密不透光的松林，地面覆盖厚实的松针，树根像活物般蠕动",
+    "hazards": [
+      "松脂陷阱——踏入黏稠松脂区域移动减半，DEX 检定挣脱",
+      "枯死松树——STR 检定推倒砸向敌人（3d6 范围伤害），但推倒后阳光透入",
+      "远古石堆——仪式场中央的石堆散发微光，触碰可恢复 1d4 SAN"
+    ],
+    "lighting": "dark"
+  },
+  "rules": [
+    "暗影兽在阴影中再生（每回合 +2 HP），阳光或火焰可阻止",
+    "摧毁两根树根后暗影兽失去掩护（护甲 -1）",
+    "SAN 检定（看到暗影兽真面目）：SAN 1/1d4"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒暗影兽",
+      "provides_clues": [
+        "pine_barrens_cleared",
+        "ritual_components_seized"
+      ],
+      "next_location_type": "outdoor",
+      "reward": "仪式场中发现一袋未使用的祭祀香料和三块符文石",
+      "consequence": "暗影兽化为满地的松针与腐朽树皮散去，松林恢复了令人不安的寂静"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0",
+      "provides_clues": [
+        "underground_captive"
+      ],
+      "next_location_type": "underground",
+      "consequence": "被树根拖入地下裂隙，意识恢复时发现自己在一个潮湿的石室中"
+    },
+    "flee": {
+      "condition": "任意调查员逃出松林范围",
+      "provides_clues": [
+        "pine_barrens_mapped"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "身后的嚎叫声在松林中回荡，树影似乎都在追着你们移动"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "扭曲树根 +1",
+      "shadow_beast_hp": 4
+    }
+  },
+  "image_prompt": "dense pine forest at night, twisted roots crawling on ground, pine tar pools, ancient stone pile at center glowing faintly, dead pine trees leaning, Ink Frenzy style, wilderness horror, 1920s dark woods, moonlight barely penetrating canopy, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "密林中响起此起彼伏的嚎叫——更多的眼睛在黑暗中睁开。包围圈正在缩小。",
+    "一支箭矢从树冠上射下，钉在你脚边的地面上——箭杆上绑着一块燃烧的松脂。火势开始蔓延（每回合火场扩大，接触火焰受到 1d6 伤害）。",
+    "火势已经包围了你们——浓烟让视野降到 10 英尺，每回合 CON 检定，失败则因吸入浓烟而咳嗽（本回合无法进行需要发声的行动）。",
+    "整个松林都在燃烧——树木开始倒伏，随机方向。继续留在火场中每回合受到 1d8 火焰伤害。"
+  ]
+}

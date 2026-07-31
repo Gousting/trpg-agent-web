@@ -1,0 +1,86 @@
+{
+  "id": "autopsy_analysis",
+  "title": "停尸间·深入解剖",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "medical"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional"
+    ],
+    "required_clues": [
+      "autopsy_findings"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "to_lab",
+      "label": "带样本去大学实验室分析",
+      "provides_clues": [
+        "abnormal_tissue_sample",
+        "parasite_identified"
+      ],
+      "mood": "urgency",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "to_records",
+      "label": "对比其他尸体记录",
+      "provides_clues": [
+        "pattern_of_deaths",
+        "missing_bodies_count"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "autopsy_room",
+      "description": "停尸间的冷气让你们的呼吸都凝成了白雾。手术台上躺着的尸体表面看不出致命伤——但X光片显示死者的颅骨内部布满了纤细的、像树根一样的纹路。那不是血管，也不是神经。法医的笔记停在最后一页，字迹越来越潦草：'它们在移动。'",
+      "image_prompt": "hospital morgue autopsy room, body on steel table under harsh light, X-ray film showing strange root-like patterns inside skull, scattered medical notes with increasingly erratic handwriting, Ink Frenzy style, 1920s medical horror, sterile dread, dark cosmic horror atmosphere, 16:9 widescreen composition",
+      "opportunities": [
+        {
+          "id": "a1",
+          "text": "重新检查尸体内部（医学/生物学）——大脑组织中嵌入了非人类的有机结构，它在显微镜下仍在缓慢收缩"
+        },
+        {
+          "id": "a2",
+          "text": "分析组织样本（化学/药学）——样本中含有高浓度的未知生物碱，与石板碎片的成分一致"
+        },
+        {
+          "id": "a3",
+          "text": "翻阅法医笔记（侦查）——法医在失踪前记录了七个类似的案例，都来自庇护所"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "as1",
+          "text": "这种寄生结构在宿主死亡后仍能存活72小时以上——如果接触活体组织会立即尝试感染"
+        }
+      ],
+      "leads_to": [
+        "evidence_synthesis"
+      ],
+      "san_check": {
+        "trigger": "在显微镜下看到寄生组织自主移动",
+        "level": "MINOR"
+      }
+    },
+    {
+      "id": "evidence_synthesis",
+      "description": "法医的保险柜里锁着完整的病例档案。七个受害者之间没有明显的社交联系——不同的年龄、职业、居住地。唯一的共同点是：他们都在死前三个月内去过庇护所。不是作为病人，是作为访客。有人在庇护所里把这种东西放进了他们的身体。",
+      "image_prompt": "morgue office, medical files in open safe, red string connecting cases, Ink Frenzy style, investigation, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "下一步优先调查什么？",
+      "exit_labels": {
+        "university_laboratory::lab": "带组织样本去大学做进一步化学分析",
+        "newspaper_archives::archive_room": "去报社查这七个受害者的讣告和生前报道"
+      }
+    }
+  ]
+}

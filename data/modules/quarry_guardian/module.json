@@ -1,0 +1,148 @@
+{
+  "id": "quarry_guardian",
+  "title": "采石场·地底守护者",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "underground",
+    "mythos"
+  ],
+  "difficulty": 4,
+  "duration_estimate": "4-6 turns",
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "underground",
+      "industrial"
+    ],
+    "required_clues": [
+      "quarry_unearthed_artifact"
+    ],
+    "forbidden_clues": [],
+    "mood": "confrontation"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击败守护者，夺取古物",
+      "provides_clues": [
+        "quarry_artifact_seized",
+        "guardian_origin_known"
+      ],
+      "mood": "triumph",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "defeat",
+      "label": "被石化的凝视凝固",
+      "provides_clues": [
+        "petrified"
+      ],
+      "mood": "despair",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "flee",
+      "label": "放弃古物，逃回地面",
+      "provides_clues": [
+        "quarry_abandoned"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "gorgon_spawn",
+      "name": "蛇发妖幼体",
+      "hp": 20,
+      "armor": 3,
+      "attack_bonus": 2,
+      "damage": "1d10",
+      "abilities": [
+        {
+          "name": "石化凝视",
+          "effect": "每两回合选择一个目标，CON 检定失败则部分石化（DEX -4，移动减半，持续 2 回合；连续失败三次永久石化）"
+        },
+        {
+          "name": "蛇发攻击",
+          "effect": "额外 1d6 伤害，命中后须 POW 检定防中毒（失败则每回合 1d3 毒伤 3 回合）"
+        }
+      ],
+      "behavior": "守卫古物不追击，优先石化最接近的调查员",
+      "count": 1
+    },
+    {
+      "id": "stone_serpent",
+      "name": "石蛇",
+      "hp": 6,
+      "armor": 4,
+      "attack_bonus": 0,
+      "damage": "1d4",
+      "abilities": [
+        {
+          "name": "石化外壳",
+          "effect": "物理伤害减半，但火焰伤害翻倍"
+        }
+      ],
+      "behavior": "从石壁中钻出伏击，数量随机",
+      "count": 3
+    }
+  ],
+  "environment": {
+    "terrain": "废弃采石场最深处的挖掘面，一块泛着暗绿色光芒的蛇形石雕嵌在岩壁上",
+    "hazards": [
+      "不稳定岩壁——爆炸或强震可能引发塌方（区域内 2d6 伤害，被掩埋需 STR 挖掘）",
+      "古物光环——距离石雕 10 英尺内每回合 SAN 0/1（可累积）",
+      "矿车轨道——可推矿车撞击敌人（伤害 1d8，击退 15 英尺）"
+    ],
+    "lighting": "torchlight"
+  },
+  "rules": [
+    "石化凝视可用镜子反射（INT 检定），成功后妖体自身受凝视效果",
+    "古物是弱点——摧毁石雕（HP 15）后妖体失去再生能力且护甲 -2",
+    "塌方触发后场地变为困难地形，所有人移动减半",
+    "SAN 检定（看到妖体全貌）：SAN 1d4/2d4"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒蛇发妖幼体或摧毁古物",
+      "provides_clues": [
+        "quarry_artifact_seized",
+        "guardian_origin_known"
+      ],
+      "next_location_type": "underground",
+      "reward": "古物碎片中提取出完整的召唤仪轨——与惠特利日记描述的完全一致",
+      "consequence": "妖体的嚎叫在采石场中回荡了整整一分钟才消散，石壁上留下了永久的裂纹"
+    },
+    "defeat": {
+      "condition": "全体调查员石化或 HP=0",
+      "provides_clues": [
+        "petrified"
+      ],
+      "next_location_type": "underground",
+      "consequence": "最后的视野是同伴凝固成石像的瞬间，随后黑暗吞噬了一切"
+    },
+    "flee": {
+      "condition": "任意调查员成功逃出采石场",
+      "provides_clues": [
+        "quarry_abandoned"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "采石场入口的碎石在身后滑落，至少暂时封住了那条通道"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "石蛇 +1",
+      "gorgon_spawn_hp": 4
+    }
+  },
+  "image_prompt": "deepest section of abandoned quarry, dark green serpentine statue embedded in rock wall, mining cart rails, unstable rock walls, torchlight flickering, underground industrial horror, Ink Frenzy style, 1920s mine, claustrophobic, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "守护者的脚步震动了整个矿洞——天花板开始落下碎石。所有调查员需 DEX 检定躲避落石（失败 1d4 伤害）。",
+    "矿洞深处的支撑柱开始断裂——整个洞穴结构正在崩塌。每回合结束时，可用战斗空间缩小。",
+    "守护者用巨爪砸向地面——一条裂缝从它脚下延伸，将战场一分为二。跨越裂缝需要 DEX 检定，失败掉入深渊。",
+    "矿洞顶部完全裂开——月光照入地下，但也意味着再也没有掩护。守护者在月光下进入狂暴状态（攻击翻倍，但护甲 -2）。"
+  ]
+}

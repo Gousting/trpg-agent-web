@@ -42,7 +42,9 @@
       "id": "shop",
       "description": "昏暗的古董店里堆满奇形怪状的物件。玻璃柜里锁着一本皮面账簿，封面上有你们在古屋见过的同样符号。店主不在——但后屋有声响。",
       "image_prompt": "1920s antique shop crammed with bizarre objects, glass display case, leather-bound ledger with strange symbols, dust motes in slanting light, door ajar to back room, Ink Frenzy style, cluttered Victorian curiosity shop, dark aged wood tones, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture",
-      "leads_to": "back_room"
+      "leads_to": [
+        "back_room"
+      ]
     },
     {
       "id": "back_room",

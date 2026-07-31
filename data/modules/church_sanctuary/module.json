@@ -1,0 +1,69 @@
+{
+  "id": "church_sanctuary",
+  "title": "教堂避难",
+  "module_type": "rest",
+  "genre": [
+    "rest",
+    "religious"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "在教堂找到精神力量",
+      "provides_clues": [
+        "sanctuary_found",
+        "spiritual_resolve"
+      ],
+      "mood": "relief",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "老圣托马斯教堂在凌晨四点是空的。你们推开门的声音在石壁上回响了几秒才消散。彩色玻璃窗外的月光把圣人的形象投射在石板上。你们不是来祈祷的——至少一开始不是。但跪在那里的时候，有一个念头比任何证据都清晰地浮现了：你们害怕的不是死亡。你们害怕的是面对深渊之子时自己会崩溃——不是身体上的崩溃，是理智的。你们见过那种东西的冰山一角就已经夜不能寐。面对它全部的话——你们不确定自己还能不能保持清醒的判断力。",
+      "image_prompt": "old church interior at dawn, stained glass windows, kneeling figure, spiritual refuge, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "c1",
+          "text": "独自沉思整理思绪（意志）——写下自己在调查中失去的和获得的一切，正视死亡的可能性"
+        },
+        {
+          "id": "c2",
+          "text": "和同伴坦诚交谈（社交/心理学）——分享彼此的恐惧后发现恐惧在说出来之后减轻了"
+        },
+        {
+          "id": "c3",
+          "text": "观察教堂建筑细节（侦查/艺术）——教堂的地基比建筑本身古老得多，地下很可能有更古老的结构"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "cs3",
+          "text": "教堂地下室通往一条维修通道——通道的另一头是古屋地下室。教堂是惠特利家族资助建造的"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "在圣坛后面，你们发现了一个小小的奉献箱——里面没有钱，只有纸条。几百张纸条。每一张都是阿卡姆居民写的——不是祈福，是恐惧。我的孩子每晚都在画同样的六芒星、我的丈夫不记得我们的结婚纪念日了但他能背诵一段他从未学过的咒语、我听到了石头在对我说话。这些纸条的日期跨度是五年。庇护所不是唯一的污染源。阿卡姆一直在被渗透。而在这五年里，没有一个人——神父、医生、警察——做过任何事情。直到你们。",
+      "image_prompt": "prayer box filled with desperate notes, hundreds of pleas, Ink Frenzy style, collective fear, 16:9 widescreen",
+      "vote_prompt": "在教堂中获得了内心的力量——下一步？",
+      "exit_labels": {
+        "basement_confrontation::basement": "走教堂密道进入古屋地下室",
+        "final_confrontation::summit": "直接去山顶面对最终的考验"
+      }
+    }
+  ]
+}

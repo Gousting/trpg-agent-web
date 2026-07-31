@@ -1,0 +1,71 @@
+{
+  "id": "reality_shift",
+  "title": "现实扭曲",
+  "module_type": "horror",
+  "genre": [
+    "horror",
+    "supernatural"
+  ],
+  "difficulty": 4,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "slab_is_alive"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "亲历现实扭曲效应",
+      "provides_clues": [
+        "reality_shift_witnessed",
+        "rift_weakening"
+      ],
+      "mood": "horror",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "你们正走在阿卡姆的街道上，突然发现不对。路灯的阴影方向错了——影子没有背离光源，而是指向光源。街角的邮筒在你们的注视下改变了形状：从一个圆柱体变成了一根扭曲的、不该存在于三维空间中的几何体。然后你们意识到最可怕的事——天空中的星星不是固定的。它们在移动。缓慢地，像一群正在聚集的萤火虫。石板已经影响了整个阿卡姆的物理规律。仪式还没有开始——但它也在不需要仪式了。深渊自己正在穿透。",
+      "image_prompt": "twisted street, shadows pointing wrong direction, warped mailbox, moving stars, reality distortion, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "r1",
+          "text": "尝试理解变化的物理规则（物理学/知识）——现实扭曲集中在庇护所周围呈同心圆分布，越靠近越严重"
+        },
+        {
+          "id": "r2",
+          "text": "观察变化的星星（天文学/克苏鲁神话）——不是星星在移动，是地球在板片的牵引下缓慢移位"
+        },
+        {
+          "id": "r3",
+          "text": "寻找现实扭曲中暂时稳定的区域（导航/侦查）——教堂和古屋的内部仍然保持稳定"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rs3",
+          "text": "街道上看到的其他人没有注意到任何异常——石板只影响了接触过碎片的人类的感知"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "在这扭曲的现实中，你们看到了一个不该存在的人——惠特利。不是年轻的他，不是附身的他。是一个穿着二十年前旧式西装、面容模糊的中年男人。他站在街角看着你们，然后转身走进了一条不存在的小巷。你们追上去——巷子尽头是古屋的前门。门开着。屋里有光。惠特利的身影消失在图书馆的方向。然后现实恢复了正常——邮筒回来了，影子正常了，星星不动了。但古屋的门依然开着。里面有东西在等你们。",
+      "image_prompt": "Whitley's ghost on street corner, ancient house door open with light, Ink Frenzy style, phantom, 16:9 widescreen",
+      "vote_prompt": "现实扭曲中出现惠特利的幻影——下一步？",
+      "exit_labels": {
+        "library_research::library_restricted": "去古屋图书馆追那个影子",
+        "basement_confrontation::basement": "去地下室检查石板状态"
+      }
+    }
+  ]
+}

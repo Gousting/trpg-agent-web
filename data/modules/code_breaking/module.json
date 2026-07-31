@@ -1,0 +1,84 @@
+{
+  "id": "code_breaking",
+  "title": "密文破译",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "occult"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional"
+    ],
+    "required_clues": [
+      "summoning_ritual_details"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "decoded",
+      "label": "成功破译仪式文本",
+      "provides_clues": [
+        "ritual_timing_known",
+        "celestial_event_imminent",
+        "slab_destruction_method"
+      ],
+      "mood": "urgency",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "partial",
+      "label": "只破译了部分内容",
+      "provides_clues": [
+        "partial_translation",
+        "ritual_location_narrowed"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "manuscript_room",
+      "description": "密斯卡托尼克大学的珍稀手稿室从不对外开放——但今晚例外。你们面前的橡木桌上摊着从博物馆取来的石板拓片、三份不同版本的《死灵书》残卷、和一本十七世纪捕巫案的手写记录。石板上的符号在不断变化——每过几分钟，同一个符号就不再是原来的意思。",
+      "image_prompt": "restricted manuscript room at night, oak table covered with stone slab rubbings, ancient Necronomicon fragments, 17th century witch-trial records, desk lamp, Ink Frenzy style, scholarly horror, 1920s academic atmosphere, dark cosmic horror, 16:9 widescreen composition",
+      "opportunities": [
+        {
+          "id": "c1",
+          "text": "对照三版《死灵书》残卷寻找符号对应（图书馆使用/克苏鲁神话）——符号在不停变化，但变化有规律"
+        },
+        {
+          "id": "c2",
+          "text": "分析捕巫案记录中的相似描述（历史/人类学）——1692年的女巫供词中提到了一模一样的符号"
+        },
+        {
+          "id": "c3",
+          "text": "尝试用数学模式预测符号变化（数学/天文学）——符号的变化周期与星辰运行精确对应"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "cs1",
+          "text": "石板上的符号不是文字——是星图。每个符号对应一颗恒星，符号的变化反映的是实际星辰的位置变化。仪式必须在所有符号对齐时进行。"
+        }
+      ],
+      "leads_to": [
+        "breakthrough"
+      ],
+      "guidance": "给调查员三轮尝试机会。每轮一个线索解锁。三轮后无论是否全部解开都进入下一场景。"
+    },
+    {
+      "id": "breakthrough",
+      "description": "在捕巫案记录的最后几页，一个名叫好妇人古迪的囚犯在被处决前画下了她声称'在梦中看到的符号'。那个符号序列与石板拓片几乎完全一致。她在画的旁边用颤抖的笔迹写道：'它们不在星星里——星星在它们里。当猎户之肩触碰他的左足，门就会打开。'那是一个日期。根据星图计算，就在后天。",
+      "image_prompt": "ancient manuscript with trembling handwriting, astronomical diagram, candlelight, Ink Frenzy style, 16:9 widescreen",
+      "vote_prompt": "破译出了仪式的日期——下一步？",
+      "exit_labels": {
+        "observatory::telescope_room": "去天文台精确计算星辰对齐时间",
+        "final_confrontation::summit": "直接前往山顶仪式场阻止仪式"
+      }
+    }
+  ]
+}

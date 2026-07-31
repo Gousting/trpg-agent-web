@@ -1,0 +1,148 @@
+{
+  "id": "patient_ward_abomination",
+  "title": "病区·失败的实验体",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "institutional",
+    "body_horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional",
+      "asylum"
+    ],
+    "required_clues": [
+      "ward_horror_witnessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "终结实验体，获取研究记录",
+      "provides_clues": [
+        "experiment_data_seized",
+        "asylum_research_exposed"
+      ],
+      "mood": "relief",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "defeat",
+      "label": "成为实验材料",
+      "provides_clues": [
+        "experiment_subject"
+      ],
+      "mood": "despair",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "flee",
+      "label": "逃出病区",
+      "provides_clues": [
+        "ward_locked_down"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "indoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "failed_experiment",
+      "name": "融合实验体",
+      "hp": 20,
+      "armor": 1,
+      "attack_bonus": 1,
+      "damage": "1d8+1",
+      "abilities": [
+        {
+          "name": "分裂再生",
+          "effect": "HP<10 时分裂成两个独立个体（各 10 HP），各自行动"
+        },
+        {
+          "name": "吸收融合",
+          "effect": "击败一个调查员后将其身体融合进自己（HP +10，获得调查员的一项技能作为攻击加成）"
+        }
+      ],
+      "behavior": "无差别攻击任何活物，优先攻击受伤的目标",
+      "count": 1
+    },
+    {
+      "id": "failed_fragment",
+      "name": "实验体碎片",
+      "hp": 4,
+      "armor": 0,
+      "attack_bonus": -1,
+      "damage": "1d3",
+      "abilities": [
+        {
+          "name": "酸液溅射",
+          "effect": "被击杀时 5 英尺范围内所有人 DEX 检定躲避 1d6 酸液伤害"
+        }
+      ],
+      "behavior": "分裂后的残片，漫无目的地蠕动攻击",
+      "count": 3
+    }
+  ],
+  "environment": {
+    "terrain": "庇护所最深处的实验病区，满墙的医学图表和手术器械。中央手术台上躺着一具仍在蠕动的——曾经是人的东西",
+    "hazards": [
+      "手术灯——可推倒砸向实验体（1d8 伤害+致盲 1 回合）",
+      "麻醉气体管道——INT 检定可释放麻醉气体（区域内所有人 CON 检定失败则昏迷 1 回合）",
+      "电击设备——可当过载武器使用（2d6 电击伤害，但每次使用后需 STR 检定对抗电击反弹）"
+    ],
+    "lighting": "clinical"
+  },
+  "rules": [
+    "实验体的融合能力可通过火或电击阻断（受到火焰/电击伤害的回合无法使用吸收融合）",
+    "分裂后每个个体的护甲降为 0，但行动次数翻倍",
+    "研究记录在手术台旁的铁柜中——获取需要一回合且 STR 撬开",
+    "SAN 检定（看到实验体的真面目）：SAN 1d3/2d4"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒所有分裂体",
+      "provides_clues": [
+        "experiment_data_seized",
+        "asylum_research_exposed"
+      ],
+      "next_location_type": "indoor",
+      "reward": "研究记录显示庇护所正在进行人体与石板碎片的融合实验——这和深渊之子的成型方式完全相同",
+      "consequence": "最后一块碎片终于停止了蠕动，病房里只剩下仪器规律的蜂鸣声"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0 或被融合",
+      "provides_clues": [
+        "experiment_subject"
+      ],
+      "next_location_type": "indoor",
+      "consequence": "意识模糊前看到所长在玻璃窗外微笑记录着什么——你们成了第 47 号实验"
+    },
+    "flee": {
+      "condition": "任意调查员逃出病区并封门",
+      "provides_clues": [
+        "ward_locked_down"
+      ],
+      "next_location_type": "indoor",
+      "consequence": "厚重的铁门在身后合上，实验体的撞击声逐渐减弱——但你知道它迟早会出来"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "实验体碎片 +1",
+      "failed_experiment_hp": 4
+    }
+  },
+  "image_prompt": "asylum experiment ward, medical charts on walls, surgical instruments, central operating table with writhing form, anesthesia gas pipes, electroshock equipment, clinical lighting flickering, Ink Frenzy style, 1920s medical horror, body horror, sterile dread, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "实验体的身体开始分裂——从它的躯干上长出第二条手臂，末端是骨质的刀刃（增加一次额外攻击/回合）。",
+    "病房的玻璃观察窗被它撞碎——碎玻璃散落一地（赤脚移动受到 1d3 割伤）。但玻璃碎片也可以作为临时武器。",
+    "它撕开了自己的胸腔——从里面流出的不是血，而是黑色的触须。触须开始无差别攻击房间里的所有人。",
+    "天花板上的输液架和管线开始脱落——整个房间正在变成绞杀陷阱。本回合结束时，所有身处房间内的人受到 2d4 环境伤害。"
+  ]
+}

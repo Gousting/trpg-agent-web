@@ -33,7 +33,9 @@
       "id": "grove",
       "description": "按植物学家的地图找到的这片树林不对劲。所有树都活着，但没有一片叶子在动——没有风、没有虫鸣、没有鸟叫。藤蔓从树枝上垂下，它们的颜色不是绿色，而是一种深到近乎黑色的紫，脉动着像血管。脚下的泥土是温热的。",
       "image_prompt": "dense grove of ancient trees, absolutely no animal life visible, dark purple pulsing vines hanging from branches, warm soil beneath feet, unnatural silence, Ink Frenzy style, cosmic horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
-      "leads_to": "center"
+      "leads_to": [
+        "center"
+      ]
     },
     {
       "id": "center",

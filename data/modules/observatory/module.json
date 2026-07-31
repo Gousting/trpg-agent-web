@@ -38,7 +38,9 @@
         "trigger": "意识到星辰对齐意味着什么",
         "level": "MAJOR"
       },
-      "leads_to": "calculation"
+      "leads_to": [
+        "calculation"
+      ]
     },
     {
       "id": "calculation",

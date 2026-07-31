@@ -30,7 +30,9 @@
         "hp": 15,
         "armor": 3
       },
-      "leads_to": "choice"
+      "leads_to": [
+        "choice"
+      ]
     },
     {
       "id": "choice",

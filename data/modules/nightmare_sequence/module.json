@@ -1,0 +1,71 @@
+{
+  "id": "nightmare_sequence",
+  "title": "共享噩梦",
+  "module_type": "horror",
+  "genre": [
+    "horror",
+    "dream"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "stone_effect_known"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "在噩梦中看到了仪式的结果",
+      "provides_clues": [
+        "nightmare_vision",
+        "future_glimpsed"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "你们在古屋的客房里过夜。但没有人真正睡着。凌晨三点，所有人同时惊醒——你们做了同一个梦。梦里你们站在山顶采石场，天空中的星辰排列成了石板上的符号。地面裂开，从裂缝中伸出的不是触手——是无数只手。每一只手的手心都有一只眼睛。所有的眼睛都在看你们。然后以斯拉出现了，他笑着说：你们来晚了。仪式在昨天就完成了。今天是第二天。深渊已经在阿卡姆上空张开了。",
+      "image_prompt": "shared nightmare, black sky with impossible stars, hands with eyes emerging from ground, Ink Frenzy style, surreal horror, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "n1",
+          "text": "尝试控制梦境了解更多（意志/克苏鲁神话）——梦境是石板通过碎片投射的，可以反向追踪碎片的来源"
+        },
+        {
+          "id": "n2",
+          "text": "观察梦中星辰排列的细节（天文学/知识）——排列方式给出了精确的时间，不是后天午夜，是后天晚上十点十三分"
+        },
+        {
+          "id": "n3",
+          "text": "在梦中寻找其他调查员（意志/侦查）——你们所有人都在同一个梦境里，可以互相交流"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ns1",
+          "text": "噩梦不是预言——是石板在向你们展示它想让你们看到的未来，目的是让你们绝望"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "当你们在梦中拒绝恐惧时，石板改变了策略。梦境的背景突然变成了古屋的地下室——惠特利二十年前站过的地方。一个半透明的人影出现在你们面前：惠特利的残存意识。他说石板吞噬了他所有的记忆但留下了一小片他的灵魂作为燃料。他告诉你们：石板惧怕的不是高温、不是声波、不是任何物理手段。它惧怕的是被自己的碎片触碰。用一块碎片刺入另一块的核心——它们会互相湮灭。我就是这样阻止了1919年的仪式。代价是我的整个人生。",
+      "image_prompt": "ghostly figure of Whitley in basement, translucent, reaching out, spectral encounter, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "惠特利的残存意识给了你们摧毁石板的方法——下一步？",
+      "exit_labels": {
+        "basement_confrontation::basement": "带着碎片去古屋地下室做实验",
+        "final_confrontation::summit": "直接去山顶用这个方法"
+      }
+    }
+  ]
+}

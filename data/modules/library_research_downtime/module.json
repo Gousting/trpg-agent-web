@@ -1,0 +1,69 @@
+{
+  "id": "library_research_downtime",
+  "title": "图书馆研究",
+  "module_type": "rest",
+  "genre": [
+    "rest",
+    "institutional"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "深入研究获得新见解",
+      "provides_clues": [
+        "research_complete",
+        "new_insight"
+      ],
+      "mood": "tension",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "密斯卡托尼克大学的图书馆白天是安静的。你们在阅读室角落的桌子上把能找到的所有相关资料摊开：民俗学论文、美索不达米亚考古报告、十七世纪猎巫审判记录、和阿卡姆的地质调查报告。知识就是力量——在这种情况下是字面意义上的。你们学到的每一条新信息都是在剥掉深渊之子一层神秘的外衣。它在神话里不可名状——但在论文里它只是一个有规律可循的现象。",
+      "image_prompt": "university library reading room, ancient manuscripts spread on table, scholarly research, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "l1",
+          "text": "查阅美索不达米亚考古文献（考古学/历史）——石板的材质与一种只在陨石中存在的矿物完全吻合"
+        },
+        {
+          "id": "l2",
+          "text": "研究十七世纪阿卡姆地区的猎巫记录（历史/神秘学）——1692年的一次审判中提到了一种和你们症状完全相同的集体幻觉"
+        },
+        {
+          "id": "l3",
+          "text": "对比世界各国类似的神秘事件记载（图书馆使用/知识）——同样的石板碎片在世界十二个不同地点被发现过"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ls2",
+          "text": "其他十一个地点的石板碎片都已经被摧毁了——每一次都伴随着一场大规模死亡事件"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "在文献中你们找到了一份1765年的拉丁文手稿——一个法国耶稣会传教士在新英格兰的记录。他描述了一个当地土著部落世代守护的秘密：星辰归位之时，深渊低语之人会试图打开大门。但大门只能用钥匙关闭。钥匙不是铁、不是石——是六颗自愿的心脏。土著部落每次都用自愿的长老完成仪式。但你们读到这里时注意到脚注：传教士在写完这份手稿的三天后失踪，尸体在河边被发现，心脏不见了。他试过了。自愿不是形容词——是最重要的条件。",
+      "image_prompt": "1765 Latin manuscript, Jesuit missionary record, historical discovery, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "研究发现了摧毁石板的条件——必须是自愿牺牲——下一步？",
+      "exit_labels": {
+        "final_confrontation::summit": "带着这个沉重的信息去山顶",
+        "church_yard::graveyard": "去找那位传教士的墓"
+      }
+    }
+  ]
+}

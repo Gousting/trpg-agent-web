@@ -1,0 +1,72 @@
+{
+  "id": "dockworker_tips",
+  "title": "码头工人线人",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "waterfront"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "waterfront",
+      "industrial"
+    ],
+    "required_clues": [
+      "warehouse_inventory"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "获得走私详细信息",
+      "provides_clues": [
+        "dockworker_intel",
+        "shipment_details"
+      ],
+      "mood": "urgency",
+      "next_location_type": "waterfront"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "老弗兰克在阿卡姆港干了三十年搬运工。他什么都看到了——什么都不会主动说。但今天不一样。他注意到你们在码头附近转了两天，趁你们喝咖啡时坐到了对面：你们在查那些箱子对吧。他的手在发抖。三年前他们让我把一个箱子搬进庇护所。箱子很重——重得不正常——而且很冷。搬完后我发了三天的烧，梦到了一片没有星星的天空。",
+      "image_prompt": "waterfront cafe, old dockworker at table, coffee cups, 1920s port noir, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "d1",
+          "text": "详细询问三年前的事（心理学/说服）——他记得箱子上画着六芒星，和你们的照片里一样"
+        },
+        {
+          "id": "d2",
+          "text": "请他描述其他可疑货物（社交/侦查）——上个月到了三批货，收货地址分别是庇护所、采石场和沼泽农舍"
+        },
+        {
+          "id": "d3",
+          "text": "说服他提供卸货时间表（说服/威胁）——后天晚上十点他们需要最后一批货，码头工人被要求加班"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ds2",
+          "text": "老弗兰克知道仓库的备用钥匙藏在哪——不是因为他是线人，是因为他就是拿着钥匙的人"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "老弗兰克最后从口袋里摸出一把钥匙拍在桌上：别告诉任何人是我给的。然后他站起来头也不回地走了。钥匙上挂着一个小标签——仓库B区，27号储物柜。那个储物柜登记在阿卡姆慈善医学研究会的名下。后天晚上十点。船到了。货到。仪式开始。",
+      "image_prompt": "warehouse key on table, shipping schedule, Ink Frenzy style, information exchange, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "获得了仓库钥匙和时间表——下一步？",
+      "exit_labels": {
+        "harbor_warehouse::loading_dock": "去仓库B区提前埋伏",
+        "abandoned_ship::deck": "去码头查那艘船"
+      }
+    }
+  ]
+}

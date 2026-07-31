@@ -1,0 +1,71 @@
+{
+  "id": "ancestral_memory",
+  "title": "先祖记忆",
+  "module_type": "horror",
+  "genre": [
+    "horror",
+    "supernatural"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "artifact_origin_traced"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "窥见石板仪式的起源",
+      "provides_clues": [
+        "ancestral_memory",
+        "ritual_origin_revealed"
+      ],
+      "mood": "dread",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "在远古密室的深处，你们发现了一池不反射任何影像的黑色液体——不是水，不是油。当你们的手指碰触液面时，世界翻转了。你们不再是现在的自己——你们的意识被扔进了一个四千年前的苏美尔祭司身体里。你们亲眼看到第一块石板从天而降——不是坠落的，是被一只手从天空的裂缝中扔下来的。那些祭司们欢欣鼓舞地接收了它。他们不知道那是牢笼的盖子。",
+      "image_prompt": "black liquid pool in ancient chamber, reflection showing Sumerian priest, Ink Frenzy style, ancestral vision, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "opportunities": [
+        {
+          "id": "a1",
+          "text": "观察完整的历史（知识/历史）——石板是封印系统的一部分，六块碎片合在一起形成囚禁深渊之子的牢笼"
+        },
+        {
+          "id": "a2",
+          "text": "寻找仪式中的人类角色（考古学/神秘学）——祭司中的一个人理解了真相，试图摧毁石板"
+        },
+        {
+          "id": "a3",
+          "text": "找到摧毁石板的原始方法（克苏鲁神话/意志）——那位祭司用自己的身体当导体，把六块碎片同时激活产生共振"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "as3",
+          "text": "那位殉道的祭司在临死前封印了自己的一段记忆在石板中——这段记忆正是你们现在体验的内容"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "记忆的最后，殉道的祭司把他的方法刻在了石板上。四千年来以斯拉的教团一直在擦除这些刻痕——但最深的那道没有被完全磨掉。用手触摸可以感觉到：将六块碎片以六芒星排列，用活人心脏的电流同时激活所有碎片，产生的共振波会粉碎石板的核心。活人心脏不是比喻。殉道者把手插进了自己的胸口。但——你们有六个人。六块碎片。六颗心脏。只要不碎的，不是同一颗就行。",
+      "image_prompt": "Sumerian priest sacrificing himself, stone slab shattering, ancient ritual, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "发现了需要牺牲才能摧毁石板——下一步？",
+      "exit_labels": {
+        "final_confrontation::summit": "带着这个沉重的方法去山顶",
+        "sanitarium_visit::sanitarium_director": "去找有没有替代方法"
+      }
+    }
+  ]
+}

@@ -33,7 +33,9 @@
       "id": "lab",
       "description": "深夜的大学实验室，显微镜下石板样本显示的微生物仍然活着。它们以某种规律运动——不是随机的，而是有方向、有目的的。化学分析显示石板表面残留了高浓度的乙醚和一种未知的植物碱。",
       "image_prompt": "1920s university laboratory at night, microscope with glowing sample, chemical apparatus, scientific horror, green glow, Ink Frenzy style, isolated researcher, sterile tension, avoid human figures, focus on environment and architecture",
-      "leads_to": "findings"
+      "leads_to": [
+        "findings"
+      ]
     },
     {
       "id": "findings",

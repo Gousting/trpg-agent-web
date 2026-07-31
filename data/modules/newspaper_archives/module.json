@@ -42,7 +42,9 @@
       "id": "archive_room",
       "description": "报社地下室档案库，铁架堆到天花板。按日期索引查找：过去半年阿卡姆及周边至少十七人无故失踪。每一篇报道都在最后一段被蓝笔划掉了一个名字——惠特利。",
       "image_prompt": "newspaper archive basement, tall iron shelves stuffed with bound newspapers, single bare bulb, investigator pulling out yellowed papers, dust hanging in light, Ink Frenzy style, claustrophobic research atmosphere, deep shadows between shelves",
-      "leads_to": "editor_desk"
+      "leads_to": [
+        "editor_desk"
+      ]
     },
     {
       "id": "editor_desk",

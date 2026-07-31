@@ -1,0 +1,142 @@
+{
+  "id": "asylum_escape",
+  "title": "病房突围",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "escape"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional",
+      "asylum"
+    ],
+    "required_clues": [
+      "captured_by_asylum"
+    ],
+    "forbidden_clues": [],
+    "mood": "desperation"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "杀出病房，夺路而逃",
+      "provides_clues": [
+        "asylum_escaped",
+        "orderly_keys_obtained"
+      ],
+      "mood": "relief",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "defeat",
+      "label": "再次被制服，送入电疗室",
+      "provides_clues": [
+        "shock_therapy_scheduled"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "flee",
+      "label": "趁乱钻入通风管道",
+      "provides_clues": [
+        "vent_system_mapped"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "indoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "night_guard",
+      "name": "夜班守卫",
+      "hp": 10,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d4+1",
+      "abilities": [
+        {
+          "name": "警棍",
+          "effect": "普通钝器攻击，无特殊效果"
+        },
+        {
+          "name": "拉响警报",
+          "effect": "第 2 回合起使用，召唤 1 名护工增援（仅一次）"
+        }
+      ],
+      "behavior": "先拉警报再近战，HP<4 时退到走廊尽头堵门",
+      "count": 1
+    },
+    {
+      "id": "orderly_reinforcement",
+      "name": "护工",
+      "hp": 8,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d4",
+      "abilities": [],
+      "behavior": "优先控制试图逃跑的调查员",
+      "count": 1
+    }
+  ],
+  "environment": {
+    "terrain": "阴暗的旧病房，铁架床散落一地，唯一出口是走廊尽头的铁门",
+    "hazards": [
+      "翻倒的铁架床——STR 检定可推倒形成障碍（阻挡追兵 1 回合）",
+      "输液架——可当作临时长矛使用（伤害 1d6，DEX 检定命中）",
+      "药品柜——INT 检定识别出乙醚瓶，砸碎可致一名敌人 CON 检定失败则昏迷 1 回合"
+    ],
+    "lighting": "dim"
+  },
+  "rules": [
+    "调查员的武器和物品已被没收，第一回合只能使用徒手或环境物品",
+    "警报拉响后下一回合自动触发护工增援",
+    "通风管道需 DEX 检定进入，进入后视为成功逃跑",
+    "SAN 检定（看到隔壁病房被做了实验的病人）：SAN 0/1d4"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒所有敌人",
+      "provides_clues": [
+        "asylum_escaped",
+        "orderly_keys_obtained"
+      ],
+      "next_location_type": "outdoor",
+      "reward": "从守卫身上找回部分装备，获得病房钥匙",
+      "consequence": "冲出庇护所的瞬间，月光洒在脸上，但身后建筑里传来非人的尖啸"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0 或投降",
+      "provides_clues": [
+        "shock_therapy_scheduled"
+      ],
+      "next_location_type": "indoor",
+      "consequence": "被绑上推车推进电疗室，头顶的灯管发出刺耳的嗡鸣"
+    },
+    "flee": {
+      "condition": "任意调查员成功进入通风管道",
+      "provides_clues": [
+        "vent_system_mapped"
+      ],
+      "next_location_type": "indoor",
+      "consequence": "在狭窄的通风管道里爬行，身后传来守卫愤怒的咒骂声逐渐远去"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "护工 +1",
+      "night_guard_hp": 2
+    }
+  },
+  "image_prompt": "dark padded cell in abandoned asylum, tipped metal beds, IV stand as improvised weapon, broken medicine cabinet with ether bottles, single iron door at end of corridor, desperate escape, Ink Frenzy style, 1920s asylum horror, dim lighting, claustrophobic, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "走廊尽头亮起红灯——安保系统启动了。远处传来铁门一扇接一扇落下的声音，正在向你们逼近。",
+    "病区的其他病人开始骚动——你们听到隔壁的房间传来尖叫声和砸门声。两个被拘束的病人挣脱了束缚，冲入走廊（无差别攻击）。",
+    "电源开始不稳定——灯光忽明忽暗，每轮有 30% 概率陷入完全黑暗 1 回合。在黑暗中，你不知道攻击来自哪里。",
+    "消防喷淋系统被触发——整个走廊下起带着化学气味的冷水。所有电子产品短路，视野降到 5 英尺。这是最后的突围机会。"
+  ]
+}

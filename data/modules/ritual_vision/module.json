@@ -1,0 +1,71 @@
+{
+  "id": "ritual_vision",
+  "title": "仪式预视",
+  "module_type": "horror",
+  "genre": [
+    "horror",
+    "supernatural"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "outdoor"
+    ],
+    "required_clues": [
+      "ritual_incomplete_state"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "看清最终仪式全貌",
+      "provides_clues": [
+        "vision_complete",
+        "final_ritual_details"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "在采石场的边缘，你们找到了一处被丢弃的仪式用品——一个破碎的铜碗，碗底残留着暗红色的液体。当月光照射到碗底时，残留物开始沸腾。你们的瞳孔不受控制地放大——然后你们看到了山顶后天晚上的画面。不是想象。不是幻觉。是时间上的裂缝让你们提前见证了将要发生的事：石板在星辰对齐时发光，以斯拉念出最后一句咒语，地面裂开，深渊之子的千万条触手同时涌出——然后画面中断了。不是因为仪式结束。是因为在场的所有人都死了。没有人能活到看见结果。",
+      "image_prompt": "broken copper bowl with boiling blood under moonlight, cliff edge, Ink Frenzy style, ritual vision, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "v1",
+          "text": "尝试继续观看更多（意志/克苏鲁神话）——用力集中注意力可以看到以斯拉在仪式前三小时的准备"
+        },
+        {
+          "id": "v2",
+          "text": "观察仪式的关键节点（侦查/知识）——有三秒间隔，在所有碎片同时激活前石板会短暂失去保护"
+        },
+        {
+          "id": "v3",
+          "text": "寻找防守薄弱点（战术/侦查）——仪式开始后护卫会背对中心面朝外防守，中心只有以斯拉一人"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "vs2",
+          "text": "预视中的你们不在场——说明你们的行为还没有被时间线固定，这是你们唯一的优势"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "预视的最后画面最令人不安——不是深渊之子的样子，因为在它完全出现前画面就断了。而是以斯拉在念出最后一句咒语前的表情。他不是狂热。不是疯狂。是悲伤。他看着手里的一块小照片——一个年轻女人的肖像——然后把它放进了石板裂缝里。照片瞬间烧成了灰。然后他闭上眼睛，念完了咒语。他要召唤深渊之子不是为了力量——是为了让它把他已经死去的妻子从时间中带回来。深渊之子可以逆转时间。那才是它真正的能力。仪式不是召唤——是交易。",
+      "image_prompt": "Ezra at ritual, holding photograph of woman, closing eyes in sorrow, Ink Frenzy style, tragic villain, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "看穿了以斯拉的真正动机——下一步？",
+      "exit_labels": {
+        "final_confrontation::summit": "去山顶——也许不是杀死以斯拉，是说服他",
+        "ritual_grounds::ritual_stones": "先去采石场提前布置陷阱"
+      }
+    }
+  ]
+}

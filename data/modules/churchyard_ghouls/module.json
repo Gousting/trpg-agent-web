@@ -1,0 +1,140 @@
+{
+  "id": "churchyard_ghouls",
+  "title": "教堂墓地·食尸鬼之宴",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "undead"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "graveyard"
+    ],
+    "required_clues": [
+      "graveyard_disturbed"
+    ],
+    "forbidden_clues": [],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "驱散食尸鬼，打开墓穴",
+      "provides_clues": [
+        "whitley_crypt_opened",
+        "family_secret_found"
+      ],
+      "mood": "relief",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "defeat",
+      "label": "被拖入地底墓穴",
+      "provides_clues": [
+        "ghoul_tunnel_captive"
+      ],
+      "mood": "despair",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "flee",
+      "label": "逃离墓地，封锁大门",
+      "provides_clues": [
+        "churchyard_locked_down"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "alpha_ghoul",
+      "name": "食尸鬼首领",
+      "hp": 14,
+      "armor": 1,
+      "attack_bonus": 2,
+      "damage": "1d6+2",
+      "abilities": [
+        {
+          "name": "腐尸毒爪",
+          "effect": "命中后 CON 检定，失败则感染（每回合 1 HP 直到医疗处理）"
+        },
+        {
+          "name": "召集同类",
+          "effect": "每两回合嚎叫一次，1d6≥4 则从墓穴中钻出一只普通食尸鬼"
+        }
+      ],
+      "behavior": "守在惠特利家族墓穴入口，优先攻击拿十字架或圣物的调查员",
+      "count": 1
+    },
+    {
+      "id": "ghoul",
+      "name": "食尸鬼",
+      "hp": 8,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d6",
+      "abilities": [],
+      "behavior": "围攻最近的调查员，会优先啃食倒地的目标",
+      "count": 3
+    }
+  ],
+  "environment": {
+    "terrain": "月光下的古老墓地，墓碑歪斜，惠特利家族墓穴的铁门被撬开了",
+    "hazards": [
+      "翻开的新坟——DEX 检定跳过，失败则跌入（受 1d3 伤害，需一回合爬出）",
+      "教堂圣水盆——可取圣水泼洒（食尸鬼 1d6 神圣伤害，致盲 1 回合）",
+      "歪斜的天使雕像——STR 检定推倒，压住区域内敌人"
+    ],
+    "lighting": "moonlight"
+  },
+  "rules": [
+    "食尸鬼对圣水和银器弱（伤害 +2）",
+    "墓穴铁门可用 STR 强行关闭封住入口（阻止增援）",
+    "SAN 检定（看到食尸鬼啃食尸体）：SAN 1/1d4"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒食尸鬼首领",
+      "provides_clues": [
+        "whitley_crypt_opened",
+        "family_secret_found"
+      ],
+      "next_location_type": "underground",
+      "reward": "墓穴中发现惠特利家族的秘密档案：他们不是失踪，而是主动献祭了自己",
+      "consequence": "墓穴深处传来呜咽般的风声，空气中弥漫着陈年腐肉的恶臭"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0",
+      "provides_clues": [
+        "ghoul_tunnel_captive"
+      ],
+      "next_location_type": "underground",
+      "consequence": "食尸鬼拖着失去意识的你们钻入墓穴下的地道，地下世界的恶臭扑面而来"
+    },
+    "flee": {
+      "condition": "任意调查员逃出墓地并关上大门",
+      "provides_clues": [
+        "churchyard_locked_down"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "大门的铁栅在身后落下，食尸鬼的爪子从栅栏缝隙中伸出，徒劳地抓挠着空气"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "食尸鬼 +1",
+      "alpha_ghoul_hp": 3
+    }
+  },
+  "image_prompt": "ancient church graveyard under moonlight, crooked tombstones, Whitley family crypt iron door pried open, fresh dug grave, fallen angel statue, gothic horror, Ink Frenzy style, 1920s New England cemetery, eerie moonlight, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "教堂的钟声突然敲响——地面裂开，更多的食尸鬼从松动的墓穴中爬出（新增 1d2 只食尸鬼）。",
+    "月光被乌云遮蔽——战场陷入昏暗。食尸鬼在黑暗中获得优势（攻击 +2），但它们的眼睛发出幽绿的光，暴露了位置。",
+    "一座墓碑倒下，砸碎了教堂的彩窗。彩窗碎片如刀刃般散落（区域内 1d4 伤害），但彩窗上描绘的圣徒像似乎对食尸鬼有震慑作用（食尸鬼本回合回避 -2）。",
+    "教堂的大门突然向内炸开——里面有什么更大的东西醒来了。巨大的爪子从门框中伸出。如果不在 2 轮内结束，将面对更可怕的东西。"
+  ]
+}

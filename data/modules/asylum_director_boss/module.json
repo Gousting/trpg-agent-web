@@ -1,0 +1,144 @@
+{
+  "id": "asylum_director_boss",
+  "title": "庇护所所长·最终的疯狂",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "boss",
+    "climax"
+  ],
+  "difficulty": 4,
+  "duration_estimate": "5-7 turns",
+  "is_ending": true,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional",
+      "asylum"
+    ],
+    "required_clues": [
+      "orderly_keys_obtained",
+      "patient_records_found"
+    ],
+    "forbidden_clues": [],
+    "mood": "confrontation"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击败所长，发现庇护所真相",
+      "provides_clues": [
+        "asylum_mastermind_exposed",
+        "final_ritual_location"
+      ],
+      "mood": "triumph",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "defeat",
+      "label": "被献祭给石板中的存在",
+      "provides_clues": [
+        "director_ritual_complete"
+      ],
+      "mood": "despair",
+      "next_location_type": "indoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "director_whitley",
+      "name": "惠特利所长",
+      "hp": 20,
+      "armor": 2,
+      "attack_bonus": 3,
+      "damage": "1d8+2",
+      "abilities": [
+        {
+          "name": "手术刀飞掷",
+          "effect": "远程攻击 30 英尺，伤害 1d4+1，附带流血（每回合 1 伤害直到急救）"
+        },
+        {
+          "name": "石板之力·精神支配",
+          "effect": "目标调查员 POW 对抗，失败则被控制 1 回合攻击队友"
+        },
+        {
+          "name": "血肉重塑",
+          "effect": "HP<10 时触发，身体开始变异——护甲 +2，获得触手攻击（伤害 1d8，可攻击两个目标）"
+        },
+        {
+          "name": "吸食痛苦",
+          "effect": "每次有调查员受伤，所长恢复 2 HP"
+        }
+      ],
+      "behavior": "第一阶段远程骚扰+精神控制；HP<10 进入第二阶段近战猛攻；HP<5 试图逃向石板",
+      "count": 1
+    },
+    {
+      "id": "lobotomized_patient",
+      "name": "被切除脑叶的病人",
+      "hp": 5,
+      "armor": 0,
+      "attack_bonus": -1,
+      "damage": "1d3",
+      "abilities": [
+        {
+          "name": "无痛",
+          "effect": "不会因伤害而减速或逃跑，HP=0 时仍可行动 1 回合"
+        }
+      ],
+      "behavior": "被所长操控，缓慢走向调查员自爆攻击（死亡时 5 英尺范围 1d6 酸液伤害）",
+      "count": 3
+    }
+  ],
+  "environment": {
+    "terrain": "庇护所顶层所长办公室，落地窗被厚重的黑绒窗帘遮住，房间中央立着一块完整的黑色石板——和古屋地下室的是同一块",
+    "hazards": [
+      "完整石板——每两回合释放一次精神脉冲，全场 POW 检定，失败则失去下回合行动",
+      "药品柜——INT 检定可取出镇静剂（注射后一名敌人下回合无法行动）",
+      "落地窗——STR 检定打破窗帘，阳光照射所长 1 回合（攻击-2，再生失效）",
+      "翻倒的手术推车——可提供掩体并寻找散落的手术器械（找到 1d3 件临时武器）"
+    ],
+    "lighting": "dim"
+  },
+  "rules": [
+    "石板在场时所长获得吸食痛苦和血肉重塑能力——摧毁石板优先",
+    "石板 HP 10，AC 8，免疫精神攻击，摧毁后所长失去所有超自然能力",
+    "病人被击杀时自爆——调查员可 DEX 检定躲避（5 英尺范围）",
+    "阳光是最有效的武器——每扇打破的窗帘照亮一片区域",
+    "SAN 检定（看到所长变异形态）：SAN 1d4/2d6",
+    "如果所长成功逃到石板旁（HP<5 且未摧毁石板），触发 defeat 结局"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒所长",
+      "provides_clues": [
+        "asylum_mastermind_exposed",
+        "final_ritual_location"
+      ],
+      "next_location_type": "outdoor",
+      "reward": "办公室保险柜里找到完整的仪式计划、庇护所与以斯拉的往来信件、以及第三块石板的坐标",
+      "consequence": "所长倒下时，石板上的光芒最后跳动了一次，映出你们每个人的倒影——倒影在笑，而你们没有"
+    },
+    "defeat": {
+      "condition": "所长成功完成献祭仪式",
+      "provides_clues": [
+        "director_ritual_complete"
+      ],
+      "next_location_type": "indoor",
+      "consequence": "石板中的存在获得了一部分自由。庇护所成为了它在人间的第一个据点"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "病人 +1",
+      "director_whitley_hp": 4
+    }
+  },
+  "image_prompt": "asylum director's dark office, massive black stone slab glowing ominously in room center, floor-to-ceiling black curtains, single desk lamp casting dramatic shadows, Ink Frenzy style, clean bold ink lines, intense chiaroscuro, 1920s cosmic horror, oppressive darkness, no scribbled details, strong contrast, 16:9 widescreen composition",
+  "escalation": [
+    "所长按下了办公桌下的紧急按钮——走廊铁闸开始落下。你们有 3 轮时间在完全被锁死前结束战斗。",
+    "铁闸已经降到一半高度。所长从抽屉里取出一支装满绿色液体的注射器，扎进自己的脖子——他的肌肉开始膨胀，HP 恢复至满，攻击 +3。",
+    "铁闸只剩 1 米高。所长的身体已经变形到无法辨认——他的声音在笑，但嘴里说出的是另一种语言（SAN 1d2/1d4）。",
+    "铁闸即将完全关闭——这是最后一轮。如果不能在这轮击倒所长，你们将被永远困在这个办公室里，和他一起。"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "id": "foggy_marsh",
+  "title": "雾沼穿行",
+  "module_type": "exploration",
+  "genre": [
+    "outdoor",
+    "wilderness"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "swamp",
+      "rural"
+    ],
+    "required_clues": [
+      "cult_supply_cache_found"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "穿过雾沼发现仪式石",
+      "provides_clues": [
+        "marsh_crossed",
+        "old_ritual_stone"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "雾沼比地图上标注的要大得多——或者有什么东西在让你们的罗盘失灵。浓雾中能见度不到三米，脚下的泥地随时可能变成齐腰的沼泽。但在雾气最浓的方向，你们隐约看到了一座石柱的轮廓。它不应该在这里——百年来没有任何探险队报告过雾沼里有建筑。",
+      "image_prompt": "雾沼穿行 scene, 雾沼比地图上标注的要大得多——或者有什么东西在让你们的罗盘失灵。浓雾中能见度不到三米，脚下的泥地随时可能变成齐腰的沼泽。但在雾气最浓的方向，你们隐约看到了一座石柱的轮廓。它不应该在这里——百年来没有任何探险队报告过雾沼里有建筑。, Ink Frenzy style, 1920s exploration, dark cosmic horror atmosphere, 16:9 widescreen composition",
+      "opportunities": [
+        {
+          "id": "f1",
+          "text": "用绳索彼此连接安全通过（生存/导航）——雾中似乎有东西在低语，但不是从前方来的，是从脚下"
+        },
+        {
+          "id": "f2",
+          "text": "记录罗盘失灵的方向和强度（物理学/导航）——失灵呈周期性，每隔三十秒波动一次，像心跳"
+        },
+        {
+          "id": "f3",
+          "text": "向石柱方向前进（侦查/意志）——越靠近石柱雾气越浓，但低语声越清晰"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "fs1",
+          "text": "石柱不是建在这里的——它是被整个搬运来的，基座下的泥土翻新痕迹不超过五年"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "你们终于走到了石柱前。它不是一根柱子——是一块竖立着的完整石板，和古屋地下室的那块一模一样，只是更大、更完整。石板上刻着你们在远古密室里见过的星图——但多了一颗星。那颗星的位置不在天空，在海上。旁边刻了一行字：深渊之门开于星辰归位之处，深渊之心藏于星辰诞生之地。",
+      "image_prompt": "ancient standing stone in foggy marsh, carved star map, Ink Frenzy style, lost monolith, 16:9 widescreen",
+      "vote_prompt": "发现了雾沼中的仪式石板——下一步？",
+      "exit_labels": {
+        "coastal_cave::entrance": "按星图指示去海边寻找深渊之心的位置",
+        "ancient_chamber::entrance_hall": "把石板内容带回远古密室对照"
+      }
+    }
+  ]
+}

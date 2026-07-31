@@ -42,7 +42,9 @@
       "id": "approach",
       "description": "沼泽地的木板栈道通向一座建在木桩上的小屋。栈道两侧的水面泛着异常的光泽——不是反射月光，而是水下有什么东西在发光。屋里传出反复的、机械的劈砍声。门板上钉着一张发黄的字条：'别进来。我在里面但我不希望你们看到现在的我。'",
       "image_prompt": "rickety boardwalk through foggy swamp leading to shack on stilts, water glowing from beneath, eerie green luminescence, mist, Ink Frenzy style, Louisiana bayou horror, dread approach",
-      "leads_to": "inside"
+      "leads_to": [
+        "inside"
+      ]
     },
     {
       "id": "inside",

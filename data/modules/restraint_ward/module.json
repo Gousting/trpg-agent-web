@@ -37,7 +37,9 @@
         "trigger": "五个病人的瞳孔同时转向你",
         "level": "MAJOR"
       },
-      "leads_to": "escape_route"
+      "leads_to": [
+        "escape_route"
+      ]
     },
     {
       "id": "escape_route",

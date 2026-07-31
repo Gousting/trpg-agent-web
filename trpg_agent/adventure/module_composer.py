@@ -62,6 +62,101 @@ _TRANSITION_ENCOUNTERS = [
     "远处传来一声沉闷的撞击，像是重物落地的声音。",
 ]
 
+# 战斗模块专用过渡——不需要旅行感，需要遭遇爆发感
+_COMBAT_TRANSITIONS = [
+    "从{from_loc}出来没走多远，前方的黑暗中传来非人的低吼——你们停下了脚步。{to_loc}。",
+    "你们小心翼翼地推开下一道门，却在黑暗中撞上了蓄势待发的敌人。{to_loc}。",
+    "线索将你们引到了这里。还没来得及观察四周，一阵压迫感便从四面八方涌来。{to_loc}。",
+    "你们以为自己只是经过，但这里的寂静太刻意了——像在等待什么。下一秒你们就知道了答案。{to_loc}。",
+    "一踏入这里，空气就变了。皮肤上的寒意不是来自温度，而是来自注视。{to_loc}。",
+    "调查进行到这个阶段，你们早该预料到的——不是所有线索都会温柔地交出答案。{to_loc}。",
+]
+
+
+# ── 战斗场景桥接 ────────────────────────────────────
+
+
+def _combat_to_scene(prefix: str, encounter) -> "Scene":
+    """将 CombatEncounter 桥接为 Adventure 的 Scene 对象。
+
+    战斗模块没有传统场景，需要在组装时生成一个合成场景——
+    场景的描述反映战前氛围，combat 字段持有完整遭遇数据。
+    LLM 看到 combat 字段时切换战斗模式 prompt。
+    """
+    from trpg_agent.combat.encounter import CombatEncounter
+
+    enemy_names = "、".join(e.name for e in encounter.enemies[:3])
+    if len(encounter.enemies) > 3:
+        enemy_names += f" 等 {len(encounter.enemies)} 个敌人"
+
+    description = (
+        f"{encounter.title}\n\n"
+        f"敌人：{enemy_names}\n"
+        f"地形：{encounter.environment.terrain}\n"
+    )
+    if encounter.description:
+        description += f"\n{encounter.description}"
+
+    # 收集所有出口线索用于 exit_labels
+    exit_labels = {}
+    for oc_id, oc in encounter.outcomes.items():
+        label = oc.label or oc_id
+        exit_labels[f"{prefix}::combat_{oc_id}"] = label
+
+    return Scene(
+        id=f"{prefix}::combat_encounter",
+        title=encounter.title,
+        part=0,
+        description=description,
+        guidance=(
+            f"⚔️ 战斗遭遇（难度 {encounter.difficulty}）\n"
+            f"回合制战斗，每回合为调查员提供 3 个选项。\n"
+            f"环境光线：{encounter.environment.lighting}"
+        ),
+        combat={
+            "enabled": True,
+            "encounter": encounter,
+        },
+        image=encounter.image or "",
+        image_prompt=encounter.image_prompt or "",
+        exit_labels=exit_labels,
+        mood="combat",
+    )
+
+
+def _combat_scenes_for_module(module_id: str, encounter) -> list:
+    """为战斗模块生成场景序列（战斗场景 + 出口过渡场景）。
+
+    战斗模块只有一个战斗场景，胜利/失败/逃跑出口各对应一个过渡场景。
+    """
+    combat_scene = _combat_to_scene(module_id, encounter)
+    scenes = [combat_scene]
+
+    # 为每个结局出口创建过渡场景
+    for oc_id, oc in encounter.outcomes.items():
+        trans_id = f"{module_id}::combat_{oc_id}"
+        trans = Scene(
+            id=trans_id,
+            title=f"战斗结果：{oc.label or oc_id}",
+            part=0,
+            description=f"{oc.consequence or ''}\\n{oc.reward or ''}",
+            guidance=(
+                f"战斗结局：{oc_id}\\n"
+                f"线索：{', '.join(oc.provides_clues) if oc.provides_clues else '无'}"
+            ),
+            mood="resolution",
+        )
+        # 战斗结局场景添加投票出口
+        trans.exit_labels = {
+            f"{module_id}__conclusion": f"战斗{oc.label or oc_id}——继续冒险"
+        }
+        scenes.append(trans)
+
+    # 战斗场景的出口指向各结局过渡场景
+    combat_scene.leads_to = [s.id for s in scenes if s is not combat_scene]
+
+    return scenes
+
 
 # ── 数据类 ──────────────────────────────────────────
 
@@ -120,6 +215,9 @@ class ModuleMeta:
     # 结局标记——true 表示这是叙事终点（胜利/逃脱等），组合引擎不会再往下续接分支
     is_ending: bool = False
 
+    # 模块类型——story（默认，叙事模块）或 combat（战斗遭遇）
+    module_type: str = "story"
+
     @classmethod
     def from_dict(cls, d: dict) -> "ModuleMeta":
         entry = d.get("entry", {}) or {}
@@ -151,17 +249,23 @@ class ModuleMeta:
             entry_mood=entry.get("mood"),
             exits=exits,
             is_ending=bool(d.get("is_ending", False)),
+            module_type=str(d.get("module_type", "") or d.get("type", "") or "story"),
         )
 
 
 @dataclass
 class Module:
-    """一个完整的剧情模块——元信息 + 场景 + NPC + 变体配置。"""
+    """模块——元信息 + 场景/NPC/变体 + 可选战斗遭遇。
+
+    叙事模块（module_type=\"story\"）：scenes 有内容
+    战斗模块（module_type=\"combat\"）：encounter 有内容，scenes 为空
+    """
 
     meta: ModuleMeta
     scenes: list[Scene]
     npcs: list[AdventureNpc]
     variance: ModuleVariance
+    encounter: object = None  # CombatEncounter | None（战斗模块的遭遇数据）
 
 
 # ── 工具函数 ────────────────────────────────────────
@@ -179,9 +283,10 @@ def _prefix_scenes(
         translate = translate_leads_to or {}
         translate[sc.id] = new_id
         new.id = new_id
-        new.leads_to = [
-            translate.get(t, t) for t in new.leads_to
-        ]
+        raw_leads = new.leads_to
+        if isinstance(raw_leads, str):
+            raw_leads = [raw_leads]
+        new.leads_to = [translate.get(t, t) for t in raw_leads]
         new.exit_requires = {
             translate.get(k, k): v
             for k, v in new.exit_requires.items()
@@ -231,34 +336,45 @@ def _apply_npc_variance(npc: AdventureNpc, variance: ModuleVariance) -> None:
 
 def _make_transition_scene(
     from_scene_id: str,
-    from_title: str,
-    to_title: str,
     *,
+    from_module,
+    to_module,
+    exit_mood: str | None = None,
     rng: random.Random | None = None,
     target_scene_id: str = "",
     label: str = "",
 ) -> Scene:
-    """在模块间生成单条过渡场景。"""
-    rng = rng or random.Random()
-    tmpl = rng.choice(_TRANSITION_TEMPLATES)
-    encounter = rng.choice(_TRANSITION_ENCOUNTERS)
-
-    description = tmpl.format(
-        from_loc=from_title,
-        to_loc=to_title,
-        encounter=encounter,
-    )
+    """在模块间生成过渡场景——不生成模板文案，只存结构化元数据供 web_server 构建 KP 过渡指令。"""
+    to_desc = ""
+    if to_module.meta.module_type == "combat" and to_module.encounter is not None:
+        enemy_names = "、".join(e.name for e in to_module.encounter.enemies[:2])
+        to_desc = f"{to_module.encounter.environment.terrain}。敌人：{enemy_names}"
+    elif to_module.scenes:
+        to_desc = to_module.scenes[0].description[:200] if to_module.scenes[0].description else ""
+    
+    transition_meta = {
+        "from_title": from_module.meta.title,
+        "from_type": from_module.meta.module_type,
+        "from_mood": exit_mood or "",
+        "to_title": to_module.meta.title,
+        "to_type": to_module.meta.module_type,
+        "to_mood": to_module.meta.entry_mood or "",
+        "to_desc": to_desc,
+    }
+    
+    description = f"{from_module.meta.title} → {to_module.meta.title}"
     if label:
         description = f"【{label}】{description}"
 
     trans_id = f"__transition__{from_scene_id}__{target_scene_id}"
     return Scene(
         id=trans_id,
-        title=f"前往{to_title}",
+        title=f"前往{to_module.meta.title}",
         part=0,
         description=description,
         leads_to=[target_scene_id] if target_scene_id else [],
         guidance="过渡场景。无需玩家互动，自动推进。",
+        transition=transition_meta,
     )
 
 
@@ -268,7 +384,9 @@ def _last_scene_id(module: Module) -> str:
 
 
 def _first_scene_id(module: Module) -> str:
-    """模块第一个场景的原始 ID。"""
+    """模块第一个场景的原始 ID。战斗模块返回 combat_encounter。"""
+    if module.meta.module_type == "combat":
+        return "combat_encounter"
     return module.scenes[0].id if module.scenes else ""
 
 
@@ -381,7 +499,11 @@ class ModuleComposer:
             scenes = [Scene.from_dict(s) for s in data.get("scenes", []) or []]
             npcs = [AdventureNpc.from_dict(n) for n in data.get("npcs", []) or []]
             variance = ModuleVariance.from_dict(data.get("variance"))
-            return Module(meta=meta, scenes=scenes, npcs=npcs, variance=variance)
+            encounter = None
+            if meta.module_type == "combat":
+                from trpg_agent.combat.encounter import CombatEncounter
+                encounter = CombatEncounter.from_dict(data)
+            return Module(meta=meta, scenes=scenes, npcs=npcs, variance=variance, encounter=encounter)
         except (OSError, ValueError, KeyError):
             log.exception("模块加载失败: %s", path)
             return None
@@ -707,7 +829,7 @@ class ModuleComposer:
             candidates = [self._modules[start_id]]
         else:
             for mod in self._modules.values():
-                if not mod.meta.entry_required_clues:
+                if not mod.meta.entry_required_clues and not mod.meta.is_ending:
                     candidates.append(mod)
         if difficulty_range:
             lo, hi = difficulty_range
@@ -732,6 +854,26 @@ class ModuleComposer:
         if difficulty_range:
             lo, hi = difficulty_range
             candidates = [m for m in candidates if lo <= m.meta.difficulty <= hi]
+        # 渐进放宽：无匹配时先忽略地点类型，再忽略线索要求，最后兜底任意模块
+        if not candidates:
+            candidates = [
+                m for m in self._modules.values()
+                if m.meta.id not in used_ids
+            ]
+            # 仍尽量满足线索要求（忽略地点类型）
+            candidates = [m for m in candidates if all(
+                c in pool_clues for c in m.meta.entry_required_clues
+            ) and not any(c in pool_clues for c in m.meta.entry_forbidden_clues)]
+            if difficulty_range:
+                candidates = [m for m in candidates if lo <= m.meta.difficulty <= hi]
+        if not candidates:
+            # 完全放宽：仅按难度和去重过滤
+            candidates = [
+                m for m in self._modules.values()
+                if m.meta.id not in used_ids
+            ]
+            if difficulty_range:
+                candidates = [m for m in candidates if lo <= m.meta.difficulty <= hi]
         return candidates
 
     # ── 组装 ────────────────────────────────────
@@ -752,10 +894,25 @@ class ModuleComposer:
         all_scenes: list[Scene] = []
         all_npcs: list[AdventureNpc] = []
         for mod in all_nodes:
+            if mod.meta.module_type == "combat" and mod.encounter is not None:
+                # 战斗模块：桥接为场景序列
+                combat_scenes = _combat_scenes_for_module(mod.meta.id, mod.encounter)
+                # 图片回链：检查 modules/{module_id}/combat.png
+                for sc in combat_scenes:
+                    if not sc.image:
+                        resolved = _resolve_module_image(mod.meta.id, "combat")
+                        if resolved:
+                            sc.image = resolved
+                translate[mod.meta.id] = f"{mod.meta.id}"
+                all_scenes.extend(combat_scenes)
+                continue
+
             varied_scenes = [copy.deepcopy(scene) for scene in mod.scenes]
             for scene in varied_scenes:
                 _apply_scene_variance(scene, mod.variance)
-            prefixed = _prefix_scenes(varied_scenes, mod.meta.id, translate_leads_to=translate)
+            # 模块本地翻译表：避免不同模块的短 ID（main/result）在全局表中互相覆盖
+            local_translate = {sc.id: f"{mod.meta.id}::{sc.id}" for sc in mod.scenes}
+            prefixed = _prefix_scenes(varied_scenes, mod.meta.id, translate_leads_to=local_translate)
             # 图片回链：检查 modules/{module_id}/{scene_original_id}.png
             for scene, original in zip(prefixed, mod.scenes):
                 if not scene.image:
@@ -778,7 +935,12 @@ class ModuleComposer:
         idx = 0
         for mod in all_nodes:
             scene_offset[mod.meta.id] = idx
-            idx += len(mod.scenes)
+            # 战斗模块的场景数由 _combat_scenes_for_module 产生——用实际生成的场景数
+            if mod.meta.module_type == "combat":
+                encounter = mod.encounter
+                idx += 1 + len(encounter.outcomes) if encounter else 1
+            else:
+                idx += len(mod.scenes)
 
         def _process_node(node: ModuleNode, processed: set[str]):
             if node.module.meta.id in processed:
@@ -786,8 +948,14 @@ class ModuleComposer:
             processed.add(node.module.meta.id)
             offset = scene_offset.get(node.module.meta.id, 0)
 
-            # 添加工序场景（跳过已在 final 中的）
-            mod_scenes = all_scenes[offset:offset + len(node.module.scenes)]
+            # 战斗模块场景数不同于叙事模块——用实际生成的场景数而非 exits 数量
+            if node.module.meta.module_type == "combat":
+                # 战斗生成的场景数 = 1 combat_encounter + N outcomes
+                scene_count = 1 + len(node.module.encounter.outcomes) if node.module.encounter else 1
+            else:
+                scene_count = len(node.module.scenes)
+
+            mod_scenes = all_scenes[offset:offset + scene_count]
             for sc in mod_scenes:
                 if sc.id not in {s.id for s in final_scenes}:
                     final_scenes.append(sc)
@@ -807,12 +975,13 @@ class ModuleComposer:
                     for edge in exit_edges:
                         child_node = edge.next_node
                         trans_id = edge.transition_scene_id
-                        child_first = translate.get(_first_scene_id(child_node.module), "")
+                        child_first = f"{child_node.module.meta.id}::{_first_scene_id(child_node.module)}"
                         child_module_id = child_node.module.meta.id
                         trans = _make_transition_scene(
                             last_scene.id,
-                            node.module.meta.title,
-                            child_node.module.meta.title,
+                            from_module=node.module,
+                            to_module=child_node.module,
+                            exit_mood=exit_state.mood if exit_state else None,
                             rng=rng,
                             target_scene_id=child_first,
                             label="",
@@ -855,13 +1024,14 @@ class ModuleComposer:
             raise ValueError("组合结果无场景")
 
         title = " → ".join(mod.meta.title for mod in all_nodes)
+        start_scene_id = f"{root.module.meta.id}::{_first_scene_id(root.module)}"
         return Adventure(
             id=f"composed_{root.module.meta.id}_{len(all_nodes)}",
             title=title,
             era="1920s",
             hook=root.module.scenes[0].description[:120] if root.module.scenes else "",
             summary=f"由 {len(all_nodes)} 个模块随机组合生成的冒险（含 {sum(1 for node in self._walk_nodes(root) if node.edges)} 个分支点）。模块：{'、'.join(mod.meta.title for mod in all_nodes)}。",
-            start_scene=translate.get(_first_scene_id(root.module), ""),
+            start_scene=start_scene_id,
             resolution="",
             scenes=final_scenes,
             npcs=all_npcs,

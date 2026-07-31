@@ -33,7 +33,9 @@
       "id": "entrance_hall",
       "description": "这个空间的规模挑战人类建筑学的理解——不是凿出来的，更像是巨石被某种力量熔化后重新凝固成的几何形态。墙上覆盖着精细的浮雕，描绘了一个文明从崛起到沉入海中的完整历史。它们崇拜的不是神，而是一种被称为'深度意识'的东西——石板是它与陆地世界交流的工具。",
       "image_prompt": "impossibly vast ancient underground hall, walls of melted and reformed stone, entire civilization history carved in relief, Ink Frenzy style, scale of cosmic time, architectural impossibility, breathtaking awe, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
-      "leads_to": "inscription"
+      "leads_to": [
+        "inscription"
+      ]
     },
     {
       "id": "inscription",

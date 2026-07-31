@@ -1,0 +1,147 @@
+{
+  "id": "hidden_grove_guardian",
+  "title": "隐藏树林·自然之怒",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "wilderness",
+    "mythos"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "3-5 turns",
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "wilderness"
+    ],
+    "required_clues": [
+      "grove_ritual_remains"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "净化树林，获得自然之赐",
+      "provides_clues": [
+        "grove_purified",
+        "ritual_site_cleared"
+      ],
+      "mood": "triumph",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "defeat",
+      "label": "被藤蔓缠为养料",
+      "provides_clues": [
+        "grove_claimed"
+      ],
+      "mood": "despair",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "flee",
+      "label": "逃出树林",
+      "provides_clues": [
+        "grove_avoided"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "corrupted_dryad",
+      "name": "腐化树精",
+      "hp": 18,
+      "armor": 2,
+      "attack_bonus": 2,
+      "damage": "1d8",
+      "abilities": [
+        {
+          "name": "荆棘之鞭",
+          "effect": "远程 25 英尺，命中后缠绕（每回合 1d4 伤害直到挣脱）"
+        },
+        {
+          "name": "召唤藤蔓",
+          "effect": "每两回合在全场生成藤蔓区域（困难地形+每回合 1d3 伤害）"
+        }
+      ],
+      "behavior": "不移动，用荆棘远程攻击，近身时改用枝干重击",
+      "count": 1
+    },
+    {
+      "id": "thorn_bush",
+      "name": "活体荆棘丛",
+      "hp": 10,
+      "armor": 1,
+      "attack_bonus": 0,
+      "damage": "1d6",
+      "abilities": [
+        {
+          "name": "荆棘反伤",
+          "effect": "每次被近战攻击命中，攻击者受 1d3 荆棘伤害"
+        }
+      ],
+      "behavior": "缓慢移动，自动攻击途径者",
+      "count": 2
+    }
+  ],
+  "environment": {
+    "terrain": "被扭曲的隐藏树林，树木的枝干像手臂般伸出，地面的藤蔓会缠住脚踝。中央是一个干涸的石质祭坛",
+    "hazards": [
+      "食人花——隐蔽的巨型花朵，DEX 检定发现，踏入范围被咬合（1d8 伤害+吞入）",
+      "孢子云——触碰某些蘑菇会释放致幻孢子（POW 检定失败则幻觉 1 回合：看到多个敌人分身）",
+      "净化泉水——祭坛旁有一小池未受污染的泉水，可治疗 1d6 HP 并移除中毒"
+    ],
+    "lighting": "filtered_sunlight"
+  },
+  "rules": [
+    "火焰对树精和荆棘丛造成双倍伤害",
+    "净化祭坛（INT+克苏鲁神话组合检定）可削弱树精（护甲 -2，失去召唤藤蔓能力）",
+    "泉水每场战斗只能使用一次",
+    "SAN 检定（看到树精从活人身体中长出）：SAN 1/1d6"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒腐化树精",
+      "provides_clues": [
+        "grove_purified",
+        "ritual_site_cleared"
+      ],
+      "next_location_type": "outdoor",
+      "reward": "祭坛下发现了被献祭者的日记，记录了最后一次仪式的时间和参与者名单",
+      "consequence": "树精倒下时，整片树林发出一声叹息，树叶纷纷落下，阳光终于照到了地面"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0",
+      "provides_clues": [
+        "grove_claimed"
+      ],
+      "next_location_type": "underground",
+      "consequence": "藤蔓将你们层层包裹拖入地下，根系在身体上蔓延"
+    },
+    "flee": {
+      "condition": "任意调查员逃出树林",
+      "provides_clues": [
+        "grove_avoided"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "冲出树林的最后一步，一根枝条在脸上留下一道血痕——像在警告你们不要再回来"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "活体荆棘丛 +1",
+      "corrupted_dryad_hp": 4
+    }
+  },
+  "image_prompt": "dark corrupted forest grove, twisted tree branches reaching like skeletal arms, rotting vegetation on ground, no sunlight, deep oppressive shadows, eerie phosphorescent glow from fungi, stone altar covered in dark stains, Ink Frenzy style, 1920s cosmic horror, muted dark palette, no bright colors, oppressive canopy, Lovecraftian dread, 16:9 widescreen composition",
+  "escalation": [
+    "周围的树木开始移动——它们的树枝像手臂一样伸向你们。战场每回合缩小，可用空间减少。",
+    "守护者的根系从地底暴起——随机两个调查员需 DEX 检定躲避根须缠绕，失败则被束缚 1 回合（无法移动，回避 -3）。",
+    "树冠上的果实炸裂——释放出致幻孢子云。所有调查员需 CON 检定，失败则产生幻觉（攻击目标有 30% 概率误伤队友）。",
+    "守护者发出低沉的吟唱——整片树林都在共振。地面开始裂开，露出下方盘根错节的巨大根须网络。这是守护者的最终形态——HP 翻倍，攻击范围扩大到全体。"
+  ]
+}

@@ -42,7 +42,9 @@
       "id": "room_3b",
       "description": "惠特利租过的房间已被房东锁了三个月。撬开门锁后，房间看起来正常——除了面向东南的整面墙都被密密麻麻的符号覆盖，在月光下微微发出荧绿色的光。",
       "image_prompt": "1920s boarding house room, entire wall covered in strange symbols glowing faint green in moonlight, overturned bed, scattered papers, broken window, Ink Frenzy style, Lovecraftian domestic horror, unnatural light source, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
-      "leads_to": "hidden_diary"
+      "leads_to": [
+        "hidden_diary"
+      ]
     },
     {
       "id": "hidden_diary",

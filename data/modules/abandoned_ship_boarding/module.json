@@ -1,0 +1,148 @@
+{
+  "id": "abandoned_ship_boarding",
+  "title": "幽灵货船·甲板上的死斗",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "maritime"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "4-5 turns",
+  "entry": {
+    "location_types": [
+      "waterfront",
+      "outdoor"
+    ],
+    "required_clues": [
+      "next_shipment_date"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "肃清甲板，搜查货舱",
+      "provides_clues": [
+        "ship_cargo_inspected",
+        "cult_supply_chain"
+      ],
+      "mood": "relief",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "defeat",
+      "label": "被拖入海中",
+      "provides_clues": [
+        "lost_at_sea"
+      ],
+      "mood": "despair",
+      "next_location_type": "waterfront"
+    },
+    {
+      "id": "flee",
+      "label": "跳回小艇撤退",
+      "provides_clues": [
+        "ship_crew_alerted"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "waterfront"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "first_mate",
+      "name": "大副·已非人形",
+      "hp": 16,
+      "armor": 2,
+      "attack_bonus": 2,
+      "damage": "1d8",
+      "abilities": [
+        {
+          "name": "深海之触",
+          "effect": "手臂化为触手形态，攻击距离 +2 且命中后调查员需 STR 对抗否则被缠绕（每回合 1d4 伤害直到挣脱）"
+        },
+        {
+          "name": "腐化之息",
+          "effect": "SAN 检定 0/1d3。每两回合释放一次，30英尺锥形范围"
+        }
+      ],
+      "behavior": "优先攻击看起来最虚弱的调查员，用触手控制住后再攻击其他人",
+      "count": 1
+    },
+    {
+      "id": "possessed_sailor",
+      "name": "被附身的水手",
+      "hp": 7,
+      "armor": 0,
+      "attack_bonus": 1,
+      "damage": "1d6",
+      "abilities": [
+        {
+          "name": "不死韧性",
+          "effect": "HP 降至 0 时不倒下，继续行动 1 回合（期间每次攻击命中它自己受 1 伤害）"
+        }
+      ],
+      "behavior": "面无表情地冲锋，不会闪避也不会逃跑",
+      "count": 3
+    }
+  ],
+  "environment": {
+    "terrain": "锈迹斑斑的货船甲板，海浪不断拍打船舷，甲板湿滑晃动",
+    "hazards": [
+      "晃动的吊臂——每两回合随机横扫甲板一侧，区域内所有人 DEX 检定失败则受 1d6 伤害",
+      "松脱的绞盘——STR 检定可释放绞盘绳索抽向敌人（伤害 1d8，击退 10 英尺）",
+      "油桶——可打翻制造易燃区，点火后 1d3 回合内持续 1d4 火焰伤害",
+      "船舷外是冰冷的大西洋——被推入海中需游泳检定，失败每回合 1d3 寒冷伤害"
+    ],
+    "lighting": "moonlight"
+  },
+  "rules": [
+    "甲板晃动——所有物理攻击有 10% 概率因晃动而 -2",
+    "被触手缠绕的调查员每回合开始时自动受 1d4 伤害，可 STR 对抗挣脱",
+    "大副被击杀后所有被附身水手立即倒下（附身来源消失）",
+    "SAN 检定（第一眼看到大副的真面目）：SAN 1/1d6"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒大副",
+      "provides_clues": [
+        "ship_cargo_inspected",
+        "cult_supply_chain"
+      ],
+      "next_location_type": "indoor",
+      "reward": "货舱中发现石板碎片和运往庇护所的完整清单",
+      "consequence": "大副倒下后化为腥臭的海水渗入甲板缝隙，只留下一身压扁的船长制服"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0 或落海",
+      "provides_clues": [
+        "lost_at_sea"
+      ],
+      "next_location_type": "waterfront",
+      "consequence": "冰冷的海水灌入肺中，意识模糊前看到船底有什么巨大的东西在游动"
+    },
+    "flee": {
+      "condition": "任意调查员成功返回小艇并解开缆绳",
+      "provides_clues": [
+        "ship_crew_alerted"
+      ],
+      "next_location_type": "waterfront",
+      "consequence": "货船拉响了雾笛，深沉的鸣响在海面上回荡，整个港口都能听到"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "被附身的水手 +1",
+      "first_mate_hp": 4
+    }
+  },
+  "image_prompt": "rusty cargo ship deck at night, waves crashing against hull, swaying crane arm, oil drums on deck, misty moonlight over dark Atlantic, maritime horror, Ink Frenzy style, 1920s nautical dread, ship creaking, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "is_ending": true,
+  "escalation": [
+    "甲板下的舱室传来沉闷的撞击声——船体结构正在崩塌。海水开始从裂缝涌入，甲板倾斜 15 度。",
+    "一个集装箱挣断铁链，在倾斜的甲板上滑动——随机碾压路径上的所有人（DEX 检定躲避，失败 2d6 伤害）。",
+    "船体断裂！船首开始下沉，剩余的战斗空间缩小一半。所有移动需要 DEX 检定，失败则滑入海中（1d4 溺水伤害/回合）。",
+    "整艘船正在被大海吞没——30 秒后这里将不复存在。如果这轮不解决战斗，所有人都会被卷入海底。"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "id": "sewer_expedition",
+  "title": "下水道探索",
+  "module_type": "exploration",
+  "genre": [
+    "urban",
+    "underground"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "underground"
+    ],
+    "required_clues": [
+      "cave_entrance_discovered"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "发现邪教废弃物倾倒点",
+      "provides_clues": [
+        "sewer_mapped",
+        "cult_waste_found"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "阿卡姆的下水道系统比你们想象的要深得多。在雨水管道之下还有一层废弃的砖砌通道——墙壁上覆盖着厚厚的黑色霉菌，空气中的氨味让人睁不开眼。但真正让你们警觉的是水面上漂浮的东西：用过的手术手套、空药瓶、和被剪碎的病号服。庇护所不是唯一在处理这些东西的地方——它们被冲进了下水道。",
+      "image_prompt": "brick sewer tunnel, floating medical waste, black mold on walls, Ink Frenzy style, underground investigation, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "x1",
+          "text": "追踪污染源（侦查/导航）——顺着废弃物浓度增高的方向走，最终通向庇护所附近的一个出水口"
+        },
+        {
+          "id": "x2",
+          "text": "采集黑色霉菌样本（生物学/医学）——这种霉菌只生长在特定pH值的环境中，恰好和实验室发现的石板粉末代谢产物一致"
+        },
+        {
+          "id": "x3",
+          "text": "搜查堆积的废弃物（侦查）——在杂物堆中发现了一本泡烂的庇护所入院登记簿"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xs1",
+          "text": "登记簿上最后十几页都被撕掉了——但撕痕很新，有人最近来过这里"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "在水道的尽头，一个巨大的铸铁栅栏挡住了去路——但栅栏上的锁已经被撬开了。穿过栅栏后，你们发现了一个天然形成的石灰岩洞穴，地面散落着更多的医疗废弃物和——一大滩还未干涸的血迹。庇护所的废弃物不只是医疗垃圾。这里面混着手术摘取的器官。",
+      "image_prompt": "natural limestone cave behind broken iron grate, blood on floor, Ink Frenzy style, hidden chamber, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "发现了庇护所的废弃物倾倒点——下一步？",
+      "exit_labels": {
+        "asylum_cells::asylum_isolation": "从下水道潜入庇护所",
+        "hospital_morgue::morgue_hall": "把霉菌样本送去医院化验"
+      }
+    }
+  ]
+}

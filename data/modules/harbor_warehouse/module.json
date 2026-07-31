@@ -48,7 +48,9 @@
         "hp": 6,
         "armor": 0
       },
-      "leads_to": "office"
+      "leads_to": [
+        "office"
+      ]
     },
     {
       "id": "office",

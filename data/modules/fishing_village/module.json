@@ -42,7 +42,9 @@
       "id": "village",
       "description": "渔村的码头已经腐烂，渔船倒扣在岸边。只有一个老渔夫还住在最边上的棚屋里——他说村民们三周前陆续离开，不是因为鱼获不好，是因为'涨潮时不应该存在的影子出现在水底'。",
       "image_prompt": "abandoned fishing village at dusk, rotting dock, overturned boats, single hut with lamplight, dark ocean, Ink Frenzy style, coastal desolation, melancholy and wrongness, seagulls circling silently, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
-      "leads_to": "hut"
+      "leads_to": [
+        "hut"
+      ]
     },
     {
       "id": "hut",

@@ -73,6 +73,8 @@ class Scene:
     # COC 特有触发器
     san_check: dict | None = None   # {"trigger": "...", "level": "MAJOR"}
     combat: dict | None = None      # {"trigger": "...", "enemy": "...", "hp": N, "armor": N}
+    # 过渡场景元数据（module_composer 填充，web_server 用来构建 KP 过渡指令）
+    transition: dict | None = None  # {"from_title":..., "to_title":..., "to_type":..., ...}
 
     @classmethod
     def from_dict(cls, d: dict) -> "Scene":

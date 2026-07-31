@@ -1,0 +1,148 @@
+{
+  "id": "swamp_abomination",
+  "title": "沼泽·泥潭憎恶",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "wilderness",
+    "mythos"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "3-5 turns",
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "swamp",
+      "wilderness"
+    ],
+    "required_clues": [
+      "cult_supply_cache_found"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "杀死憎恶，搜查物资",
+      "provides_clues": [
+        "swamp_cleared",
+        "cult_supply_ledger"
+      ],
+      "mood": "triumph",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "defeat",
+      "label": "被拖入泥潭深处",
+      "provides_clues": [
+        "swamp_claimed"
+      ],
+      "mood": "despair",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "flee",
+      "label": "撤离沼泽，标记位置",
+      "provides_clues": [
+        "swamp_avoided"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "mud_abomination",
+      "name": "泥潭憎恶",
+      "hp": 22,
+      "armor": 2,
+      "attack_bonus": 1,
+      "damage": "1d8+2",
+      "abilities": [
+        {
+          "name": "泥浆喷吐",
+          "effect": "远程 20 英尺，DEX 检定躲避，失败则被泥浆覆盖（移动减半，攻击 -2，持续 2 回合）"
+        },
+        {
+          "name": "腐烂光环",
+          "effect": "10 英尺内所有生物每回合 CON 检定，失败则呕吐（失去行动）"
+        }
+      ],
+      "behavior": "缓慢但不可阻挡地向调查员推进，优先攻击被困在泥潭中的目标",
+      "count": 1
+    },
+    {
+      "id": "drowned_cultist",
+      "name": "溺毙教徒",
+      "hp": 6,
+      "armor": 0,
+      "attack_bonus": -1,
+      "damage": "1d4",
+      "abilities": [
+        {
+          "name": "泥中突袭",
+          "effect": "从泥潭中突然伸出抓住脚踝，DEX 检定躲避，失败则被拉倒（需 STR 挣脱）"
+        }
+      ],
+      "behavior": "躲在泥潭下伏击，攻击后沉回泥中",
+      "count": 2
+    }
+  ],
+  "environment": {
+    "terrain": "腐臭的沼泽深处，邪教物资箱散落在泥潭之间，周围沼泽气体在月光下发出诡异的磷光",
+    "hazards": [
+      "深泥潭——踏入需 STR 检定脱出，失败则每回合下沉 1 英尺（三回合完全沉没）",
+      "沼泽气体——遇到明火会爆炸（3d6 范围火焰伤害，之后该区域可安全通行）",
+      "扭曲的柏树根——可攀爬躲避泥潭（DEX 检定），在树上攻击憎恶获得 +2"
+    ],
+    "lighting": "phosphorescent"
+  },
+  "rules": [
+    "憎恶每回合恢复 3 HP（除非用火焰或盐阻断）",
+    "三个物资箱中有一个装有工业盐——可撒入泥潭让憎恶失去再生 3 回合",
+    "沼泽气体爆炸后场地获得光照和清晰视野",
+    "SAN 检定（看到憎恶由多具尸体融合而成）：SAN 1d3/1d6"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒泥潭憎恶",
+      "provides_clues": [
+        "swamp_cleared",
+        "cult_supply_ledger"
+      ],
+      "next_location_type": "outdoor",
+      "reward": "物资箱中找到完整的供应清单，包括递送往庇护所、采石场和港口的全部记录",
+      "consequence": "憎恶终于坍塌成一堆腐肉和泥浆，沼泽表面冒出了最后一串气泡后恢复了平静"
+    },
+    "defeat": {
+      "condition": "全体调查员沉没或 HP=0",
+      "provides_clues": [
+        "swamp_claimed"
+      ],
+      "next_location_type": "underground",
+      "consequence": "泥浆灌入口鼻，最后的知觉是无数只手将你们往更深处拖拽"
+    },
+    "flee": {
+      "condition": "任意调查员逃出沼泽",
+      "provides_clues": [
+        "swamp_avoided"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "身后的沼泽发出一声沉闷的咆哮，一棵枯树缓缓沉入泥中"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "溺毙教徒 +1",
+      "mud_abomination_hp": 5
+    }
+  },
+  "image_prompt": "rotting swamp deep in wilderness, cult supply crates scattered between mud pools, twisted cypress roots, phosphorescent swamp gas glowing, deep sinkholes, Ink Frenzy style, 1920s bayou horror, oppressive humidity, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "沼泽的气泡突然加剧——从淤泥中伸出更多腐烂的手臂。战场上的可站立地面每回合减少。",
+    "憎恶从口中喷出黑色的沼气——前方锥形范围 CON 检定，失败则中毒（每回合 1d4 毒伤害，持续 2 回合）。",
+    "沼泽的水面开始沸腾——地下的沼气被点燃了。随机位置喷出火柱（1d6 火焰伤害）。但火焰也让憎恶退却（本回合回避 -2）。",
+    "憎恶的身体开始解体——它把自己融进了沼泽本身。从此刻起，每一寸污泥都可能藏着它的一部分（攻击来源不可预测，调查员回避 -3）。"
+  ]
+}

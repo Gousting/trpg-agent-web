@@ -1,0 +1,154 @@
+{
+  "id": "cult_ritual_interruption",
+  "title": "打断仪轨",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "occult",
+    "climax"
+  ],
+  "difficulty": 4,
+  "duration_estimate": "4-6 turns",
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "ritual_site"
+    ],
+    "required_clues": [
+      "cult_ritual_location"
+    ],
+    "forbidden_clues": [],
+    "mood": "confrontation"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击溃教徒，夺取仪轨器物",
+      "provides_clues": [
+        "ritual_disrupted",
+        "cult_leader_identified"
+      ],
+      "mood": "triumph",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "defeat",
+      "label": "仪式完成，深渊裂缝扩大",
+      "provides_clues": [
+        "ritual_succeeded",
+        "reality_weakened"
+      ],
+      "mood": "despair",
+      "next_location_type": "outdoor"
+    },
+    {
+      "id": "flee",
+      "label": "在仪式完成前撤离",
+      "provides_clues": [
+        "ritual_incomplete_state"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "cult_priest",
+      "name": "邪教祭司",
+      "hp": 12,
+      "armor": 1,
+      "attack_bonus": 1,
+      "damage": "1d4",
+      "abilities": [
+        {
+          "name": "疯狂低语",
+          "effect": "目标调查员需 POW 对抗，失败则陷入短暂疯狂 1 回合（随机攻击最近目标或逃跑）"
+        },
+        {
+          "name": "仪式护盾",
+          "effect": "每回合开始获得 3 点临时护盾，需仪式中断才能移除"
+        },
+        {
+          "name": "召唤暗影",
+          "effect": "第 3 回合开始蓄力，第 4 回合召出暗影触手（HP 6，伤害 1d6）"
+        }
+      ],
+      "behavior": "优先维持仪式护盾，每隔一回合释放疯狂低语，HP<6 时加速召唤",
+      "count": 1
+    },
+    {
+      "id": "cult_acolyte",
+      "name": "黑袍教徒",
+      "hp": 6,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d4",
+      "abilities": [
+        {
+          "name": "仪式咏唱",
+          "effect": "不攻击时维持仪式能量，每有一个教徒在咏唱，祭司护盾 +1"
+        }
+      ],
+      "behavior": "两个保护祭司，其余的围攻调查员",
+      "count": 4
+    }
+  ],
+  "environment": {
+    "terrain": "采石场中央的露天仪轨场，地面刻满了发光符咒，中央石台上悬浮着黑色石板碎片",
+    "hazards": [
+      "发光符文——踏入符文区域需 POW 检定，失败则失去行动并被推开 5 英尺",
+      "悬浮石板碎片——摧毁或夺取石板碎片可以打断仪式护盾（STR 或 INT 检定）",
+      "倒下的石柱——可提供半掩体（远程攻击 -2）",
+      "仪轨圈边缘的硫磺池——推入池中受 1d8 腐蚀伤害"
+    ],
+    "lighting": "ritual_glow"
+  },
+  "rules": [
+    "仪式计时器：战斗开始 5 回合后仪式自动完成（defeat 结局），祭司存活时倒计时 -1 回合",
+    "每击杀一个正在咏唱的教徒，祭司护盾 -1",
+    "调查员可使用克苏鲁神话技能尝试反转仪式（每回合一次，极难成功则仪式逆转）",
+    "SAN 检定（看到石板中浮现的画面）：SAN 1d3/1d8"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒祭司或摧毁石板碎片",
+      "provides_clues": [
+        "ritual_disrupted",
+        "cult_leader_identified"
+      ],
+      "next_location_type": "indoor",
+      "reward": "祭司身上找到以斯拉的指示信，以及通往最终仪式的坐标",
+      "consequence": "石板碎片在空中爆裂，符文光芒消退，教徒们恐慌地四散奔逃"
+    },
+    "defeat": {
+      "condition": "仪式计时器归零",
+      "provides_clues": [
+        "ritual_succeeded",
+        "reality_weakened"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "天空撕裂，深渊中伸出的触手卷走了半数教徒。你们只能趴在地上祈祷不被注意到"
+    },
+    "flee": {
+      "condition": "任意调查员成功撤出仪轨场地",
+      "provides_clues": [
+        "ritual_incomplete_state"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "远去的路上看到采石场上空扭曲的星光——仪式还没有完全失败，但也还没有成功"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "黑袍教徒 +1",
+      "cult_priest_hp": 3
+    }
+  },
+  "image_prompt": "abandoned quarry turned ritual ground, glowing runes carved into ground, floating black stone slab fragment on central altar, stone pillars toppled, sulfur pools at edges, robed cultists chanting, Ink Frenzy style, occult ritual, 1920s cosmic horror, eerie green glow, epic scale, 16:9 widescreen composition",
+  "escalation": [
+    "祭坛上的符文开始发光——仪轨已经进入了第二阶段。如果不在 3 轮内打断，献祭将完成。",
+    "一名教徒割开了自己的手腕，将血洒入祭坛中心的凹槽——凹槽里的黑暗开始翻涌，一只非人的眼睛在其中睁开（SAN 1d3/1d6）。",
+    "两个教徒拖着一个被绑在石板上的祭品进入房间——一个活人。如果这轮不阻止，献祭将不可逆转。",
+    "祭坛上的眼睛完全睁开了——它看到了你们。所有调查员需要进行 POW 对抗，失败则被精神控制 1 回合，攻击最近的队友。"
+  ]
+}

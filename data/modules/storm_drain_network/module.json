@@ -1,0 +1,72 @@
+{
+  "id": "storm_drain_network",
+  "title": "雨水渠网络",
+  "module_type": "exploration",
+  "genre": [
+    "urban",
+    "underground"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "underground",
+      "urban"
+    ],
+    "required_clues": [
+      "flooded_retreat"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "绘制完成地下雨水渠地图",
+      "provides_clues": [
+        "drain_mapped",
+        "city_underground"
+      ],
+      "mood": "tension",
+      "next_location_type": "underground"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "阿卡姆的地面之下是另一个世界。雨水渠、废弃管线、防空洞——它们连接成一个不为人知的地下网络。你们的城市工程图只标注了主干道，但墙上的涂鸦和散落的空罐头说明有人在这里生活。在一条支线通道里你们发现了一个简陋的居住空间——铺盖、罐头食品、和钉在墙上的一份阿卡姆地图，上面标注了所有你们已知的仪式地点。住在下水道里的人也在调查这件事。",
+      "image_prompt": "underground storm drain, makeshift living space, city map on wall, subterranean hideout, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "d1",
+          "text": "追踪居住痕迹找到主人（侦查/追踪）——通向庇护所方向，但在半路突然中断，像被什么东西拖走了"
+        },
+        {
+          "id": "d2",
+          "text": "研究墙上的地图（导航/知识）——标注的质量极高，比你们手上的任何一份都详细"
+        },
+        {
+          "id": "d3",
+          "text": "检查遗留物品（侦查）——铺盖下压着一本记者证，名字是阿卡姆公报的调查记者"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ds1",
+          "text": "记者证上的照片和首席护工哈罗威是同一个人——他曾经是调查这个事件的记者"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "在记者最后的栖身处，你们找到了一本几乎写满的笔记本。第一页的日期是三年前。最后一页写到一半，字迹从工整变成了颤抖的涂鸦：他们在我脑子里。我能听到石板的嗡鸣。庇护所的所长不是人——它是石板的第一个容器。然后笔迹中断了，纸上被某种尖锐物划出了深痕。",
+      "image_prompt": "investigator's notebook with trembling handwriting, journalist ID badge, Ink Frenzy style, evidence, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "发现了前记者的调查笔记——下一步？",
+      "exit_labels": {
+        "asylum_director_office::office": "去庇护所所长办公室核实",
+        "newspaper_archives::archive_room": "把记者证带到报社查档案"
+      }
+    }
+  ]
+}

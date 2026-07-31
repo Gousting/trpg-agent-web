@@ -1,0 +1,69 @@
+{
+  "id": "hospital_treatment",
+  "title": "医院治疗",
+  "module_type": "rest",
+  "genre": [
+    "rest",
+    "institutional"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "治疗伤势恢复状态",
+      "provides_clues": [
+        "treatment_complete",
+        "wounds_treated"
+      ],
+      "mood": "relief",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "圣玛丽医院在凌晨还留着灯——夜班护士看到你们的伤势没有多问，只是默默拿出了缝合包和绷带。她的眼神里有一种疲惫的理解。这家医院在过去一个月里接收了太多奇怪的伤患——咬痕不是任何已知动物的牙印、中毒症状对任何解毒剂都不起反应、还有那些反复做同一个噩梦的病人。她给你们处理伤口时低声说：你们都去了庇护所对吧——别告诉我细节，我不想被卷进来。只想说——活着回来。",
+      "image_prompt": "hospital room at night, nurse treating wounds, medical tools, 1920s medical, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "h1",
+          "text": "接受医疗处理（医学）——移除体内残留的石板微粒后身体感觉轻松了许多"
+        },
+        {
+          "id": "h2",
+          "text": "和护士交谈（社交/心理学）——她偷偷保留了一份所有异常伤患的记录，愿意给你们看"
+        },
+        {
+          "id": "h3",
+          "text": "利用医院资源补充医疗用品（药剂/社交）——护士给了你们一套急救包和一些镇静剂"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "hs1",
+          "text": "护士的病患记录显示——石板碎片感染的人数正在以指数级增长，庇护所外面也有人被感染了"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "护士的记录令人不寒而栗。仅在上周就有四十三名阿卡姆居民出现了同样的症状——失眠、噩梦、以及皮肤上出现的六芒星形状红斑。这些人从来没有靠近过庇护所。石板的影响力已经超出了庇护所的围墙。仪式不需要完成——如果你们不尽快行动，整个阿卡姆都会成为深渊之子的献祭品。",
+      "image_prompt": "hospital records showing infection spreading across town, urgency, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "治疗完成，也了解到感染扩散的紧迫性——下一步？",
+      "exit_labels": {
+        "final_confrontation::summit": "时间不多了——直接去山顶",
+        "town_hall_archives::filing_room": "先去市政厅申请全城紧急状态"
+      }
+    }
+  ]
+}

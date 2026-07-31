@@ -33,7 +33,9 @@
       "id": "attic",
       "description": "疯人院的阁楼塞满了数十年积攒的旧病历和病人遗物。在惠特利教授的档案箱里，找到了入院时的个人物品清单：考古笔记、一块小石板碎片、一叠未寄出的信。信是写给他妻子的——前三封正常，后面每一封的字迹都比前一封更扭曲，最后一封只有一句话重复了四十遍。",
       "image_prompt": "dusty asylum attic crammed with old patient records and belongings, open archive box labeled , letters with deteriorating handwriting, Ink Frenzy style, institutional archaeology, personal tragedy amid horror, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
-      "leads_to": "journal"
+      "leads_to": [
+        "journal"
+      ]
     },
     {
       "id": "journal",

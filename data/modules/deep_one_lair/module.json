@@ -1,0 +1,149 @@
+{
+  "id": "deep_one_lair",
+  "title": "深潜者巢穴",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "underwater",
+    "mythos"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "4-5 turns",
+  "entry": {
+    "location_types": [
+      "cave",
+      "underground",
+      "coastal"
+    ],
+    "required_clues": [
+      "coastal_cave_ritual_evidence"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "歼灭深潜者，搜索巢穴",
+      "provides_clues": [
+        "deep_one_artifact",
+        "ocean_ritual_knowledge"
+      ],
+      "mood": "triumph",
+      "next_location_type": "underground"
+    },
+    {
+      "id": "defeat",
+      "label": "被拖入深海",
+      "provides_clues": [
+        "sacrificed_to_dagon"
+      ],
+      "mood": "despair",
+      "next_location_type": "waterfront"
+    },
+    {
+      "id": "flee",
+      "label": "逃回洞穴入口",
+      "provides_clues": [
+        "lair_location_mapped"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "deep_one_elder",
+      "name": "深潜者长老",
+      "hp": 18,
+      "armor": 2,
+      "attack_bonus": 2,
+      "damage": "1d8+1",
+      "abilities": [
+        {
+          "name": "蛙鸣咆哮",
+          "effect": "锥形范围，CON 检定失败则震慑 1 回合。冷却 3 回合"
+        },
+        {
+          "name": "水生再生",
+          "effect": "如果站在水中，每回合恢复 3 HP"
+        }
+      ],
+      "behavior": "坚守在巢穴中心的水池中，不退却，优先攻击远程调查员",
+      "count": 1
+    },
+    {
+      "id": "deep_one_hybrid",
+      "name": "混血深潜者",
+      "hp": 10,
+      "armor": 1,
+      "attack_bonus": 1,
+      "damage": "1d6+1",
+      "abilities": [
+        {
+          "name": "跳跃扑击",
+          "effect": "可跳过 20 英尺距离直接近身，DEX 检定对抗，失败则调查员被扑倒"
+        }
+      ],
+      "behavior": "利用跳跃能力绕过前排攻击后排，优先攻击看起来最弱的",
+      "count": 2
+    }
+  ],
+  "environment": {
+    "terrain": "潮汐侵蚀出的海蚀洞穴，中央是一池黑色深水，四周散落着鱼骨和人类遗骸",
+    "hazards": [
+      "中央深水池——踏入水中移动速度减半，且长老在水中可触发再生",
+      "钟乳石——天花板悬挂锋利石笋，枪声或爆炸可能震落（区域内 1d6 伤害）",
+      "粘滑的岩石——移动需 DEX 检定，失败滑倒失去本回合行动",
+      "古老祭坛——刻着深潜者与人类交配的浮雕（SAN 0/1d2），摧毁可削弱长老 1d3 回合（攻击-2）"
+    ],
+    "lighting": "bioluminescent"
+  },
+  "rules": [
+    "洞穴回声——枪声触发钟乳石坠落（20% 概率）",
+    "长老在水中时获得 +1 护甲和再生能力——用火把或电击可逼它上岸",
+    "两个混血深潜者一雌一雄，击杀一个后另一个进入狂暴（攻击 +2，护甲 -1）",
+    "SAN 检定（看到长老的全貌）：SAN 1d3/1d6"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒所有深潜者",
+      "provides_clues": [
+        "deep_one_artifact",
+        "ocean_ritual_knowledge"
+      ],
+      "next_location_type": "underground",
+      "reward": "祭坛下发现一枚古老的三叉戟碎片和三块记录潮汐仪式的石板",
+      "consequence": "洞窟恢复了令人窒息的寂静，只有水滴从钟乳石落下的声音"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0 或落水",
+      "provides_clues": [
+        "sacrificed_to_dagon"
+      ],
+      "next_location_type": "waterfront",
+      "consequence": "被深潜者拖入黑色水池，水下有无数双手将你们拉向更深的地方"
+    },
+    "flee": {
+      "condition": "任意调查员成功逃出洞穴",
+      "provides_clues": [
+        "lair_location_mapped"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "冲出洞口的瞬间听到身后传来愤怒的蛙鸣，潮水开始迅速上涨"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "混血深潜者 +1",
+      "deep_one_elder_hp": 4
+    }
+  },
+  "image_prompt": "tide-carved sea cave, black pool at center, stalactites hanging from ceiling, fish bones and human remains scattered, ancient altar with disturbing浮雕, bioluminescent glow from water, Ink Frenzy style, underwater horror, 1920s Lovecraftian, deep one lair, dark cosmic horror atmosphere, 16:9 widescreen composition",
+  "escalation": [
+    "长老从黑水中完全浮出——它的蛙嘴张开，发出第一声咆哮。所有调查员需进行 CON 检定，失败则震慑 1 回合。",
+    "洞穴开始震颤。天花板上的钟乳石群开始松动——枪声或剧烈震动有 30% 概率触发坠落（区域内 1d6 伤害）。",
+    "两个混血深潜者一死一活——活着的那个发出刺耳尖啸，进入狂暴（攻击 +2，护甲 -1）。它的眼中只剩下复仇。",
+    "黑水池开始暴涨！每回合水位上升，淹没更多地面。长老完全浸入水中——获得 +2 护甲，且再生能力翻倍（每回合恢复 6 HP）。再不解决它就没有退路了。"
+  ]
+}

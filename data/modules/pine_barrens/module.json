@@ -43,7 +43,9 @@
       "id": "clearing",
       "description": "松林深处一片被刻意砍平的圆形空地。树木的切口都是旧伤——不是斧头砍的，是什么更强的东西扭断的。空地中央的泥土被翻开过，露出一个浅坑，坑底有烧焦的痕迹和一摊已经凝固的黑红色蜡。",
       "image_prompt": "deep pine forest clearing at night, trees twisted and broken unnaturally, shallow pit with burnt remains and congealed dark wax, moonlight through pine branches, Ink Frenzy style, wilderness horror, wrongness in nature",
-      "leads_to": "trail"
+      "leads_to": [
+        "trail"
+      ]
     },
     {
       "id": "trail",

@@ -81,5 +81,6 @@
       "secret": "他是第一个收到惠特利寄出的信的人。他打开了信。"
     }
   ],
-  "variance": {}
+  "variance": {},
+  "is_ending": true
 }

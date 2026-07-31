@@ -1,0 +1,78 @@
+{
+  "id": "chemical_analysis",
+  "title": "化学残留分析",
+  "module_type": "investigation",
+  "genre": [
+    "investigation",
+    "science"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional",
+      "laboratory",
+      "academic"
+    ],
+    "required_clues": [
+      "sample_analyzed"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "identified",
+      "label": "识别出石板材质成分",
+      "provides_clues": [
+        "slab_composition_known",
+        "slab_weakness_identified"
+      ],
+      "mood": "urgency",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "chemistry_lab",
+      "description": "密斯卡托尼克大学的化学实验室凌晨三点仍然亮着灯。你们面前的试管里装着从石板表面刮下的微量粉末。第一次光谱分析的结果让助教的手抖了一下——这些粉末的化学结构不属于元素周期表上的任何一种物质。它更像是一种介于有机物和无机物之间的、不应该存在的东西。最令人不安的是：样本在持续释放微量的热量，已经持续了六小时。它在自主代谢。",
+      "image_prompt": "university chemistry lab, spectroscope, glowing test tubes, scientific horror, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "ch1",
+          "text": "做完整的化学检验（化学/药学）——物质对生物组织有强烈的亲和力，会主动融入活体细胞"
+        },
+        {
+          "id": "ch2",
+          "text": "测试不同温度下的反应（物理学/化学）——在超过摄氏300度时物质结构开始不稳定"
+        },
+        {
+          "id": "ch3",
+          "text": "用动物组织做暴露实验（生物学/医学）——接触后三分钟内组织开始变异"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "chs1",
+          "text": "高温可以破坏这种物质的分子结构——但需要的温度远超普通火焰。工业级熔炉或大规模爆炸才够"
+        }
+      ],
+      "leads_to": [
+        "breakthrough"
+      ],
+      "san_check": {
+        "trigger": "看到动物组织在显微镜下自主变异",
+        "level": "MINOR"
+      }
+    },
+    {
+      "id": "breakthrough",
+      "description": "在反复测试后你们发现了一个关键弱点：这种物质在特定频率的声波下会失去活性。地震仪记录显示庇护所地下每隔几秒就有一次规律的低频震波——那不是地震，是有人在用声波维持石板碎片的休眠状态。如果你们能在仪式进行时发出相同频率的反相声波，理论上可以中和石板的能量。问题是：你们需要一台足够强大的声波发生器——而整个阿卡姆只有天文台的信号发射塔能产生这种功率。",
+      "image_prompt": "lab notes with frequency charts, seismograph paper, chemical equations, Ink Frenzy style, breakthrough, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "发现了声波弱点——下一步？",
+      "exit_labels": {
+        "observatory::telescope_room": "去天文台校准发射塔频率",
+        "asylum_director_office::office": "去庇护所确认声波发生器来源"
+      }
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "id": "abandoned_farm",
+  "title": "荒废农庄",
+  "module_type": "exploration",
+  "genre": [
+    "outdoor",
+    "rural"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "outdoor",
+      "rural",
+      "underground"
+    ],
+    "required_clues": [
+      "sawmill_worker_disappeared"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "发现邪教的备用仪式场",
+      "provides_clues": [
+        "farm_searched",
+        "ritual_farm_evidence"
+      ],
+      "mood": "dread",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "锯木厂往西五里有一座废弃农庄。地图上标注已荒废二十年——但谷仓的屋顶在月光下反射出新鲜的铁皮补丁。院子里停着一辆1924年的福特卡车，轮胎上的泥土还是湿的。有人正在使用这个地方。谷仓门虚掩着，里面传出了规律的低沉嗡鸣——和你们在地下室里听到的石板震动声一样。",
+      "image_prompt": "abandoned farm at night, barn with fresh metal patches, 1924 Ford truck, Ink Frenzy style, rural horror, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "a1",
+          "text": "潜行接近谷仓（潜行/DEX）——透过门缝可以看到里面摆着六张行军床，床上绑着人"
+        },
+        {
+          "id": "a2",
+          "text": "检查卡车（侦查/机械维修）——车厢里装着铁锹、石灰袋和一卷帆布，和殡仪馆的工具一样"
+        },
+        {
+          "id": "a3",
+          "text": "搜索农舍（侦查）——厨房桌上放着一本周历，后天那一页用红笔圈了出来，旁边写着最终"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "as2",
+          "text": "农庄是庇护所的备用场地——如果采石场山顶被调查员发现，他们会把仪式转移到这里"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "谷仓里的六个人都活着，但瞳孔已经涣散了——他们被注射了大剂量的麻醉剂。其中一个的手腕上系着和你们在石板碎片旁找到的一模一样的木牌。你们的闯入触发了某种警报——谷仓角落的一块小石板碎片开始剧烈发光。你们还有时间。但不多。后天晚上他们需要六个祭品——现在只差最后两个了。",
+      "image_prompt": "inside barn, six people on cots, glowing stone fragment in corner, ritual preparation, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "发现了备用仪式场和预备祭品——下一步？",
+      "exit_labels": {
+        "police_station::police_front": "去警局带人来解救人质",
+        "final_confrontation::summit": "人质暂时安全，先去山顶阻止主仪式"
+      }
+    }
+  ]
+}

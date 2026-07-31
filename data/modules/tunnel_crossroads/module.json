@@ -42,7 +42,9 @@
       "id": "junction",
       "description": "地下通道在这里分成三条岔路。墙壁上有人绘制了简陋的地图——用血和木炭，标注了通道系统和各个出口。东边的通道已经被故意炸塌了。南边有灯光和说话声——不是正常的语言。北边被水淹到膝盖，水是黑色的，完全看不到底。",
       "image_prompt": "underground tunnel junction, crude map on wall drawn with blood and charcoal, collapsed eastern passage, water-filled northern tunnel with black water, Ink Frenzy style, subterranean crossroads, claustrophobic choice",
-      "leads_to": "map"
+      "leads_to": [
+        "map"
+      ]
     },
     {
       "id": "map",

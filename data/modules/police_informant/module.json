@@ -1,0 +1,71 @@
+{
+  "id": "police_informant",
+  "title": "警方线人会面",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "urban"
+  ],
+  "difficulty": 2,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "cult_members_identified"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "获得下次集会情报",
+      "provides_clues": [
+        "informant_list",
+        "cult_meeting_location"
+      ],
+      "mood": "urgency",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "你们在夜里十点准时到了后巷。线人是个前邪教成员——以斯拉的一个副手因为害怕而逃了出来。他的精神看起来很糟——瞳孔无法聚焦，手指不停地抖动。他说：我不是逃出来的。我是被放出来的。以斯拉让我来找你们。他要我带句话——后天子时，山顶采石场。他邀请你们参加最终仪式。不是作为祭品——作为见证者。他说你们已经赢得了观看世界末日的资格。",
+      "image_prompt": "dark alley at night, former cultist informant, nervous meeting, 1920s urban noir, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "p1",
+          "text": "判断他是否在说谎（心理学/侦查）——他不是在编造，但他被某种东西控制了，眼神里没有自主意志"
+        },
+        {
+          "id": "p2",
+          "text": "详细询问以斯拉的布置（说服/威胁）——山顶采石场有十二名武装护卫，六名祭品早已到位"
+        },
+        {
+          "id": "p3",
+          "text": "让他画出仪式场地的布局（社交）——他的手在画的时候不受控制地画出了完美的几何图形"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ps2",
+          "text": "他后颈上有一个细小的切口——里面嵌着一块米粒大小的石板碎片。以斯拉用碎片控制了他"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "画完地图后线人突然开始抽搐。从他的嘴里发出了一种不属于人类的声音——像石头摩擦石头。然后他安静下来，用完全不同的语调说了一句话：伟大的深渊之父期待你们的到来。之后他的瞳孔恢复了正常，但他不记得刚才说了什么。以斯拉通过他后颈的那块碎片在远程说话。你们被监视了。",
+      "image_prompt": "cultist drawing ritual layout with perfect geometric precision, Ink Frenzy style, possession horror, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "以斯拉在通过碎片监视你们——下一步？",
+      "exit_labels": {
+        "final_confrontation::summit": "接受邀请去山顶",
+        "sanitarium_visit::ward14": "去庇护所了解碎片控制人体的原理"
+      }
+    }
+  ]
+}

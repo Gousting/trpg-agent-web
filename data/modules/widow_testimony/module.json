@@ -1,0 +1,71 @@
+{
+  "id": "widow_testimony",
+  "title": "遗孀证词",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "residential"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "chief_missing"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "获得警长私密笔记",
+      "provides_clues": [
+        "widow_statement",
+        "chiefs_notebook"
+      ],
+      "mood": "dread",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "警长的遗孀住在阿卡姆北郊一栋安静的小房子里。她三天没合眼了——不是因为悲伤，是因为恐惧。她说警长失踪前的那晚没有睡觉，一直坐在书桌前写东西。第二天一早他把一个铁盒子塞进她手里说：如果明天我没回来，把这个交给第一个来问问题的陌生人。你们就是那个陌生人。",
+      "image_prompt": "police chief's study, iron box with secret notes, widow in shadow, Ink Frenzy style, 1920s domestic tension, 16:9 widescreen",
+      "opportunities": [
+        {
+          "id": "w1",
+          "text": "打开铁盒子（DEX/锁匠）——里面是警长的手写笔记，记录了他对庇护所长达两年的秘密调查"
+        },
+        {
+          "id": "w2",
+          "text": "和遗孀详谈（心理学/说服）——警长失踪前一周每晚都做同一个噩梦：有人在他脑子里唱歌"
+        },
+        {
+          "id": "w3",
+          "text": "检查警长的书房（侦查）——书桌抽屉里有一张庇护所搜查令，法官签字了但从未送达"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ws2",
+          "text": "警长的笔记里有一个名字反复出现——以斯拉。他跟踪以斯拉的行动已经持续了六个月"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "铁盒子最底层压着一张照片：以斯拉和庇护所所长在古屋门前的合影。照片背面是警长潦草的笔迹：他们二十年前就认识。不是邪教招募了他。他一直在领导它。所长只是执行者。真正的幕后人是惠特利——他根本没有失踪。他一直在庇护所的地下室里，用石板碎片维持自己的生命。",
+      "image_prompt": "old photograph of Ezra and asylum director, handwritten note revealing truth, Ink Frenzy style, revelation, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "vote_prompt": "发现了惠特利还活着的证据——下一步？",
+      "exit_labels": {
+        "asylum_director_office::office": "去庇护所地下室找惠特利",
+        "police_station::police_evidence": "带搜查令去警局调集人手"
+      }
+    }
+  ]
+}

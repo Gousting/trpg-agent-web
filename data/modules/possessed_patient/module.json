@@ -1,0 +1,72 @@
+{
+  "id": "possessed_patient",
+  "title": "附身病患",
+  "module_type": "horror",
+  "genre": [
+    "horror",
+    "institutional"
+  ],
+  "difficulty": 3,
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional"
+    ],
+    "required_clues": [
+      "therapy_records"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "目睹石板控制人体的机制",
+      "provides_clues": [
+        "possession_witnessed",
+        "slab_control_mechanism"
+      ],
+      "mood": "horror",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "庇护所的电击治疗室不是用来治疗病人的——是用来植入石板碎片的。你们在病历中发现了完整的操作记录：将米粒大小的碎片通过鼻腔植入脑部，碎片会在三小时内与神经组织融合。被植入者仍保持意识和记忆——但他们的意志不再属于自己。今晚的病房里有六个被植入者，全部被安排在后天晚上扮演祭品的角色。其中一个人在你们走近时突然睁开了眼。他用以斯拉的语气说：欢迎来参观我的工作室。",
+      "image_prompt": "asylum ward, six patients sitting up in unison, all-black eyes, Ink Frenzy style, possession horror, 16:9 widescreen, sepia tones only, desaturated muted palette, no bright colors, no legible text, oppressive atmosphere",
+      "opportunities": [
+        {
+          "id": "p1",
+          "text": "观察碎片对病人行为的控制程度（医学/心理学）——病人完全清醒，但无法控制自己的身体"
+        },
+        {
+          "id": "p2",
+          "text": "尝试与病人的自主意识沟通（心理学/意志）——在碎片控制的间隙，病人可以短时间恢复自主意志"
+        },
+        {
+          "id": "p3",
+          "text": "研究植入手术的医学细节（医学/生物学）——手术极其简单，不需要专业训练，庇护所的护工人人都会做"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ps4",
+          "text": "你们中的任何人只要失去意识三小时就会被植入——这不是一个远处的问题"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "当你们试图移除其中一个病人的碎片时，所有六个病人同时坐了起来——眼睛睁开，瞳孔全黑。他们齐声说话，不是六个人声，是一个统一的、石头般坚硬的声音。它说：你们以为你们在阻止仪式。你们不知道的是——每一次你们触碰石板，每一次你们靠近碎片，每一次你们在这里呼吸——你们在为最终仪式积蓄能量。你们的恐惧、你们的好奇、你们的勇气——都是燃料。只有什么都不做的人才能阻止仪式。而你们做不到。然后所有病人同时倒下，陷入昏迷。那个声音的最后一句在你们脑子里回响：后天晚上见。",
+      "image_prompt": "stone voice speaking through patients, unnatural shadows, psychic horror, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "以斯拉通过碎片远程对话——下一步？",
+      "exit_labels": {
+        "asylum_director_office::office": "去找所长",
+        "sanitarium_visit::ward14": "去查碎片移除方法"
+      }
+    }
+  ]
+}

@@ -33,7 +33,9 @@
       "id": "tunnel",
       "description": "黑色冷水没到腰际，每走一步都能踩到不知是什么的柔软物体。手电筒的光在水中照不出三十厘米——但水面下偶尔会泛起微弱的绿光。通道尽头不是死路，而是向下的斜坡——水在这里形成一个漩涡，但漩涡是静止的。",
       "image_prompt": "flooded underground tunnel, black waist-deep water, flashlight beam dying in murk, occasional green glow beneath surface, perfectly still whirlpool at end, Ink Frenzy style, submerged dread, thalassophobia underground, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease",
-      "leads_to": "gate"
+      "leads_to": [
+        "gate"
+      ]
     },
     {
       "id": "gate",

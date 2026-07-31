@@ -1,0 +1,71 @@
+{
+  "id": "journalist_interview",
+  "title": "记者访谈",
+  "module_type": "social",
+  "genre": [
+    "social",
+    "urban"
+  ],
+  "difficulty": 1,
+  "entry": {
+    "location_types": [
+      "indoor"
+    ],
+    "required_clues": [
+      "police_records_found"
+    ],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "done",
+      "label": "获得记者的调查资料",
+      "provides_clues": [
+        "journalist_testimony",
+        "press_evidence"
+      ],
+      "mood": "tension",
+      "next_location_type": "indoor"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "main",
+      "description": "阿卡姆公报的调查记者玛格丽特·道森已经跟踪这条线三年了。她的办公桌上堆满了比警方案卷更详细的资料。她开门见山：你们发现了多少——因为我知道的比警察多得多。她在墙上钉了一张巨大的关系图：惠特利家族、庇护所高管、港口货运公司、还有三个市政议员。所有人的名字都连着同一条红线。",
+      "image_prompt": "reporter's desk covered with investigation files, wall of red-string connections, 1920s newsroom, dark atmosphere, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "opportunities": [
+        {
+          "id": "j1",
+          "text": "询问她为何不发表这些资料（话术/心理学）——她的编辑在一年前突然撤回报道并把她调离了调查部"
+        },
+        {
+          "id": "j2",
+          "text": "查看她的调查笔记（图书馆使用/侦查）——三年来她偷拍了庇护所后门夜间的所有出入记录"
+        },
+        {
+          "id": "j3",
+          "text": "请求她提供庇护所内部构造图（说服/魅力）——她曾经以采访为名进入过庇护所，画下了详细布局"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "js1",
+          "text": "她的编辑是受人胁迫的——威胁者自称阿卡姆慈善医学研究会的法律代表"
+        }
+      ],
+      "leads_to": [
+        "result"
+      ]
+    },
+    {
+      "id": "result",
+      "description": "玛格丽特最后从抽屉里拿出一个信封：这是我能给你的全部——庇护所的内部构造、后门的钥匙密码、和一张明天出港的船票。我不是要你们逃跑。这艘船上运的货就是你们要找的东西。船名叫深渊号。明天上午十点靠港。",
+      "image_prompt": "envelope with asylum blueprints and ship ticket on desk, evidence handover, 1920s noir, gritty hand-drawn ink illustration, heavy cross-hatching, rough charcoal strokes, newspaper engraving aesthetic, 1920s period, strictly monochrome dark sepia palette using only burnt umber charcoal black deep walnut and muted ochre, zero saturation, dark Lovecraftian cosmic horror atmosphere, 16:9 widescreen composition, pure visual storytelling",
+      "vote_prompt": "获得了关键情报——下一步？",
+      "exit_labels": {
+        "harbor_warehouse::loading_dock": "明天去港口拦截深渊号",
+        "asylum_director_office::office": "拿构造图去庇护所"
+      }
+    }
+  ]
+}

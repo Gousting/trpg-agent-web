@@ -33,7 +33,9 @@
       "id": "room",
       "description": "电击治疗室的设备被改装过——不是医疗设备，而是一台庞大的变压器，将城市电网的电力集中到一张金属手术床上。床边堆满记录：每一次'治疗'的精确电压、持续时间，以及病人的'意识漂移距离'。最后一页记录了一个病人被'送到很远的地方，带回了有用的信息'。",
       "image_prompt": "1920s shock therapy room converted into something worse, massive transformer, metal surgical bed, stack of records documenting 'consciousness drift distance', Ink Frenzy style, medical horror, electricity as occult tool, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, eldritch unease, avoid human figures, focus on environment and architecture",
-      "leads_to": "trapdoor"
+      "leads_to": [
+        "trapdoor"
+      ]
     },
     {
       "id": "trapdoor",

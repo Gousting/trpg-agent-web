@@ -22,7 +22,9 @@
   "scenes": [
     {
       "id": "collapsing_chamber",
-      "leads_to": "surface",
+      "leads_to": [
+        "surface"
+      ],
       "description": "水下的拱门在星辰归位时崩塌。海水从四面八方涌入——远处出现一个轮廓，大到挑战人类心智。唯一的出路是反方向一条被炸塌的通道——挖通它，在海水和更糟的东西追上之前。",
       "image_prompt": "collapsing underground chamber, seawater rushing through cracking walls, colossal dark shape visible through distant tunnel opening, one narrow blocked passage as only escape, Ink Frenzy style, desperate horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture"
     },

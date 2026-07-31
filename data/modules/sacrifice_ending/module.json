@@ -22,7 +22,9 @@
   "scenes": [
     {
       "id": "ritual_circle",
-      "leads_to": "connection",
+      "leads_to": [
+        "connection"
+      ],
       "description": "星辰归位了。石板网络全面激活——每一块碎片同时发出统一的绿光。远古文字提到如果一个人自愿成为石板的锚定点，以自身意识连接网络可以从内部逆转它的指向。代价——意识被永久分散在整个网络中，成为它的一部分。不死，也不是活着。在每一块石头里。",
       "image_prompt": "underground ritual circle, all stone fragments glowing in unison green light, single figure stepping into center, Ink Frenzy style, ultimate sacrifice, transcendence and loss, deep shadows, dramatic chiaroscuro lighting, oppressive darkness, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture"
     },

@@ -33,7 +33,9 @@
       "id": "summit",
       "description": "悬崖顶上的海风大得几乎让人站不稳。这里视野开阔，整个阿卡姆海湾尽收眼底——也包括海中那个不该存在的东西：退潮时露出的黑色石脊，它们的排列不是自然的，而是形成规则的几何图形。悬崖边有被风吹日晒的古老石刻，刻的正是海中的那个图形。",
       "image_prompt": "cliff top overlooking Arkham bay, low tide revealing black stone ridges in geometric patterns, ancient weathered carvings on cliff edge matching the pattern, Ink Frenzy style, vast coastal panorama, cosmic revelation, wind and sea",
-      "leads_to": "carving"
+      "leads_to": [
+        "carving"
+      ]
     },
     {
       "id": "carving",

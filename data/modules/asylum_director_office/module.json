@@ -42,7 +42,9 @@
       "id": "office",
       "description": "院长办公室的装潢豪华得与疯人院格格不入——红木家具、波斯地毯。但墙上挂的不是医学奖状，而是和石板符号一模一样的巨幅挂毯。桌上摊着'实验性疗法记录'——不是医疗档案，而是仪式观察日志。",
       "image_prompt": "1920s asylum director office, luxurious redwood and Persian rugs, huge tapestry with slab symbols on wall, open logbook showing ritual observation notes not medical records, Ink Frenzy style, institutional corruption, elegant horror",
-      "leads_to": "safe"
+      "leads_to": [
+        "safe"
+      ]
     },
     {
       "id": "safe",

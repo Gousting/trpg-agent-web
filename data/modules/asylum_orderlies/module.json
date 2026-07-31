@@ -1,0 +1,143 @@
+{
+  "id": "asylum_orderlies",
+  "title": "庇护所走廊的搏斗",
+  "module_type": "combat",
+  "genre": [
+    "horror",
+    "confrontation"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "3-5 turns",
+  "entry": {
+    "location_types": [
+      "indoor",
+      "institutional",
+      "basement",
+      "asylum"
+    ],
+    "required_clues": [
+      "patient_zero_found"
+    ],
+    "forbidden_clues": [],
+    "mood": "tension"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击倒护工，深入庇护所",
+      "provides_clues": [
+        "orderly_keys_obtained",
+        "patient_records_found"
+      ],
+      "mood": "relief",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "defeat",
+      "label": "被制服，关进病房",
+      "provides_clues": [
+        "captured_by_asylum"
+      ],
+      "mood": "despair",
+      "next_location_type": "indoor"
+    },
+    {
+      "id": "flee",
+      "label": "逃离走廊，另寻入口",
+      "provides_clues": [
+        "asylum_alerted"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "outdoor"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "head_orderly",
+      "name": "首席护工哈罗威",
+      "hp": 14,
+      "armor": 1,
+      "attack_bonus": 2,
+      "damage": "1d6+1",
+      "abilities": [
+        {
+          "name": "电击棒",
+          "effect": "命中后调查员需 CON 检定，失败则昏迷 1 回合无法行动"
+        },
+        {
+          "name": "吹哨召援",
+          "effect": "第 3 回合起每回合 1d6≥5 则召唤一名护工增援"
+        }
+      ],
+      "behavior": "优先攻击最近的调查员，HP<5 时尝试逃跑呼救",
+      "count": 1
+    },
+    {
+      "id": "orderlies",
+      "name": "护工",
+      "hp": 8,
+      "armor": 0,
+      "attack_bonus": 0,
+      "damage": "1d4",
+      "abilities": [],
+      "behavior": "集中攻击同一目标，不单独行动",
+      "count": 3
+    }
+  ],
+  "environment": {
+    "terrain": "狭窄的庇护所走廊，只能两人并排通过",
+    "hazards": [
+      "翻倒的药柜——DEX 检定可推倒阻挡追兵 1 回合",
+      "消防斧玻璃箱——STR 检定打破玻璃取得消防斧（伤害 1d8+1）",
+      "灭火器——可投掷制造烟雾（下一回合敌人攻击 -2）"
+    ],
+    "lighting": "dim"
+  },
+  "rules": [
+    "枪声自动触发增援（护工 +1）",
+    "调查员可尝试 INT 检定制作临时绊索（床单撕条 + 门把手），成功则一名敌人倒地 1 回合",
+    "走廊两端都可以跑，选择逃跑方向影响后续路线",
+    "SAN 检定（看到哈罗威的恐怖微笑）：SAN 0/1d3"
+  ],
+  "outcomes": {
+    "victory": {
+      "condition": "击倒所有敌人",
+      "provides_clues": [
+        "orderly_keys_obtained",
+        "patient_records_found"
+      ],
+      "next_location_type": "indoor",
+      "reward": "获得钥匙串和病历档案",
+      "consequence": "庇护所一片寂静，走廊尽头传来低沉的呻吟声"
+    },
+    "defeat": {
+      "condition": "全体调查员 HP=0 或投降",
+      "provides_clues": [
+        "captured_by_asylum"
+      ],
+      "next_location_type": "indoor",
+      "consequence": "被关进旧病房，失去所有武器和物品"
+    },
+    "flee": {
+      "condition": "任意调查员成功逃出走廊",
+      "provides_clues": [
+        "asylum_alerted"
+      ],
+      "next_location_type": "outdoor",
+      "consequence": "庇护所进入警戒状态，后续潜入检定难度 +1"
+    }
+  },
+  "scaling": {
+    "per_extra_player": {
+      "enemies": "护工 +1",
+      "head_orderly_hp": 3
+    }
+  },
+  "image_prompt": "narrow asylum corridor, overturned medicine cabinet, fire axe in glass case, orderlies in white uniforms blocking the hallway, dim institutional lighting, Ink Frenzy style, 1920s horror, claustrophobic tension, dark cosmic horror atmosphere, oppressive shadows, Lovecraftian dread, 16:9 widescreen composition",
+  "escalation": [
+    "更多的脚步声——走廊两端同时出现增援。你们被夹在中间，空间不断缩小。",
+    "一个护理员拉响了墙上的警报——刺耳的铃声让所有人 CON 检定，失败则失去本回合的第一个行动。",
+    "被击倒的护理员身上掉出一串钥匙——其中有标着'镇静剂储存室'的。但去拿钥匙意味着暴露在攻击下。",
+    "走廊尽头的门缝下渗出白色烟雾——他们释放了镇静气体。每停留一回合，所有调查员 DEX -2（累积），降到 0 则昏睡。"
+  ]
+}
