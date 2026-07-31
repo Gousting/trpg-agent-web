@@ -310,11 +310,15 @@ class Session:
 
     def build_system_prompt(self, *, adventure: Adventure | None = None) -> str:
         """组装完整的 system prompt。"""
+        state_text = self.state.scene_summary()
+        combat_text = self.state.combat_context()
+        if combat_text:
+            state_text = f"{state_text}\n\n{combat_text}" if state_text else combat_text
         return assemble_system_prompt(
             persona=self._persona,
             recap=self.state.recap if self.state.recap else None,
             adventure=self._build_adventure_block(adventure),
-            state_summary=self.state.scene_summary(),
+            state_summary=state_text,
             npc_memory=self._build_npc_memory_block(),
         )
 
@@ -557,6 +561,15 @@ class Session:
                         entry.get("speaker"),
                     )
             log.debug("对话历史已裁剪至 %d 条", max_entries)
+
+    def record_combat(self, summary: str) -> None:
+        """记录一场战斗遭遇的摘要到游戏状态。"""
+        if not summary.strip():
+            return
+        self.state.combat_history.append(summary.strip())
+        # 限制历史长度
+        if len(self.state.combat_history) > 20:
+            self.state.combat_history = self.state.combat_history[-10:]
 
     def persist(self) -> None:
         """持久化状态和历史。"""

@@ -142,6 +142,19 @@ class CombatLoop:
     def round_history(self) -> list[str]:
         return [r.summary for r in self._state.rounds if r.summary]
 
+    @property
+    def combat_summary(self) -> str:
+        """战斗结束后的单行摘要——供记录到 session 历史。"""
+        if not self._state.outcome:
+            return ""
+        enc = self._state.encounter
+        outcome_label = self._state.outcome.label or self._state.outcome_id
+        return (
+            f"⚔️ {enc.title} — {outcome_label} — "
+            f"{self._state.current_round}轮 — "
+            f"敌人：{'、'.join(e.name for e in enc.enemies[:2])}"
+        )
+
     # ── 公开 API ──
 
     def build_enter_prompt(self) -> str:

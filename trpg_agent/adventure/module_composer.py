@@ -23,6 +23,7 @@ from .variance import (
     ModuleVariance,
     RunSeed,
 )
+from trpg_agent.combat.encounter import CombatEncounter
 
 log = logging.getLogger(__name__)
 
@@ -101,10 +102,10 @@ def _combat_to_scene(prefix: str, encounter) -> "Scene":
     exit_labels = {}
     for oc_id, oc in encounter.outcomes.items():
         label = oc.label or oc_id
-        exit_labels[f"{prefix}::combat_{oc_id}"] = label
+        exit_labels[CombatEncounter.outcome_scene_id(prefix, oc_id)] = label
 
     return Scene(
-        id=f"{prefix}::combat_encounter",
+        id=CombatEncounter.combat_scene_id(prefix),
         title=encounter.title,
         part=0,
         description=description,
@@ -134,7 +135,7 @@ def _combat_scenes_for_module(module_id: str, encounter) -> list:
 
     # 为每个结局出口创建过渡场景
     for oc_id, oc in encounter.outcomes.items():
-        trans_id = f"{module_id}::combat_{oc_id}"
+        trans_id = CombatEncounter.outcome_scene_id(module_id, oc_id)
         trans = Scene(
             id=trans_id,
             title=f"战斗结果：{oc.label or oc_id}",
@@ -1006,7 +1007,7 @@ class ModuleComposer:
                     target_scene = last_scene
                     if is_combat and exit_state is not None and exit_state.id:
                         target_scene = scenes_by_id.get(
-                            f"{node.module.meta.id}::combat_{exit_state.id}", last_scene
+                            CombatEncounter.outcome_scene_id(node.module.meta.id, exit_state.id), last_scene
                         )
 
                     a = _accum_for(target_scene)

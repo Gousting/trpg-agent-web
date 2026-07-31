@@ -146,6 +146,16 @@ class CombatEncounter:
     def living_enemies(self) -> list[Enemy]:
         return [e for e in self.enemies if e.is_alive()]
 
+    @staticmethod
+    def combat_scene_id(module_id: str) -> str:
+        """战斗遭遇场景的统一 ID 格式。"""
+        return f"{module_id}::combat_encounter"
+
+    @staticmethod
+    def outcome_scene_id(module_id: str, outcome_id: str) -> str:
+        """战斗结局过渡场景的统一 ID 格式。"""
+        return f"{module_id}::combat_{outcome_id}"
+
     def apply_scaling(self, player_count: int) -> None:
         """根据玩家数量缩放敌人。"""
         sc = self.scaling

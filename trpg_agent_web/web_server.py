@@ -34,6 +34,7 @@ from trpg_agent.scene_matcher import SceneMatcher
 from trpg_agent.adventure.module_composer import ModuleComposer
 from trpg_agent.adventure import Adventure
 from trpg_agent.combat import CombatLoop
+from trpg_agent.combat.encounter import CombatEncounter
 
 log = logging.getLogger(__name__)
 
@@ -607,13 +608,20 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
             session.record_turn(action, narration, speaker=speaker)
             last_narration = narration
+
+            # 战斗结束：记录战斗摘要到 session 历史
+            if outcome is not None:
+                combat_summary = combat_loop.combat_summary
+                if combat_summary:
+                    session.record_combat(combat_summary)
+
             audio_url = await _speak(narration[:500])
 
             moved_scene = None
             if outcome is not None:
                 # 战斗结束——按结局 ID 跳转到对应的结局过渡场景，走完模块内自动过渡
                 module_id = current_combat_scene.id.split("::", 1)[0]
-                target_scene_id = f"{module_id}::combat_{outcome.id}"
+                target_scene_id = CombatEncounter.outcome_scene_id(module_id, outcome.id)
                 moved_scene = session.move_to_scene(target_scene_id, adventure)
                 if moved_scene is not None:
                     moved_scene, _trans_meta = _auto_advance_transitions(session, adventure, moved_scene)

@@ -165,6 +165,7 @@ class GameState:
     npcs: list[Npc] = field(default_factory=list)
     quests: list[Quest] = field(default_factory=list)
     recap: str = ""                             # 前情提要（LLM 生成，代码存储）
+    combat_history: list[str] = field(default_factory=list)  # 战斗摘要
     turn_count: int = 0
 
     # ── 序列化 ──────────────────────────────────────
@@ -182,6 +183,7 @@ class GameState:
             "npcs": [n.to_dict() for n in self.npcs],
             "quests": [q.to_dict() for q in self.quests],
             "recap": self.recap,
+            "combat_history": list(self.combat_history),
             "turn_count": self.turn_count,
         }
 
@@ -199,6 +201,7 @@ class GameState:
             npcs=[Npc.from_dict(n) for n in d.get("npcs", []) or []],
             quests=[Quest.from_dict(q) for q in d.get("quests", []) or []],
             recap=str(d.get("recap", "") or ""),
+            combat_history=list(d.get("combat_history", []) or []),
             turn_count=int(d.get("turn_count", 0) or 0),
         )
 
@@ -283,6 +286,14 @@ class GameState:
                     lines.append(f"  - {q.title}")
 
         return "\n".join(lines)
+
+    def combat_context(self) -> str:
+        """战斗历史摘要——供 LLM 上下文，追踪之前的战斗遭遇。"""
+        if not self.combat_history:
+            return ""
+        return "战斗历史：\n" + "\n".join(
+            f"  - {c}" for c in self.combat_history[-5:]  # 最多 5 场
+        )
 
     # ── NPC 态度 ──────────────────────────────────
 
