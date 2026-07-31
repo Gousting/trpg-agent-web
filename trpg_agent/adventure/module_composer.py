@@ -692,7 +692,7 @@ class ModuleComposer:
                 ctx = _exit_context(mod, exit_state)
                 full_clues = pool_clues | set(exit_state.provides_clues)
                 candidates = self._find_compatible(
-                    ctx, full_clues, used_ids, difficulty_range,
+                    ctx, full_clues, used_ids, difficulty_range, rng,
                 )
                 exit_contexts.append((exit_idx, exit_state, full_clues, candidates))
 
@@ -993,13 +993,16 @@ class ModuleComposer:
         *,
         exclude_combat: bool = False,
     ) -> Module:
-        candidates: list[Module] = []
+        # 显式指定的 start_id 始终生效——调用方是"强制指定"，不应被 exclude_combat/
+        # difficulty_range 之类的自动挑选过滤器悄悄否决并回退到随机模块（曾经的 bug：
+        # 请求一个战斗模块作为起点时，会被 exclude_combat 过滤成空列表，进而回退到
+        # rng.choice(全池非战斗模块)，请求方完全拿不到自己指定的模块）。
         if start_id and start_id in self._modules:
-            candidates = [self._modules[start_id]]
-        else:
-            for mod in self._modules.values():
-                if not mod.meta.entry_required_clues and not mod.meta.is_ending:
-                    candidates.append(mod)
+            return self._modules[start_id]
+        candidates: list[Module] = []
+        for mod in self._modules.values():
+            if not mod.meta.entry_required_clues and not mod.meta.is_ending:
+                candidates.append(mod)
         if difficulty_range:
             lo, hi = difficulty_range
             candidates = [m for m in candidates if lo <= m.meta.difficulty <= hi]
@@ -1017,6 +1020,7 @@ class ModuleComposer:
         pool_clues: set[str],
         used_ids: set[str],
         difficulty_range: tuple[int, int] | None,
+        rng: random.Random,
     ) -> list[Module]:
         ctx.pool_clues = pool_clues
         candidates = [
@@ -1039,8 +1043,9 @@ class ModuleComposer:
             combat_pool = [m for m in combat_pool if lo <= m.meta.difficulty <= hi]
         if combat_pool:
             n_inject = min(len(combat_pool), 2)
-            import random as _random
-            injected = _random.sample(combat_pool, n_inject)
+            # 用调用方传入的可复现 rng（曾经的 bug：这里 import 了模块级、未播种的
+            # random 模块，导致相同 seed 的两次 compose() 结果不可复现）
+            injected = rng.sample(combat_pool, n_inject)
             candidates.extend(injected)
         # 渐进放宽：无匹配时先忽略地点类型，再忽略线索要求，最后兜底任意模块
         if not candidates:

@@ -6,13 +6,14 @@
 
 import base64
 import json
+import os
 import time
 from pathlib import Path
 
 import requests
 
 API_URL = "https://opencode.ai/zen/go/v1/chat/completions"
-API_KEY = "sk-ee06LCJ2weQcOOMlap1x0PMsEa7xCuPzj9Rrw7qGHb51JMEu64JC8GfgfjJ6vTAs"
+API_KEY = os.environ["OPENCODE_API_KEY"]  # 必须通过环境变量提供，不再硬编码
 MODEL = "qwen3.7-plus"
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

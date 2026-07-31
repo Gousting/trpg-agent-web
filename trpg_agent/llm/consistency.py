@@ -18,6 +18,11 @@ only a speech *attribution* counts, and the heuristics are deliberately conserva
 ``DMBrain.respond``/``redo`` call this via an injected checker and regenerate **once** with
 :func:`retry_nudge_de` appended; a still-failing retry is delivered anyway (fail-open — the
 guard must never block the session). The streaming path can only log (audio already played).
+
+中文接入说明（trpg_agent_web/web_server.py，2026-07-31）：原实现的 ``_SPEECH_VERBS``/
+``_QUOTE_SPANS``/:func:`_speech_patterns` 只认德语动词和德/法/英式引号，中文叙述里
+"说/问道/低声说"等永远匹配不上、恒为假阴性。已补充中文语音动词、中文引号（“”「」『』）
+和一个不限定字符集的中文兼容 gap 模式，两套语言并存，互不影响。
 """
 
 from __future__ import annotations
@@ -47,6 +52,12 @@ _SPEECH_VERBS = (
     "|brüllt|schreit|raunt|krächzt|meint|erklärt|verkündet|befiehlt|warnt|wispert"
 )
 
+# 中文语音归属动词（同 _SPEECH_VERBS 的中文对应集，见模块 docstring 的"中文接入说明"）。
+_SPEECH_VERBS_ZH = (
+    "说道|说|问道|回答|回应|低声说|轻声说|高声说|喊道|吼道|叫道|尖叫道|嘟囔道|嘀咕道"
+    "|咆哮道|嘶吼道|哀求道|警告道|命令道|宣布道|解释道|反驳道|争辩道|自言自语道"
+)
+
 # A name preceded by one of these refers to *some* such figure, not the registered NPC
 # („ein Kultist ruft" — the DM may invent anonymous extras, ADR 045).
 _INDEFINITE_BEFORE = re.compile(
@@ -63,6 +74,10 @@ _QUOTE_SPANS = (
     re.compile(r"„[^“”]*[“”]"),
     re.compile(r"»[^«]*«"),
     re.compile(r'"[^"]*"'),
+    # 中文引号：全角弯引号 “…”、直角引号 「…」『…』（见"中文接入说明"）。
+    re.compile(r"“[^”]*”"),
+    re.compile(r"「[^」]*」"),
+    re.compile(r"『[^』]*』"),
 )
 
 # Name tokens that are titles/particles, never a usable alias on their own.
@@ -124,6 +139,11 @@ def _speech_patterns(variant: str) -> list[re.Pattern]:
         # Script style at line start: <Name>: „…" — the opening quote is required, so a bare
         # "Name: …" list line never triggers.
         re.compile(rf"^\s*{n}\s*:\s*[„»\"‚']", re.MULTILINE),
+        # 中文：<Name>[最多6个非标点字符的状语/副词间隔]<动词> ——「深渊之子冷冷地说道」。
+        re.compile(rf"{n}(?:[^\s，。！？：:“”「」『』]{{0,6}})(?:{_SPEECH_VERBS_ZH})"),
+        # 中文剧本体：行首 <Name>：「…」/ <Name>：“…” —— 必须紧跟开引号，裸的
+        # "名字：正文" 列表行不会触发。
+        re.compile(rf"^\s*{n}\s*[：:]\s*[“「『\"‚']", re.MULTILINE),
     ]
 
 
@@ -195,3 +215,17 @@ def retry_nudge_de(violations: list[Violation]) -> str:
     """Build the correction text appended to the regenerate prompt, one line per violation."""
     hints = " ".join(v.hint_de for v in violations)
     return f"KORREKTUR: Deine Antwort widersprach dem Spielzustand. {hints}"
+
+
+def retry_nudge_zh(violations: list[Violation]) -> str:
+    """``retry_nudge_de`` 的中文版本（Web 版 trpg_agent_web/web_server.py 使用）。
+
+    不复用 ``hint_de``（那是德语），而是直接从 ``kind``/``npc`` 生成中文修正提示。
+    """
+    parts = []
+    for v in violations:
+        if v.kind == "dead":
+            parts.append(f"{v.npc}已经死亡，不能开口说话或行动，请不要让他/她说话。")
+        else:
+            parts.append(f"{v.npc}不在当前场景中，不能开口说话，请不要让他/她出现在叙述里。")
+    return "【修正】你的回答与游戏状态矛盾。" + "".join(parts)

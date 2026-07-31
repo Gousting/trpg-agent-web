@@ -559,7 +559,7 @@ function startGame() {
     // 更新角色物品栏
     if (d.inventory) {
       const invEl = document.getElementById('inv-' + d.speaker);
-      if (invEl) invEl.innerHTML = '🎒 ' + d.inventory.join(' · ');
+      if (invEl) invEl.textContent = '🎒 ' + d.inventory.join(' · ');
     }
   });
 
@@ -625,7 +625,7 @@ function startGame() {
 
   es.addEventListener('vote', (e) => {
     const d = JSON.parse(e.data);
-    showVoteBar(d.options || {});
+    showVoteBar(d);
   });
 
   es.addEventListener('vote_tally', (e) => {
@@ -658,7 +658,8 @@ let voteTimerId = null;
 let voteSessionId = '';
 let totalVoteSeconds = 32;  // 默认值，init/vote SSE 事件会覆盖
 
-function showVoteBar(opts) {
+function showVoteBar(evt) {
+  const opts = evt.options || {};
   const bar = document.getElementById('vote-bar');
   ['a','b','c'].forEach(k => {
     const item = bar.querySelector(`[data-key="${k}"]`);
@@ -666,8 +667,10 @@ function showVoteBar(opts) {
   });
   voteCounts = {a: 0, b: 0, c: 0};
   voteChosen = null;
-  voteSessionId = opts.session_id || '';
-  if (opts.vote_seconds) totalVoteSeconds = opts.vote_seconds;
+  // session_id/vote_seconds 是 SSE vote 事件的顶层字段，不在 options 里，必须从 evt 上取，
+  // 否则多场对局并发时投票会全部落到后端“第一个进行中的场次”（真实串票 bug，见 docs/production-readiness-issues.md #2）
+  voteSessionId = evt.session_id || '';
+  if (evt.vote_seconds) totalVoteSeconds = evt.vote_seconds;
   bar.querySelectorAll('.vote-item').forEach(el => el.classList.remove('chosen', 'voted'));
   bar.classList.add('active');
   updateVoteCounts();
@@ -753,9 +756,22 @@ function addLog(type, speaker, text, color) {
   if (type === 'kp') {
     div.textContent = text;
   } else if (type === 'player') {
-    div.innerHTML = `<span class="speaker" style="color:${color||'#aaa'}">${speaker}</span><span class="text">${text}</span>`;
+    const speakerSpan = document.createElement('span');
+    speakerSpan.className = 'speaker';
+    speakerSpan.style.color = color || '#aaa';
+    speakerSpan.textContent = speaker;
+    const textSpan = document.createElement('span');
+    textSpan.className = 'text';
+    textSpan.textContent = text;
+    div.appendChild(speakerSpan);
+    div.appendChild(textSpan);
   } else if (type === 'dice' || type === 'dice success') {
-    div.innerHTML = '🎲 <span class="speaker">' + speaker + '</span> ' + text;
+    const speakerSpan = document.createElement('span');
+    speakerSpan.className = 'speaker';
+    speakerSpan.textContent = speaker;
+    div.appendChild(document.createTextNode('🎲 '));
+    div.appendChild(speakerSpan);
+    div.appendChild(document.createTextNode(' ' + text));
   } else {
     div.textContent = text;
   }
@@ -866,7 +882,7 @@ function updateState(state) {
     if (luckBar) luckBar.style.width = (s.luck / 99 * 100) + '%';
     const invEl = document.getElementById('inv-' + name);
     if (invEl && s.inventory && s.inventory.length > 0) {
-      invEl.innerHTML = '🎒 ' + s.inventory.join(' · ');
+      invEl.textContent = '🎒 ' + s.inventory.join(' · ');
     }
     const condEl = document.getElementById('cond-' + name);
     if (condEl && s.conditions && s.conditions.length > 0) {

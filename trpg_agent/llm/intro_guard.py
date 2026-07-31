@@ -23,6 +23,14 @@ INTRO_RETRY_NUDGE = (
     "namentlich mit einem eigenen Moment ein. Kein Meta, keine Aufzählung."
 )
 
+# 中文版重试指令（Web 版 trpg_agent_web/web_server.py 的开场白使用；德语原版是旧 Discord 版遗留，
+# 与当前中文 COC 跑团不匹配）。
+INTRO_RETRY_NUDGE_ZH = (
+    "第一次尝试的开场白过短，或者漏掉了某位角色。现在请更详细地重写这段开场独白"
+    "（多个自然段），并让提到的每一位调查员都拥有专属于自己的一笔描写。"
+    "不要写元话语，不要用列表形式。"
+)
+
 
 def _first_name(full_name: str) -> str:
     parts = full_name.strip().split()

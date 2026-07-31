@@ -288,57 +288,7 @@ def resolve_target(
     )
 
 
-@dataclass(frozen=True, slots=True)
-class ResolvedManifest:
-    """A Manifest request resolved against a character + profile, ready for the engine (ADR 022).
-
-    ``target`` is ``None`` when the Psi-Meisterschaft value is unknown (no character or the
-    psyker skill isn't on the sheet) — the caller still rolls but can't compute SL/Warp Charge."""
-
-    power: str                    # the power name (canonical, from the catalog)
-    character: Character | None
-    stats: dict | None            # the power's catalog stat block (warp_rating, difficulty, …)
-    warp_rating: int              # the power's base Warp Rating
-    base: int | None              # the Psi-Meisterschaft skill value, before difficulty
-    contain_base: int | None      # the Disziplin (Psi) value — drives the Warp-containment Test, not Manifest
-    modifier: int                 # the power's Difficulty modifier
-    difficulty: str | None        # canonical difficulty label, for display
-    target: int | None            # base + modifier (None if base is None)
-    willpower_bonus: int          # tens of Willpower (drives Warp Charge gain on a Critical)
-    threshold: int                # Warp Threshold (= Willpower Bonus in IM)
-
-
-def resolve_manifest_request(
-    profile: SystemProfile,
-    store: CharacterStore | None,
-    *,
-    power: str,
-    target_name: str | None = None,
-) -> ResolvedManifest | None:
-    """Resolve a parsed Manifest request into the numbers :func:`engine.resolve_manifest` needs.
-
-    Looks the power up in the profile catalog (its Warp Rating + Difficulty), reads the psyker's
-    Psi-Meisterschaft value and Willpower from the sheet, and computes the test target + Warp
-    Threshold — all in code (golden rule #2). Returns ``None`` if the profile has no psyker block
-    or the power isn't catalogued, so the caller can fall back to a plain narration."""
-    if not profile.psyker_enabled():
-        return None
-    stats = profile.power(power)
-    if stats is None:
-        return None
-    character = store.get(target_name) if store is not None else None
-    base = store.skill_value(character, profile.psyker_test_skill()) if store is not None else None
-    # The containment ("do Perils erupt") Test rolls against Disziplin (Psi), NOT Psi-Meisterschaft
-    # (IM p.163) — a separate skill, so it gets its own base (None-handled like ``base``).
-    contain_base = store.skill_value(character, profile.psyker_purge_skill()) if store is not None else None
-    mod = profile.difficulty_modifier(stats.get("difficulty")) or 0
-    label = profile.canonical_difficulty(stats.get("difficulty"))
-    wil_value = store.skill_value(character, profile.threshold_characteristic()) if store else None
-    wb = (wil_value // 10) if wil_value is not None else 0
-    return ResolvedManifest(
-        power=stats["name"], character=character, stats=stats,
-        warp_rating=int(stats.get("warp_rating", 0) or 0),
-        base=base, contain_base=contain_base, modifier=mod, difficulty=label,
-        target=(base + mod) if base is not None else None,
-        willpower_bonus=wb, threshold=profile.warp_threshold(wil_value),
-    )
+# NOTE (2026-07-31 dead-code audit): a `ResolvedManifest` dataclass + `resolve_manifest_request()`
+# function used to live here (the character-facing half of the dead Warhammer-Imperium
+# Psyker/Warp system, see `rules/engine.py`). Confirmed zero callers anywhere in the codebase
+# (its only consumer would have been the now-deleted `trpg_agent/orchestrator.py`) and removed.

@@ -33,6 +33,11 @@ _ROLL_DIRECTIVE = (
     "以主持人身份简要描述此掷骰结果在场景中的后果。"
 )
 
+# 中文版 nudge（Web 版 trpg_agent_web/web_server.py 使用；上面的 _ECHO_NUDGE/_REPEAT_NUDGE 本身
+# 就已经是中文了，这里导出为不带下划线前缀的公开常量，避免 web_server.py 依赖内部私有名）。
+ECHO_NUDGE_ZH = _ECHO_NUDGE
+REPEAT_NUDGE_ZH = _REPEAT_NUDGE
+
 
 def _normalize_echo(text: str) -> str:
     """Case/punctuation-insensitive view for the echo comparison."""

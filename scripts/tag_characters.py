@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """用 Qwen3.7 Plus 逐张标注 COC TRPG 角色卡。"""
 
-import base64, io, json, time, requests
+import base64, io, json, os, time, requests
 from pathlib import Path
 from PIL import Image
 
 API_URL = "https://opencode.ai/zen/go/v1/chat/completions"
-API_KEY = "sk-ee06LCJ2weQcOOMlap1x0PMsEa7xCuPzj9Rrw7qGHb51JMEu64JC8GfgfjJ6vTAs"
+API_KEY = os.environ["OPENCODE_API_KEY"]  # 必须通过环境变量提供，不再硬编码
 MODEL = "qwen3.7-plus"
 
 CHARS_DIR = Path("/home/shrine/trpg_agent/data/characters/Userimage")

@@ -15,19 +15,25 @@ import logging
 import os
 import re
 import shutil
+import time
+from collections import deque
 from datetime import datetime
 from pathlib import Path
+from typing import Literal
 
 import edge_tts
 import httpx
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from trpg_agent.session import Session
 from trpg_agent.llm.client import OllamaClient
 from trpg_agent.llm.remote_client import RemoteClient
+from trpg_agent.llm.sanitize import _sanitize
+from trpg_agent.llm import echo_guard, consistency, intro_guard
 from trpg_agent.memory.game_state import Investigator
 from trpg_agent.mapgen import DungeonMap
 from trpg_agent.scene_matcher import SceneMatcher
@@ -37,6 +43,18 @@ from trpg_agent.combat.orchestrator import CombatOrchestrator
 from trpg_agent.combat.encounter import CombatEncounter
 
 log = logging.getLogger(__name__)
+
+# KP 叙述质量守卫（原 orchestrator.py 的输出清洗/防复读/一致性检查，接入 Web 流式循环）：
+# - _sanitize()：去掉小模型的角色标签泄露/元话语开场白/自纠正框架等（已是中文本地化版本）。
+# - echo_guard：检测复读玩家的话 / 复述自己上一轮描述。
+# - consistency：检测"死亡或不在场的 NPC 说话"——注意 GameState.Npc 目前不跟踪生死，
+#   所以"死亡 NPC"这一半检查恒为假（安全空操作）；"不在场"这一半用 scene.npcs_here 比对有效。
+# - intro_guard：仅用于开场白，检测过短/漏掉角色。
+# 这几个守卫原本是给"真流式"（逐 token 发送）设计的——违规只能事后记录，无法撤回已经发给
+# 玩家的文字。这里改为"整段生成 → 检查 → 必要时重试一次 → 再假打字机效果发送"，
+# 换来了违规时真正重新生成一次的能力（详见 _chat_generate/_fake_stream/_check_kp_narration）。
+_FAKE_STREAM_CHUNK = 3
+_FAKE_STREAM_DELAY = 0.015
 
 # ═══════════════════════════════════════════════════════
 # 配置
@@ -64,6 +82,31 @@ OPENING = "1928年深秋，你们收到匿名信，来到阿卡姆郊外的废�
 # ═══════════════════════════════════════════════════════
 
 app = FastAPI(title="COC TRPG 跑团")
+
+# ── 限流 ───────────────────────────────
+# 极简单的内存滑动窗口限流，只作用于 /api/ 前缀接口，防止单 IP 高频刷投票/重复建流。
+# 注意：进程内存状态，多进程/多实例部署时需换成 Redis 等共享存储的方案。
+_RATE_LIMIT_WINDOW_SECONDS = 10.0
+_RATE_LIMIT_MAX_REQUESTS = 20  # 每 IP 每窗口对 /api/* 的最大请求数
+_rate_limit_buckets: dict[str, deque] = {}
+
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.startswith("/api/"):
+            client_ip = request.client.host if request.client else "unknown"
+            now = time.monotonic()
+            bucket = _rate_limit_buckets.setdefault(client_ip, deque())
+            while bucket and now - bucket[0] > _RATE_LIMIT_WINDOW_SECONDS:
+                bucket.popleft()
+            if len(bucket) >= _RATE_LIMIT_MAX_REQUESTS:
+                return JSONResponse({"detail": "请求过于频繁，请稍后再试"}, status_code=429)
+            bucket.append(now)
+        return await call_next(request)
+
+
+app.add_middleware(RateLimitMiddleware)
+
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -91,7 +134,7 @@ try:
     _bgm_mappings = _bgm_data.get("mappings", {})
     _bgm_default = _bgm_data.get("default", "exploration")
 except Exception:
-    pass
+    log.warning("加载 bgm_mappings.json 失败，BGM 将全部回退到默认曲目", exc_info=True)
 
 app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
 
@@ -114,6 +157,15 @@ _EXIT_MARKER_RE = re.compile(r"<<\s*EXIT[\s:]*(\d+)\s*>>", re.IGNORECASE)
 @app.get("/", response_class=HTMLResponse)
 async def index() -> str:
     return (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
+
+@app.get("/health")
+async def health() -> dict:
+    """健康检查端点，供反向代理/容器编排探活使用，不做任何鉴权。"""
+    return {
+        "status": "ok",
+        "active_sessions": len(_vote_tallies),
+    }
 
 
 def _is_remote_host(host: str) -> bool:
@@ -153,11 +205,15 @@ def _state_snapshot(session: Session) -> dict:
     return snap
 
 
+_MAX_LLM_OUTPUT_CHARS = 6000  # 单次生成的硬上限，防止模型异常（卡在重复/不停止生成）导致内存无限增长
+
+
 async def _chat_stream(client, system: str, user_msg: str,
                        temperature: float = 0.8, max_tokens: int = 2000):
     """流式聊天，yield token（状态机过滤 GS 标记，最小缓冲）。兼容 OllamaClient 和 RemoteClient。"""
     buf = ""
     in_marker = False
+    total = 0
     _GS_START = "<!--GS"
     try:
         async for token in client.chat_stream(
@@ -177,9 +233,15 @@ async def _chat_stream(client, system: str, user_msg: str,
                         in_marker = True
                         if safe:
                             yield safe
+                            total += len(safe)
                     elif not _could_be_gs_prefix(buf):
                         yield buf
+                        total += len(buf)
                         buf = ""
+                if total >= _MAX_LLM_OUTPUT_CHARS:
+                    log.warning("LLM 单次输出超过 %d 字符上限，提前截断", _MAX_LLM_OUTPUT_CHARS)
+                    yield "\n……（内容过长已截断）"
+                    return
     except Exception as e:
         yield f"\n[错误] {e}"
     if buf and not in_marker:
@@ -195,6 +257,62 @@ def _could_be_gs_prefix(s: str) -> bool:
     return False
 
 
+async def _chat_generate(client, system: str, user_msg: str,
+                         temperature: float = 0.8, max_tokens: int = 2000) -> str:
+    """整段生成（内部仍走 _chat_stream，只是不逐 token yield），用于需要先拿到完整文本
+    再做清洗/质量检查/可能重试的场景。"""
+    parts = []
+    async for token in _chat_stream(client, system, user_msg,
+                                    temperature=temperature, max_tokens=max_tokens):
+        parts.append(token)
+    return "".join(parts)
+
+
+async def _fake_stream(text: str, chunk_size: int = _FAKE_STREAM_CHUNK,
+                       delay: float = _FAKE_STREAM_DELAY):
+    """把已经生成完毕的整段文本按小块 + 微延迟 yield，模拟原有逐 token 打字机效果，
+    前端 kp_token 事件的处理逻辑完全不用变。"""
+    for i in range(0, len(text), chunk_size):
+        yield text[i:i + chunk_size]
+        await asyncio.sleep(delay)
+
+
+def _consistency_world_view(session: "Session"):
+    """把 GameState 的 npcs/investigators 包装成 consistency.check() 期望的鸭子类型对象。
+
+    注：GameState.Npc 没有 wounds/hp 字段（这套 COC 系统不跟踪 NPC 生死），所以"死亡 NPC
+    说话"这一半检查恒为假、安全空操作；"NPC 不在场景中却说话"这一半用 scene.npcs_here
+    比对是真正有效的。
+    """
+    from types import SimpleNamespace
+    return SimpleNamespace(
+        npcs=[SimpleNamespace(name=n.name, wounds=1) for n in session.state.npcs],
+        characters=[SimpleNamespace(name=i.name) for i in session.state.investigators],
+    )
+
+
+def _check_kp_narration(text: str, *, user_msg: str = "", prev_answer: str = "",
+                        scene=None, world_view=None,
+                        roster_names: list[str] | None = None,
+                        is_intro: bool = False) -> tuple[bool, str]:
+    """检查一段已清洗的 KP 叙述是否需要重新生成一次。
+
+    返回 (是否需要重试, 追加到重试 prompt 的中文修正指令)。命中优先级：开场白弱质量 >
+    复读玩家的话 > 复述自己上一轮描述 > 与游戏状态矛盾（死亡/不在场 NPC 说话）。
+    """
+    if is_intro and roster_names is not None and intro_guard.is_weak_intro(text, roster_names):
+        return True, intro_guard.INTRO_RETRY_NUDGE_ZH
+    if user_msg and echo_guard.is_echo(text, user_msg):
+        return True, echo_guard.ECHO_NUDGE_ZH
+    if prev_answer and echo_guard.is_self_repetition(text, prev_answer):
+        return True, echo_guard.REPEAT_NUDGE_ZH
+    if world_view is not None:
+        violations = consistency.check(text, world_view, scene)
+        if violations:
+            return True, consistency.retry_nudge_zh(violations)
+    return False, ""
+
+
 def _match_scene(text: str, *, min_score: float = 1.5) -> dict | None:
     """从叙述文本匹配场景图，低分不返回。"""
     try:
@@ -204,7 +322,7 @@ def _match_scene(text: str, *, min_score: float = 1.5) -> dict | None:
             m = matches[0]
             return {"image": m.filename, "location": m.location, "mood": m.mood, "score": m.score}
     except Exception:
-        pass
+        log.debug("场景匹配失败: %r", text[:50], exc_info=True)
     return None
 
 
@@ -219,6 +337,7 @@ async def _speak(text: str) -> str | None:
         await comm.save(str(out))
         return f"/audio/tts/{h}.mp3" if out.exists() else None
     except Exception:
+        log.warning("TTS 生成失败，本轮不带语音", exc_info=True)
         return None
 
 
@@ -260,7 +379,7 @@ def _scene_for_room(room_type: str) -> dict | None:
             return {"image": fname, "location": tags.get("location", ""),
                     "mood": (tags.get("mood", [""]) or [""])[0], "score": 0}
     except Exception:
-        pass
+        log.debug("房间场景匹配失败: room_type=%r", room_type, exc_info=True)
     return None
 
 
@@ -392,6 +511,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 resp = await cl.get(f"{host}/api/tags")
                 available = [m["name"] for m in resp.json().get("models", [])]
         except Exception:
+            log.warning("无法连接 Ollama host=%s 做模型预检，跳过校验", host, exc_info=True)
             available = []
         if available and kp_model not in available:
             yield _sse("error", {"text": f"KP模型 {kp_model} 不可用"})
@@ -481,13 +601,24 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
     )
     yield _sse("kp_stream_start", {})
-    opening_text = ""
-    async for token in _chat_stream(kp_client, system_prompt, coc_directive,
-                                    temperature=0.8, max_tokens=4000):
-        opening_text += token
-        yield _sse("kp_token", {"text": token})
+    raw_opening = await _chat_generate(kp_client, system_prompt, coc_directive,
+                                       temperature=0.8, max_tokens=4000)
+    opening_text = _sanitize(raw_opening) if raw_opening else ""
+    roster_names = [inv["name"] for inv in INVESTIGATORS]
+    needs_retry, nudge = (
+        _check_kp_narration(opening_text, roster_names=roster_names, is_intro=True)
+        if opening_text else (False, "")
+    )
+    if needs_retry:
+        log.info("开场白质量守卫触发重试：%s", nudge)
+        raw_retry = await _chat_generate(kp_client, system_prompt, coc_directive + "\n\n" + nudge,
+                                         temperature=0.8, max_tokens=4000)
+        if raw_retry:
+            opening_text = _sanitize(raw_retry)
     if not opening_text:
         opening_text = f"你们站在{current_room.name}中。{current_room.description}"
+    async for chunk in _fake_stream(opening_text):
+        yield _sse("kp_token", {"text": chunk})
     session.record_turn("(游戏开始)", opening_text)
 
     # TTS + BGM
@@ -774,7 +905,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             if roll_req:
                 dice_result = {"skill": roll_req.skill, "difficulty": roll_req.difficulty}
         except Exception:
-            pass
+            log.warning("检定解析/结算失败，本轮跳过检定", exc_info=True)
         if dice_context:
             yield _sse("dice_roll", {
                 "speaker": speaker, "text": dice_context,
@@ -872,11 +1003,21 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         kp_user = "\n\n".join(context_parts) + "\n\n请叙述结果："
 
         yield _sse("kp_stream_start", {})
-        narration = ""
-        async for token in _chat_stream(kp_client, system_prompt, kp_user,
-                                        temperature=0.8, max_tokens=4000):
-            narration += token
-            yield _sse("kp_token", {"text": token})
+        raw_narration = await _chat_generate(kp_client, system_prompt, kp_user,
+                                             temperature=0.8, max_tokens=4000)
+        narration = _sanitize(raw_narration) if raw_narration else ""
+        if narration:
+            scene_for_check = adventure.get_scene(session.state.scene_id) if adventure else None
+            needs_retry, nudge = _check_kp_narration(
+                narration, user_msg=kp_user, prev_answer=last_narration,
+                scene=scene_for_check, world_view=_consistency_world_view(session),
+            )
+            if needs_retry:
+                log.info("KP 叙述质量守卫触发重试：%s", nudge)
+                raw_retry = await _chat_generate(kp_client, system_prompt, kp_user + "\n\n" + nudge,
+                                                 temperature=0.8, max_tokens=4000)
+                if raw_retry:
+                    narration = _sanitize(raw_retry)
         if not narration:
             narration = "（KP 沉思……）"
 
@@ -901,6 +1042,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 )
                 if moved_scene is not None:
                     moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+
+        async for chunk in _fake_stream(narration):
+            yield _sse("kp_token", {"text": chunk})
 
         session.record_turn(action, narration, speaker=speaker)
         last_narration = narration
@@ -1011,7 +1155,7 @@ async def _ai_player_stream(player_host: str, player_model: str,
         ):
             yield token
     except Exception:
-        pass
+        log.warning("AI 玩家流式生成失败", exc_info=True)
     finally:
         await player_client.aclose()
 
@@ -1038,7 +1182,7 @@ async def _ai_pick_option(player_host: str, player_model: str,
             if letter in text:
                 return letter
     except Exception:
-        pass
+        log.warning("AI 投票选项挑选失败，回退为默认选项 a", exc_info=True)
     return "a"
 
 
@@ -1149,14 +1293,14 @@ async def stream(
     host: str = "http://localhost:11434",
     kp: str = "gemma4:12b",
     player: str = "ornith:9b",
-    turns: int = 12,
-    seed: str = "",
-    mode: str = "ai",
+    turns: int = Query(default=12, ge=1, le=200),
+    seed: str = Query(default="", max_length=32),
+    mode: Literal["ai", "human", "live"] = "ai",
     compose_modules: bool = True,
-    kp_api_key: str = "",
+    kp_api_key: str = Query(default="", max_length=256),
     player_host: str = "http://localhost:11434",
     force_pickup: bool = False,
-    vote_seconds: int = 60,
+    vote_seconds: int = Query(default=60, ge=5, le=600),
 ):
     try:
         seed_val = int(seed) if seed else None
@@ -1174,9 +1318,9 @@ async def stream(
 # ── 投票端点 ───────────────────────────────
 
 class VoteRequest(BaseModel):
-    choice: str  # "a" | "b" | "c"
-    counts: dict = {}  # {a: 0, b: 0, c: 0}
-    session_id: str = ""
+    choice: Literal["a", "b", "c"]
+    counts: dict = {}  # {a: 0, b: 0, c: 0}，客户端自报数据，服务端会忽略，仅接受以兼容旧前端
+    session_id: str = Field(default="", max_length=64)
 
 
 @app.post("/api/vote")
