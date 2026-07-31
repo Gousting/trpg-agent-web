@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v1.0 — 模块组合引擎重构 & 界面独立化 (2026-07-13)
+## v1.0 — 模块组合引擎重构 & 界面独立化 (2026-07-31)
 
 ### 模块组合引擎重构 (`trpg_agent/adventure/module_composer.py`)
 
