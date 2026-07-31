@@ -312,7 +312,7 @@
   <label>玩家</label><select id="player-model"><option>ornith:9b</option><option>gemma4:12b</option></select>
   <label>轮</label><input id="turns" type="number" value="10" min="3" max="30" style="width:40px">
   <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
-  <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option></select>
+  <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option><option value="live">直播</option></select>
   <label><input type="checkbox" id="compose-modules" checked> 模块</label>
   <span id="status">就绪</span>
 </div>
@@ -454,6 +454,7 @@ function startGame() {
     mode: document.getElementById('mode').value,
     kp_api_key: document.getElementById('kp-api-key').value,
     player_host: document.getElementById('player-host').value,
+    vote_seconds: document.getElementById('vote-seconds')?.value || '60',
   });
   if (document.getElementById('compose-modules').checked) params.append('compose_modules', 'true');
   // 从 URL 获取 force_pickup
@@ -491,6 +492,7 @@ function startGame() {
       if (img && inv.portrait) img.src = '/images/characters/' + inv.portrait;
     });
     document.getElementById('status').textContent = '遊戲開始';
+    if (d.vote_seconds) totalVoteSeconds = d.vote_seconds;
   });
 
   es.addEventListener('kp_stream_start', () => {
@@ -654,7 +656,7 @@ let voteCounts = {a: 0, b: 0, c: 0};
 let voteChosen = null;
 let voteTimerId = null;
 let voteSessionId = '';
-const VOTE_DURATION = 30;
+let totalVoteSeconds = 32;  // 默认值，init/vote SSE 事件会覆盖
 
 function showVoteBar(opts) {
   const bar = document.getElementById('vote-bar');
@@ -665,6 +667,7 @@ function showVoteBar(opts) {
   voteCounts = {a: 0, b: 0, c: 0};
   voteChosen = null;
   voteSessionId = opts.session_id || '';
+  if (opts.vote_seconds) totalVoteSeconds = opts.vote_seconds;
   bar.querySelectorAll('.vote-item').forEach(el => el.classList.remove('chosen', 'voted'));
   bar.classList.add('active');
   updateVoteCounts();
@@ -679,7 +682,7 @@ function hideVoteBar() {
 
 function startVoteTimer() {
   clearVoteTimer();
-  let remaining = VOTE_DURATION;
+  let remaining = totalVoteSeconds;
   const timerEl = document.querySelector('.vote-timer');
   timerEl.textContent = remaining + 's';
   timerEl.classList.remove('urgent');

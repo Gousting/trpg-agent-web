@@ -101,6 +101,7 @@ app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
 _vote_tallies: dict[str, dict[str, int]] = {}
 _vote_queues: dict[str, asyncio.Queue] = {}
 VOTE_WINDOW_SECONDS = 32  # 略长于前端 30s 倒计时，确保超时自动投的那一票也能被计入
+LIVE_VOTE_SECONDS = 90     # 直播模式投票窗口（给观众打字+弹幕延迟留时间）
 
 # CombatLoop 不解析 LLM 叙事文本判定伤害/撤退——纯叙事无法自然触发结局，
 # 回合数超过此上限后强制收尾，避免战斗无限进行。
@@ -325,7 +326,7 @@ def _investigators_state_text(session: Session) -> str:
     return "；".join(parts)
 
 
-async def _vote_window(sid: str):
+async def _vote_window(sid: str, timeout_seconds: int = VOTE_WINDOW_SECONDS):
     """投票窗口——推送实时票数变化，最后一次 yield 是 ('__result__', tally)。
 
     共享给常规投票和战斗投票两种场景使用。
@@ -333,7 +334,7 @@ async def _vote_window(sid: str):
     _vote_tallies[sid] = {}
     vote_queue: asyncio.Queue = asyncio.Queue()
     _vote_queues[sid] = vote_queue
-    deadline = asyncio.get_event_loop().time() + VOTE_WINDOW_SECONDS
+    deadline = asyncio.get_event_loop().time() + timeout_seconds
     try:
         while True:
             remaining = deadline - asyncio.get_event_loop().time()
@@ -356,7 +357,8 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                        compose_modules: bool = False,
                        kp_api_key: str = "",
                        player_host: str = "http://localhost:11434",
-                       force_pickup: bool = False):
+                       force_pickup: bool = False,
+                       vote_seconds: int = 32):
     """SSE 事件流 — 完整的游戏循环。"""
     
     # ── 模块组合模式 ──────────────────────────
@@ -448,6 +450,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         "kp_model": kp_model, "player_model": player_model,
         "opening": opening_text, "room": rc, "mode": mode,
         "compose_modules": compose_modules,
+        "vote_seconds": vote_seconds,
     })
 
     # ── KP 开场（流式）────────────────────────
@@ -663,6 +666,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         moved_scene = None  # 投票驱动的模块场景切换结果（仅模块模式下可能非 None）
         trans_meta = None   # 过渡元数据链（供 KP 过渡指令构建）
         if mode == "ai":
+            # ── AI 模式：本地 LLM 扮演调查员 ────
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             action = ""
             # force_pickup: 首轮强制拾取房间物品
@@ -685,7 +689,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             yield _sse("player_stream_end", {"speaker": speaker})
             await asyncio.sleep(0.2)
         else:
-            # 人类模式 / 投票模式：展示选项，等待前端投票
+            # ── 人类 / 直播模式：展示选项，等待投票 ──
+            is_live = mode == "live"
+            vote_timeout = vote_seconds if is_live else VOTE_WINDOW_SECONDS
             vote_targets: dict[str, str] = {}
             if adventure is not None:
                 # 模块模式：投票选项 = 当前场景的真实出口，投票结果将驱动场景切换
@@ -720,17 +726,22 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 "options": vote_options,
                 "session_id": sid,
                 "speaker": speaker,
+                "vote_seconds": vote_timeout,
             })
 
             # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
             tally: dict[str, int] = {}
-            async for evt_name, evt_data in _vote_window(sid):
+            async for evt_name, evt_data in _vote_window(sid, vote_timeout):
                 if evt_name == "__result__":
                     tally = evt_data
                 else:
                     yield _sse(evt_name, evt_data)
             if tally:
                 choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
+            elif is_live:
+                # 直播模式无人投票 → AI 接手选择
+                choice = await _ai_pick_option(player_host, player_model, vote_options, last_narration, speaker)
+                yield _sse("ai_pick", {"choice": choice, "label": vote_options.get(choice, "")})
             else:
                 choice = "a"
 
@@ -1005,6 +1016,32 @@ async def _ai_player_stream(player_host: str, player_model: str,
         await player_client.aclose()
 
 
+async def _ai_pick_option(player_host: str, player_model: str,
+                          vote_options: dict[str, str],
+                          last_narration: str, speaker: str) -> str:
+    """AI 从投票选项中选一个，返回单字母 'a'/'b'/'c'。"""
+    options_text = "\n".join(f"{k}. {v}" for k, v in vote_options.items())
+    system = (
+        f"你是 {speaker}，克苏鲁的呼唤调查员。\n"
+        "你必须从以下选项中选择一个行动。只回复一个字母(a/b/c)，不要任何解释。"
+    )
+    msg = f"KP叙述：{last_narration[:500]}\n\n可选行动：\n{options_text}\n\n你的选择(a/b/c)："
+    try:
+        client = OllamaClient(player_host, player_model, num_ctx=2048, timeout=30)
+        response = await client.chat(
+            system, [{"role": "user", "content": msg}],
+            options={"temperature": 0.5, "num_predict": 5},
+        )
+        await client.aclose()
+        text = response.strip().lower()
+        for letter in ["a", "b", "c"]:
+            if letter in text:
+                return letter
+    except Exception:
+        pass
+    return "a"
+
+
 def _handle_pickup(dmap: DungeonMap, inv_state, action: str) -> list[str]:
     """处理房间物品拾取——精确匹配 + 常见简称。"""
     items_picked: list[str] = []
@@ -1104,7 +1141,7 @@ class GameConfig(BaseModel):
     player: str = "ornith:9b"
     turns: int = 12
     seed: str = ""
-    mode: str = "ai"  # "ai" | "human"
+    mode: str = "ai"  # "ai" | "human" | "live"   live=展示选项+超时AI接手
 
 
 @app.get("/api/stream")
@@ -1119,6 +1156,7 @@ async def stream(
     kp_api_key: str = "",
     player_host: str = "http://localhost:11434",
     force_pickup: bool = False,
+    vote_seconds: int = 60,
 ):
     try:
         seed_val = int(seed) if seed else None
@@ -1126,7 +1164,8 @@ async def stream(
         seed_val = None
     return StreamingResponse(
         event_stream(host, kp, player, turns, seed_val, mode, compose_modules,
-                     kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup),
+                     kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup,
+                     vote_seconds=vote_seconds),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
