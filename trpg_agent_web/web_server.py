@@ -572,9 +572,12 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             yield _sse("player_stream_end", {"speaker": speaker})
             await asyncio.sleep(0.2)
 
-            # ── 结算：LLM 判定行动结果 ──
+            # ── 机制层结算：代码掷骰、扣血、判定结局 ──
+            mech_result = combat_loop.run_mechanics()
+
+            # ── 叙事层：LLM 根据机制结果润色叙述 ──
             res_sys = combat_loop.build_resolve_prompt()
-            res_usr = combat_loop.build_resolve_user_prompt()
+            res_usr = combat_loop.build_resolve_user_prompt(mech_result=mech_result)
             yield _sse("kp_stream_start", {})
             resolution_output = ""
             async for token in _chat_stream(kp_client, res_sys, res_usr,
@@ -582,11 +585,11 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 resolution_output += token
                 yield _sse("kp_token", {"text": token})
             if not resolution_output:
-                resolution_output = "（结果混沌不清……）"
-            outcome = combat_loop.resolve(resolution_output)
+                resolution_output = f"（{mech_result.summary}）"
+            outcome = combat_loop.resolve(resolution_output, mech_result=mech_result)
             narration = resolution_output
 
-            # 安全兜底：回合数超限仍未达成结局（LLM 叙事无法驱动 HP/撤退判定）时强制收尾
+            # 极端兜底：机制层也没触发结局时用 force_end
             if outcome is None and combat_loop.current_round >= COMBAT_MAX_ROUNDS:
                 encounter = current_combat_scene.combat["encounter"]
                 fallback_id = next(

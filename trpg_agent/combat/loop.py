@@ -27,8 +27,10 @@ from trpg_agent.combat.prompts import (
     build_combat_resolution_prompt,
     build_combat_system_prompt,
     build_combat_turn_user_prompt,
+    build_narration_prompt,
     build_round_escalation,
 )
+from trpg_agent.combat.resolver import CombatMechanics, CombatMechanicResult
 
 log = logging.getLogger(__name__)
 
@@ -96,6 +98,8 @@ class CombatLoop:
             encounter=encounter,
             investigators_state=investigators_state,
         )
+        self._mechanics = CombatMechanics(encounter)
+        self._last_mech_result: CombatMechanicResult | None = None
         encounter.start()
 
     # ── 属性访问 ──
@@ -269,12 +273,26 @@ class CombatLoop:
             escalation="",
         )
 
-    def build_resolve_user_prompt(self) -> str:
-        """构造结算 user 消息。"""
+    def build_resolve_user_prompt(self, *, mech_result: CombatMechanicResult | None = None) -> str:
+        """构造结算 user 消息。
+
+        参数:
+            mech_result: 代码结算结果。提供后 LLM 不再自行判定胜负，
+                而是根据给定的成功/失败/伤害结果进行叙事润色。
+        """
         encounter = self._state.encounter
         round_state = self._state.rounds[-1] if self._state.rounds else None
         if not round_state or not round_state.chosen_option:
             return ""
+
+        if mech_result is not None:
+            return build_narration_prompt(
+                encounter,
+                chosen_option=round_state.chosen_option.description,
+                round_number=self._state.current_round,
+                investigators_state=self._state.investigators_state,
+                mech_result=mech_result,
+            )
 
         return build_combat_resolution_prompt(
             encounter,
@@ -284,11 +302,42 @@ class CombatLoop:
             investigators_state=self._state.investigators_state,
         )
 
-    def resolve(self, llm_output: str) -> CombatOutcome | None:
+    def run_mechanics(self) -> CombatMechanicResult:
+        """运行代码驱动机制层 —— 掷骰、扣血、检查结局。
+
+        必须在 submit_vote() 之后调用。
+
+        返回:
+            CombatMechanicResult：成功/失败、伤害、结局等结构化结果
+        """
+        if not self._state.rounds:
+            self._state.error = "没有活跃的回合"
+            return CombatMechanicResult(
+                success=False, test_rolled=False, test_result=None,
+                skill=None, difficulty="", target=0,
+                summary="没有活跃的回合",
+            )
+
+        round_state = self._state.rounds[-1]
+        if not round_state.chosen_option:
+            self._state.error = "当前回合没有选中选项"
+            return CombatMechanicResult(
+                success=False, test_rolled=False, test_result=None,
+                skill=None, difficulty="", target=0,
+                summary="没有选中选项",
+            )
+
+        result = self._mechanics.resolve_option(round_state.chosen_option.description)
+        self._last_mech_result = result
+        return result
+
+    def resolve(self, llm_output: str, *, mech_result: CombatMechanicResult | None = None) -> CombatOutcome | None:
         """结算当前回合 —— 用 LLM 叙述行动结果并检查结局。
 
         参数:
             llm_output: LLM 对 resolve prompt 的回复
+            mech_result: 可选的代码结算结果。提供后使用其中的 outcome 字段，
+                而非通过 encounter.check_outcome() 重新检查（避免重复判定）。
 
         返回:
             None 表示战斗继续（调用方应调用 start_round 开始下一轮）
@@ -303,12 +352,21 @@ class CombatLoop:
 
         # 生成回合摘要
         summary = f"{round_state.chosen_option.label if round_state.chosen_option else '行动'} → "
-        # 取结算叙事的第一句作为摘要
-        first_line = llm_output.split("\n")[0].strip().rstrip("。").rstrip(".")
-        summary += first_line[:80]
+        if mech_result is not None:
+            summary += mech_result.summary
+        else:
+            first_line = llm_output.split("\n")[0].strip().rstrip("。").rstrip(".")
+            summary += first_line[:80]
         round_state.summary = summary
 
         # 检查结局条件
+        if mech_result is not None and mech_result.outcome is not None:
+            self._state.phase = "end"
+            self._state.outcome = mech_result.outcome
+            self._state.outcome_id = mech_result.outcome.id
+            return mech_result.outcome
+
+        # 兜底：如果没有 mech_result，走旧逻辑
         encounter = self._state.encounter
         outcome_id = encounter.check_outcome()
 

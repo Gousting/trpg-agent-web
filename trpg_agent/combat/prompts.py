@@ -278,3 +278,91 @@ def build_round_escalation(encounter, round_number: int) -> str:
             parts.append(f"⚠️ {rule}")
 
     return "\n".join(parts) if parts else ""
+
+
+def build_narration_prompt(
+    encounter,
+    *,
+    chosen_option: str,
+    round_number: int,
+    investigators_state: str,
+    mech_result,
+) -> str:
+    """构造叙事润色提示词 —— LLM 收到已确定的机制结果后，负责叙述画面。
+
+    与 build_combat_resolution_prompt 不同：此函数产出的是"请根据以下已知结果润色"
+    而非"请判定这个行动的结果"。代码已经掷过骰、扣过血、查过结局，
+    LLM 只需要把冰冷的数据变成有冲击力的叙事。
+
+    参数:
+        encounter: CombatEncounter 实例
+        chosen_option: 被选中的选项完整文本
+        round_number: 当前回合数
+        investigators_state: 调查员状态文本
+        mech_result: CombatMechanicResult —— 代码结算的完整结果
+    """
+    parts = [f"—— 第 {round_number} 回合结算 ——", ""]
+
+    parts.append("## 被选择的行动")
+    parts.append(chosen_option)
+    parts.append("")
+
+    parts.append("## 掷骰结果（已由系统判定，你不需要再判定）")
+    if mech_result.test_rolled and mech_result.test_result:
+        t = mech_result.test_result
+        skill_name = mech_result.skill or "检定"
+        result_word = "✅ 成功" if t.success else "❌ 失败"
+        parts.append(f"{skill_name}检定：掷出 **{t.roll}**（目标 ≤{t.target}）→ {result_word}")
+        if t.critical:
+            parts.append("⚡ 大成功！")
+        elif t.fumble:
+            parts.append("💀 大失败！")
+    elif mech_result.test_rolled:
+        parts.append(f"{mech_result.skill or '检定'}：{mech_result.success and '✅ 成功' or '❌ 失败'}")
+    elif mech_result.success:
+        parts.append("自动成功（无需检定）")
+    else:
+        parts.append("自动失败（无需检定）")
+    parts.append("")
+
+    parts.append("## 伤害结算")
+    if mech_result.damage_to_enemies:
+        for eid, dmg in mech_result.damage_to_enemies.items():
+            enemy = next((e for e in encounter.enemies if e.id == eid), None)
+            name = enemy.name if enemy else eid
+            remaining = f"（剩余 HP:{enemy.hp}/{enemy.hp_max}）" if enemy else ""
+            parts.append(f"- 对 **{name}** 造成 {dmg} 点伤害{remaining}")
+    else:
+        parts.append("- 未对敌人造成伤害")
+
+    if mech_result.damage_to_investigators:
+        parts.append(f"- 调查员承受 {mech_result.damage_to_investigators} 点伤害")
+    if mech_result.san_loss:
+        parts.append(f"- 理智损失：{mech_result.san_loss} 点")
+    parts.append("")
+
+    parts.append("## 当前战场状态")
+    alive = [e for e in encounter.enemies if e.is_alive()]
+    if alive:
+        for e in alive:
+            parts.append(f"- {e.name} HP:{e.hp}/{e.hp_max}")
+    else:
+        parts.append("- 所有敌人已被击倒 ✧")
+    parts.append("")
+
+    if investigators_state:
+        parts.append(f"## 调查员状态\n{investigators_state}")
+        parts.append("")
+
+    # 结局提示
+    if mech_result.outcome:
+        outcome = mech_result.outcome
+        parts.append(f"## ⚡ 战斗结局已触发：{outcome.label or outcome.id}")
+        if outcome.consequence:
+            parts.append(outcome.consequence)
+        parts.append("请在叙事结尾自然收束，为这场战斗画上句号。")
+    else:
+        parts.append("## 战斗继续")
+        parts.append("请叙述本回合的画面——要具体、有冲击力。不需要判定胜负，结果已经确定。")
+
+    return "\n".join(parts)

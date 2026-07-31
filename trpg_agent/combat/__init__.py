@@ -1,4 +1,4 @@
-"""战斗模块系统 —— 独立遭遇 + 回合制引擎 + 叙事桥接。"""
+"""战斗模块系统 —— 独立遭遇 + 回合制引擎 + 代码驱动机制层 + 叙事桥接。"""
 
 from trpg_agent.combat.encounter import (
     CombatEncounter,
@@ -13,6 +13,7 @@ from trpg_agent.combat.prompts import (
     build_combat_resolution_prompt,
     build_combat_outcome_summary,
     build_round_escalation,
+    build_narration_prompt,
 )
 
 from trpg_agent.combat.loop import (
@@ -20,6 +21,11 @@ from trpg_agent.combat.loop import (
     CombatState,
     CombatRoundState,
     CombatOption,
+)
+
+from trpg_agent.combat.resolver import (
+    CombatMechanics,
+    CombatMechanicResult,
 )
 
 __all__ = [
@@ -31,9 +37,12 @@ __all__ = [
     "CombatState",
     "CombatRoundState",
     "CombatOption",
+    "CombatMechanics",
+    "CombatMechanicResult",
     "build_combat_system_prompt",
     "build_combat_turn_user_prompt",
     "build_combat_resolution_prompt",
     "build_combat_outcome_summary",
     "build_round_escalation",
+    "build_narration_prompt",
 ]
