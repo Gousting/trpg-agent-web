@@ -1,29 +1,27 @@
 # 模块开发指南
 
-`data/modules/` 下每个子目录是一个模块。`ModuleComposer` 自动发现并组合它们为完整冒险。
-写模块只需填 `module.json`，引擎代码零改动。
+`data/modules/` 下每个子目录是一个模块。`ModuleComposer` 自动发现并组合它们为完整冒险。写模块只需填 `module.json`，引擎代码零改动。
 
 ## 模块类型总览（110个）
 
-| 类型 | 数量 | `module_type` | 入口方式 |
+| 类型 | 数量 | `module_type` | 引擎行为 |
 |---|---|---|---|
 | 剧情 | 60 | `story` | `scenes` 场景序列 |
-| 战斗 | 15 | `combat` | `encounter` 遭遇数据（无 `scenes`） |
-| 调查 | 10 | `investigation` | `scenes` + 线索产出 |
-| 探索 | 8 | `exploration` | `scenes` + 地点发现 |
-| 社交 | 8 | `social` | `scenes` + NPC 交互 |
-| 恐怖 | 5 | `horror` | `scenes` + SAN 检定 |
-| 休息 | 4 | `rest` | `scenes` + 恢复机制 |
+| 战斗 | 15 | `combat` | `encounter` 遭遇数据，桥接为战斗场景 + CombatLoop |
+| 调查 | 10 | `investigation` | 同 story（语义标签，留待扩展） |
+| 探索 | 8 | `exploration` | 同 story（语义标签，留待扩展） |
+| 社交 | 8 | `social` | 同 story（语义标签，留待扩展） |
+| 恐怖 | 5 | `horror` | 同 story（语义标签，留待扩展） |
+| 休息 | 4 | `rest` | 同 story（语义标签，留待扩展） |
 
-所有类型共用相同的基础字段（`id`、`title`、`entry`、`exits`），差异在 `module_type` 触发的
-引擎行为。
+**重要**：目前引擎只看 `module_type == "combat"` 这一个分支。其余六种类型（story/investigation/exploration/social/horror/rest）在组合引擎层面行为完全一致——都走场景序列流程。`module_type` 作为 `transition` 元数据传递给 web_server，可用于过渡文案风格差异化，但目前 web_server 尚未消费此字段。这些标签主要用于模块组织和未来扩展。
 
 ## 目录结构
 
 ```
 data/modules/<module_id>/
   module.json          # 必需
-  <scene_id>.png       # 可选，场景配图
+  <scene_id>.png       # 可选，场景配图（引擎通过 _resolve_module_image 自动发现）
   combat.png           # 战斗模块配图（ComfyUI 生成）
 ```
 
@@ -35,14 +33,14 @@ data/modules/<module_id>/
 |---|---|---|---|
 | `id` | string | ✓ | 模块唯一 ID，建议与目录名一致 |
 | `title` | string | ✓ | 模块标题，用于展示和过渡文案 |
-| `module_type` | string | - | `story`/`combat`/`investigation`/`exploration`/`social`/`horror`/`rest`，默认 `story` |
+| `module_type` | string | - | `story`/`combat`/`investigation`/`exploration`/`social`/`horror`/`rest`，默认 `story`。目前仅 `combat` 触发不同引擎行为，其余为语义标签 |
 | `genre` | string[] | - | 题材标签，如 `["horror","mythos","underwater"]` |
 | `difficulty` | int | - | 难度 1-4，配合 `--difficulty-range` 过滤 |
 | `duration_estimate` | string | - | 展示用，如 `"2-3 turns"` |
 | `is_ending` | bool | - | 结局模块打 `true`，BFS 到此后停止扩展 |
 | `entry` | object | - | 入场条件，见下文 |
 | `exits` | object[] | - | 多出口数组，见下文 |
-| `scenes` | object[] | 剧情类✓ | 场景卡数组（combat 类型不需要） |
+| `scenes` | object[] | 非 combat✓ | 场景卡数组（combat 类型不需要） |
 | `npcs` | object[] | - | NPC 数据 |
 | `variance` | object | - | Roguelike 随机变体 |
 
@@ -79,19 +77,16 @@ data/modules/<module_id>/
 
 两条并行分支路径，互不排斥会叠加：
 
-1. **随机兼容匹配**：引擎根据 `exits` 的 `provides_clues` + `next_location_type` 在模块池
-   中找 `entry` 匹配的模块。写模块时填对字段即可，引擎自动处理。
-2. **手写显式跳转**：在模块最后一个场景的 `exit_labels` 里写跨模块跳转，
-   key 格式 `"目标模块id::目标场景原始id"`。不检查 `entry` 条件，保证可达。
+1. **随机兼容匹配**：引擎根据 `exits` 的 `provides_clues` + `next_location_type` 在模块池中找 `entry` 匹配的模块。写模块时填对字段即可，引擎自动处理。
+2. **手写显式跳转**：在模块最后一个场景的 `exit_labels` 里写跨模块跳转，key 格式 `"目标模块id::目标场景原始id"`。不检查 `entry` 条件，保证可达。
 
 ---
 
-## 各类型模块入口方法
+## 各类型模块详解
 
-### 剧情模块（`story`）
+### 剧情模块（`story`）—— 最常用
 
-最常见类型。`scenes` 数组定义场景序列，场景之间通过 `leads_to` 形成内部流转，
-跨模块跳转通过 `exit_labels` 声明。
+`scenes` 数组定义场景序列，场景之间通过 `leads_to` 形成内部流转，跨模块跳转通过 `exit_labels` 声明。
 
 ```json
 {
@@ -136,8 +131,7 @@ data/modules/<module_id>/
 }
 ```
 
-**入口方法**：`ModuleComposer.compose()` → BFS 遍历模块图 → `_prefix_scenes()` 给场景 ID
-加模块前缀 → 根据 `leads_to` 连接内部场景 → 根据 `exit_labels`/`exits` 拼接跨模块过渡。
+**入口方法**：`ModuleComposer.compose()` → BFS 遍历模块图 → `_prefix_scenes()` 给场景 ID 加模块前缀 → 根据 `leads_to` 连接内部场景 → 根据 `exit_labels`/`exits` 拼接跨模块过渡。
 
 核心 API：
 ```python
@@ -152,8 +146,7 @@ adv, seed = composer.compose(seed=42, max_depth=4)
 
 ### 战斗模块（`combat`）
 
-无 `scenes` 数组。用 `encounter` 定义敌人、环境、特殊规则和结局。
-引擎自动将遭遇数据桥接为战斗场景 + 结局过渡场景。
+无 `scenes` 数组。用完整的遭遇数据定义敌人、环境、特殊规则和结局。引擎自动将遭遇数据桥接为战斗场景 + 结局过渡场景，运行时通过 `CombatLoop` 驱动回合制战斗。
 
 ```json
 {
@@ -161,6 +154,7 @@ adv, seed = composer.compose(seed=42, max_depth=4)
   "module_type": "combat",
   "title": "深潜者巢穴",
   "difficulty": 3,
+  "description": "潮水退去后，海蚀洞深处露出一道非自然的石门...",
   "entry": {
     "location_types": ["cave", "underground", "coastal"],
     "required_clues": ["coastal_cave_ritual_evidence"],
@@ -189,7 +183,7 @@ adv, seed = composer.compose(seed=42, max_depth=4)
     ],
     "lighting": "bioluminescent"
   },
-  "rules": [
+  "special_rules": [
     "洞穴回声——枪声触发钟乳石坠落（20% 概率）",
     "长老在水中时获得 +1 护甲和再生能力——用火把或电击可逼它上岸"
   ],
@@ -220,59 +214,15 @@ adv, seed = composer.compose(seed=42, max_depth=4)
 }
 ```
 
-**入口方法**：
+**JSON 字段到 Python 属性的映射**：`enemies` → `Enemy` 对象列表、`environment` → `CombatEnvironment`、`special_rules`（JSON key 也可写作 `rules`，两者兼容）→ Python 属性 `special_rules`、`outcomes` → `dict[str, CombatOutcome]`。
 
-```python
-from trpg_agent.combat import CombatEncounter, CombatLoop
+**引擎桥接**：`ModuleComposer._assemble()` 检测 `module_type == "combat"` 后调用 `_combat_to_scene()` 将遭遇数据转为 `Scene` 对象（`combat.enabled=True`，`combat.encounter` 持有完整数据），并为每个结局出口生成过渡场景。web_server 看到 `combat.enabled` 后切换战斗模式 prompt 并启动 `CombatLoop`。
 
-# 1. 从模块 JSON 加载遭遇数据
-encounter = CombatEncounter.from_dict(module_data)
-
-# 2. 创建战斗循环
-loop = CombatLoop(encounter, investigators_state="调查员状态文本")
-
-# 3. 第一轮：生成选项
-sys_prompt = loop.build_enter_prompt()
-user_prompt = loop.build_enter_user_prompt()
-# → 发送给 LLM，获取响应
-llm_output = llm.chat(sys_prompt, user_prompt)
-round_state = loop.start_round(llm_output)
-
-# 4. 展示选项给弹幕，收集投票
-vote_format = loop.get_vote_format()  # 格式化的投票文案
-# → 弹幕投票
-
-# 5. 提交投票并结算
-loop.submit_vote("A")
-res_sys = loop.build_resolve_prompt()
-res_usr = loop.build_resolve_user_prompt()
-resolution = llm.chat(res_sys, res_usr)
-outcome = loop.resolve(resolution)
-
-# 6. 如果 outcome 为空 → 战斗继续，回到步骤 3
-#    如果 outcome 非空 → 战斗结束
-if outcome:
-    print(loop.end_summary())
-```
-
-**CombatLoop 状态机**：
-
-```
-ENTER → [LLM 生成开场叙事 + 三选项] → VOTING → [提交投票]
-  → RESOLVE → [LLM 结算行动] → CHECK_OUTCOME
-    → 未达结局：回到 ENTER（下一轮）
-    → 达结局：END（输出结局叙事）
-```
-
-**选项设计原则**：赌注式而非菜单式。每条选项必须量化代价（HP/SAN/检定难度），
-三条选项之间必须有真正的取舍。详见 `combat/prompts.py`。
-
-**escalation 数组**：逐轮升级叙事，`escalation[0]` 对应第 2 轮（第 1 轮无升级），
-每轮自动注入系统提示词和 user prompt。环境随时间恶化，制造集体戏剧张力。
+**详细 API**：见 `docs/combat-module-guide.md`。
 
 ### 调查模块（`investigation`）
 
-专注于线索收集和推理。`scenes` 通常包含多个可互动的调查元素，`exits` 产出关键线索。
+语义标签，引擎行为同 story。用于标记以线索收集和推理为核心的模块。`exits` 通常产出多个关键线索。
 
 ```json
 {
@@ -300,11 +250,9 @@ ENTER → [LLM 生成开场叙事 + 三选项] → VOTING → [提交投票]
 }
 ```
 
-**入口方法**：同剧情模块，差异仅在 `module_type` 标签影响氛围过渡文案。
-
 ### 探索模块（`exploration`）
 
-发现新地点、穿越危险地形。`entry.location_types` 通常与自然/野外/地下相关。
+语义标签，引擎行为同 story。用于标记以地点发现和地形穿越为核心的模块。
 
 ```json
 {
@@ -322,7 +270,7 @@ ENTER → [LLM 生成开场叙事 + 三选项] → VOTING → [提交投票]
 
 ### 社交模块（`social`）
 
-NPC 对话、交易、信息收集。难度通常较低，`scenes` 中的 `npcs_here` 和对话选项为核心。
+语义标签，引擎行为同 story。用于标记以 NPC 对话和信息收集为核心的模块。`scenes` 中的 `opportunities` 和 `npcs_here` 为关键场景级字段。
 
 ```json
 {
@@ -351,7 +299,7 @@ NPC 对话、交易、信息收集。难度通常较低，`scenes` 中的 `npcs_
 
 ### 恐怖模块（`horror`）
 
-SAN 检定、心理冲击、超自然遭遇。`scenes` 中通常包含 `san_check` 触发器。
+语义标签，引擎行为同 story。用于标记以心理冲击和 SAN 检定为核心的模块。`scenes` 中的 `san_check` 和 `mood` 为关键场景级字段。
 
 ```json
 {
@@ -376,7 +324,7 @@ SAN 检定、心理冲击、超自然遭遇。`scenes` 中通常包含 `san_chec
 
 ### 休息模块（`rest`）
 
-恢复 HP/SAN、整理线索的喘息节点。无 `required_clues`，通常出现在战斗或恐怖模块之后。
+语义标签，引擎行为同 story。用于标记以恢复和整理线索为核心的喘息节点。通常没有 `required_clues`，出现在高强度模块之后。
 
 ```json
 {
@@ -406,9 +354,11 @@ SAN 检定、心理冲击、超自然遭遇。`scenes` 中通常包含 `san_chec
 | `exit_requires` | 跨模块跳转的门控条件，`{"目标id": "required_element_id"}` |
 | `vote_prompt` | 非空触发弹幕投票 |
 | `image_prompt` | ComfyUI 生图提示词 |
+| `image` | 场景图的相对 URL（引擎通过 `_resolve_module_image` 自动发现，无需手写） |
 | `mood` | 场景氛围，驱动 BGM 选择 |
 | `san_check` | COC SAN 检定 `{"trigger":"...","level":"MAJOR/MINOR"}` |
-| `combat` | 剧情模块内嵌套的单场景战斗触发器（与 `combat` 类型模块不同） |
+| `combat` | 剧情模块内嵌套的单场景战斗触发器 `{"enabled": true, "encounter": ...}`（与 `combat` 类型模块不同，此为场景内嵌战斗） |
+| `npcs_here` | 场景出场 NPC 名称列表 `["老水手", "旅馆老板"]` |
 
 ---
 
