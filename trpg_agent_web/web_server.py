@@ -503,11 +503,14 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     current_scene = scene_info
     combat_loop: CombatLoop | None = None  # 非空时表示当前正处于战斗遭遇场景
 
-    for turn in range(turns):
-        speaker = player_order[turn % len(player_order)]
+    _turn = 0  # 循环迭代计数（含战斗回合）
+    _non_combat_turns = 0  # 非战斗回合计数
+    while _non_combat_turns < turns:
+        speaker = player_order[_turn % len(player_order)]
         inv_data = next(inv for inv in INVESTIGATORS if inv["name"] == speaker)
         inv_state = session.state.find_investigator(speaker)
         rc = dmap.room_context()
+        _turn += 1
 
         # ── 战斗场景检测：命中 combat.enabled 的场景时，整回合交给 CombatLoop 驱动 ──
         current_combat_scene = None
@@ -673,7 +676,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             action = ""
             # force_pickup: 首轮强制拾取房间物品
-            if force_pickup and turn == 0:
+            if force_pickup and _non_combat_turns == 0:
                 room_items = dmap.current_room.items if dmap.current_room else []
                 if room_items:
                     action = f"{speaker}捡起{room_items[0]}"
@@ -880,6 +883,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
         session.record_turn(action, narration, speaker=speaker)
         last_narration = narration
+        _non_combat_turns += 1  # 战斗回合不计入总回合数
 
         # TTS
         audio_url = await _speak(narration[:500])
