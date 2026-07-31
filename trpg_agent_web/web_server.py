@@ -826,17 +826,31 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             if trans_meta:
                 # 有过渡元数据 → 构建结构化 KP 过渡指令
                 tm = trans_meta[0]  # 使用第一条过渡元数据（通常只有一条）
-                from_type_label = {"combat": "战斗", "exploration": "调查", "story": "剧情"}.get(tm.get("from_type", ""), tm.get("from_type", ""))
-                to_type_label = {"combat": "战斗", "exploration": "调查", "story": "剧情"}.get(tm.get("to_type", ""), tm.get("to_type", ""))
+                TYPE_LABELS = {
+                    "combat": "战斗", "story": "剧情",
+                    "investigation": "调查", "exploration": "探索",
+                    "social": "社交", "horror": "恐怖", "rest": "休整",
+                }
+                from_type_label = TYPE_LABELS.get(tm.get("from_type", ""), tm.get("from_type", ""))
+                to_type_label = TYPE_LABELS.get(tm.get("to_type", ""), tm.get("to_type", ""))
+                from_type = tm.get("from_type", "")
+                to_type = tm.get("to_type", "")
+
                 trans_parts = [
                     "[场景过渡]",
                     f"队伍离开了「{tm['from_title']}」（{from_type_label}场景），现在来到了「{tm['to_title']}」（{to_type_label}场景）。",
                 ]
                 if tm.get("to_desc"):
                     trans_parts.append(f"抵达后的景象：{tm['to_desc']}")
+
+                # 类型切换提示——不同方向的切换给出不同的叙事指引
+                if from_type and to_type and from_type != to_type:
+                    hints = _transition_hint(from_type, to_type)
+                    if hints:
+                        trans_parts.append(hints)
+
                 trans_parts.append(
-                    "请用2-3句话叙述从离开到抵达的自然过渡。如果是不同类型场景的切换（如调查→战斗），"
-                    "叙述应体现氛围升级；同类型场景切换用简洁的1-2句即可。不要使用模板化句式。"
+                    "请用2-3句话叙述从离开到抵达的自然过渡。不要使用模板化句式。"
                 )
                 context_parts.append("\n".join(trans_parts))
             else:
@@ -1039,6 +1053,21 @@ def _detect_move(dmap: DungeonMap, action: str) -> dict | None:
                     "room": rc,
                 }
     return None
+
+
+def _transition_hint(from_type: str, to_type: str) -> str:
+    """根据场景类型切换方向生成叙事指引。"""
+    hints = {
+        ("investigation", "combat"): "调查线索引向了危险——请体现从思考到行动的急剧转折，紧张感猛然升级。",
+        ("exploration", "combat"): "探索中的未知变成了迫在眉睫的威胁——请渲染'来不及反应'的突袭感。",
+        ("social", "combat"): "对话破裂、谈判失败——请刻画从言语交锋到暴力冲突的那个临界瞬间。",
+        ("story", "combat"): "剧情推进到了对抗点——请为这场不可避免的冲突做一个仪式感十足的开场。",
+        ("combat", "rest"): "战斗后的喘息——请描述劫后余生的疲惫、伤口和沉默中未说出口的侥幸。",
+        ("combat", "story"): "战斗结束，故事继续——请自然地让队伍从战斗状态回到叙事节奏。",
+        ("horror", "combat"): "恐惧化为了实体——请描绘从心理压迫到物理对抗的尖叫般的转变。",
+        ("rest", "combat"): "平静被无情打破——休整中的安逸被突如其来的威胁撕裂。",
+    }
+    return hints.get((from_type, to_type), "")
 
 
 def _auto_advance_transitions(session: Session, adventure: Adventure, scene):
