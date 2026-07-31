@@ -156,9 +156,22 @@ class CombatEncounter:
         """战斗结局过渡场景的统一 ID 格式。"""
         return f"{module_id}::combat_{outcome_id}"
 
-    def apply_scaling(self, player_count: int) -> None:
-        """根据玩家数量缩放敌人。"""
+    def apply_scaling(self, player_count: int, *, party_hp_ratio: float = 1.0) -> None:
+        """根据玩家数量 + 队伍状态缩放敌人。
+
+        参数:
+            player_count: 调查员人数
+            party_hp_ratio: 队伍平均 HP 比例（0.0-1.0），满血 1.0，半血 0.5。
+                低于 0.4 时敌人 HP 减半（残血队伍遇到满强度敌人不合理）。
+        """
         sc = self.scaling
+
+        # 队伍残血 → 削弱敌人 HP
+        if party_hp_ratio < 0.4 and self.enemies:
+            for enemy in self.enemies:
+                enemy.hp = max(1, int(enemy.hp * 0.5))
+                enemy.hp_max = max(1, int(enemy.hp_max * 0.5))
+
         if not sc or player_count <= 3:
             return
 

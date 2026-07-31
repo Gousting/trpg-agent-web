@@ -28,6 +28,11 @@ from trpg_agent.combat.resolver import (
     CombatMechanicResult,
 )
 
+from trpg_agent.combat.orchestrator import (
+    CombatOrchestrator,
+    CombatTurnResult,
+)
+
 __all__ = [
     "CombatEncounter",
     "CombatEnvironment",
@@ -39,6 +44,8 @@ __all__ = [
     "CombatOption",
     "CombatMechanics",
     "CombatMechanicResult",
+    "CombatOrchestrator",
+    "CombatTurnResult",
     "build_combat_system_prompt",
     "build_combat_turn_user_prompt",
     "build_combat_resolution_prompt",

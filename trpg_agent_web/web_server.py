@@ -33,7 +33,7 @@ from trpg_agent.mapgen import DungeonMap
 from trpg_agent.scene_matcher import SceneMatcher
 from trpg_agent.adventure.module_composer import ModuleComposer
 from trpg_agent.adventure import Adventure
-from trpg_agent.combat import CombatLoop
+from trpg_agent.combat.orchestrator import CombatOrchestrator
 from trpg_agent.combat.encounter import CombatEncounter
 
 log = logging.getLogger(__name__)
@@ -501,7 +501,8 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     player_order = [inv["name"] for inv in INVESTIGATORS]
     current_bgm = bgm_track
     current_scene = scene_info
-    combat_loop: CombatLoop | None = None  # 非空时表示当前正处于战斗遭遇场景
+    # ── 战斗编排器 ──
+    combat_orch = CombatOrchestrator(investigators_state=_investigators_state_text(session))
 
     _turn = 0  # 循环迭代计数（含战斗回合）
     _non_combat_turns = 0  # 非战斗回合计数
@@ -512,22 +513,20 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         rc = dmap.room_context()
         _turn += 1
 
-        # ── 战斗场景检测：命中 combat.enabled 的场景时，整回合交给 CombatLoop 驱动 ──
-        current_combat_scene = None
-        if adventure is not None:
-            _scene_here = adventure.get_scene(session.state.scene_id)
-            if _scene_here is not None and _scene_here.combat and _scene_here.combat.get("enabled"):
-                current_combat_scene = _scene_here
+        # ── 战斗场景检测 ──
+        in_combat = combat_orch.check_combat(adventure, session.state.scene_id)
 
-        if current_combat_scene is not None:
-            if combat_loop is None:
-                encounter = current_combat_scene.combat["encounter"]
-                combat_loop = CombatLoop(encounter, investigators_state=_investigators_state_text(session))
-                yield _sse("status", {"text": f"⚔️ 战斗开始：{encounter.title}"})
+        if in_combat:
+            # 首次进入：应用队伍状态缩放
+            if combat_orch.combat_loop is not None and combat_orch.combat_loop.current_round == 0:
+                invs = session.state.investigators
+                if invs:
+                    avg_hp = sum(i.hp / max(i.max_hp, 1) for i in invs) / len(invs)
+                    combat_orch.combat_loop._state.encounter.apply_scaling(len(invs), party_hp_ratio=avg_hp)
+                yield _sse("status", {"text": f"⚔️ 战斗开始：{combat_orch.combat_loop._state.encounter.title}"})
 
-            # ── 进场/回合叙事 + 三选项（LLM 生成）──
-            enter_sys = combat_loop.build_enter_prompt()
-            enter_usr = combat_loop.build_enter_user_prompt()
+            # ── 进场叙事 + 选项生成 ──
+            enter_sys, enter_usr = combat_orch.prepare_enter()
             yield _sse("kp_stream_start", {})
             enter_output = ""
             async for token in _chat_stream(kp_client, enter_sys, enter_usr,
@@ -539,7 +538,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                     "（战斗陷入僵局……）\n---\n**观望局势**\n静观其变，等待时机。"
                     "\n---\n**主动出击**\n冒险突进，正面对抗。\n---\n**且战且退**\n边打边撤，寻找生路。"
                 )
-            round_state = combat_loop.start_round(enter_output)
+            round_state = combat_orch.complete_enter(enter_output)
             audio_url = await _speak(round_state.opening_narration[:500])
             yield _sse("kp_stream_end", {
                 "state": _state_snapshot(session),
@@ -548,7 +547,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 "bgm_track": None,
             })
 
-            # ── 展示投票：三个赌注式选项 ──
+            # ── 投票 ──
             vote_options = {opt.option_key.lower(): opt.label for opt in round_state.options}
             if not vote_options:
                 vote_options = {"a": "观望局势", "b": "主动出击", "c": "且战且退"}
@@ -557,31 +556,22 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 "session_id": sid,
                 "speaker": speaker,
             })
-
             tally: dict[str, int] = {}
             async for evt_name, evt_data in _vote_window(sid):
                 if evt_name == "__result__":
                     tally = evt_data
                 else:
                     yield _sse(evt_name, evt_data)
-            if tally:
-                choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
-            else:
-                choice = next(iter(vote_options.keys()), "a")
+            choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0)) if tally else next(iter(vote_options.keys()), "a")
 
-            chosen_opt = combat_loop.submit_vote(choice.upper())
-            action = f"（全员选择了「{chosen_opt.label if chosen_opt else vote_options.get(choice, '')}」）"
+            # ── 机制 + 叙事结算 ──
+            mech_result = combat_orch.submit_and_resolve_mechanics(choice)
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
-            yield _sse("player_token", {"text": action, "speaker": speaker})
+            yield _sse("player_token", {"text": f"（全员选择了「{choice}」）", "speaker": speaker})
             yield _sse("player_stream_end", {"speaker": speaker})
             await asyncio.sleep(0.2)
 
-            # ── 机制层结算：代码掷骰、扣血、判定结局 ──
-            mech_result = combat_loop.run_mechanics()
-
-            # ── 叙事层：LLM 根据机制结果润色叙述 ──
-            res_sys = combat_loop.build_resolve_prompt()
-            res_usr = combat_loop.build_resolve_user_prompt(mech_result=mech_result)
+            res_sys, res_usr = combat_orch.prepare_resolve()
             yield _sse("kp_stream_start", {})
             resolution_output = ""
             async for token in _chat_stream(kp_client, res_sys, res_usr,
@@ -590,47 +580,46 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 yield _sse("kp_token", {"text": token})
             if not resolution_output:
                 resolution_output = f"（{mech_result.summary}）"
-            outcome = combat_loop.resolve(resolution_output, mech_result=mech_result)
-            narration = resolution_output
 
-            # 极端兜底：机制层也没触发结局时用 force_end
-            if outcome is None and combat_loop.current_round >= COMBAT_MAX_ROUNDS:
-                encounter = current_combat_scene.combat["encounter"]
-                fallback_id = next(
-                    (oid for oid in ("flee", "defeat", "victory") if oid in encounter.outcomes),
-                    next(iter(encounter.outcomes), ""),
-                )
-                if fallback_id:
-                    outcome = combat_loop.force_end(fallback_id)
-                    narration += "\n\n（战斗持续过久，局势再也无法维持……）"
+            result = combat_orch.complete_turn(resolution_output)
+            outcome = result.outcome
+
+            # 极端兜底
+            if outcome is None:
+                fallback = combat_orch.force_end_if_needed(COMBAT_MAX_ROUNDS)
+                if fallback:
+                    outcome = fallback
+                    resolution_output += "\n\n（战斗持续过久，局势再也无法维持……）"
+                    yield _sse("kp_token", {"text": "\n\n" + combat_orch.combat_loop.end_summary()})
 
             if outcome is not None:
-                end_text = combat_loop.end_summary()
-                yield _sse("kp_token", {"text": "\n\n" + end_text})
-                narration += "\n\n" + end_text
+                yield _sse("kp_token", {"text": "\n\n" + combat_orch.combat_loop.end_summary()})
+                resolution_output += "\n\n" + combat_orch.combat_loop.end_summary()
 
-            session.record_turn(action, narration, speaker=speaker)
-            last_narration = narration
+            session.record_turn(result.action, resolution_output, speaker=speaker)
+            last_narration = resolution_output
 
-            # 战斗结束：记录战斗摘要到 session 历史
             if outcome is not None:
-                combat_summary = combat_loop.combat_summary
-                if combat_summary:
-                    session.record_combat(combat_summary)
+                summary = combat_orch.combat_summary()
+                if summary:
+                    session.record_combat(summary)
 
-            audio_url = await _speak(narration[:500])
+            audio_url = await _speak(resolution_output[:500])
 
+            # ── 战斗结束跳转 ──
             moved_scene = None
             if outcome is not None:
-                # 战斗结束——按结局 ID 跳转到对应的结局过渡场景，走完模块内自动过渡
-                module_id = current_combat_scene.id.split("::", 1)[0]
-                target_scene_id = CombatEncounter.outcome_scene_id(module_id, outcome.id)
-                moved_scene = session.move_to_scene(target_scene_id, adventure)
-                if moved_scene is not None:
-                    moved_scene, _trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
-                combat_loop = None
+                scene = adventure.get_scene(session.state.scene_id) if adventure else None
+                if scene:
+                    trans = combat_orch.scene_transition_info(scene)
+                    if trans:
+                        _mid, target_id = trans
+                        moved_scene = session.move_to_scene(target_id, adventure)
+                        if moved_scene is not None:
+                            moved_scene, _trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+                combat_orch.reset()
 
-            # ── 场景切换（仅战斗结束且成功跳转时）/ 收尾 ──
+            # ── 场景切换 / 收尾 ──
             scene_changed = False
             bgm_changed = False
             new_bgm = current_bgm
@@ -667,7 +656,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 "room": rc,
             })
             await asyncio.sleep(0.3)
-            continue  # 战斗回合自成一体，跳过下方常规行动/叙述流程
+            continue  # 战斗回合自成一体
 
         # ── 玩家行动 ───────────────────────────
         moved_scene = None  # 投票驱动的模块场景切换结果（仅模块模式下可能非 None）
