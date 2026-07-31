@@ -12,9 +12,7 @@
       "outdoor",
       "coastal"
     ],
-    "required_clues": [
-      "ocean_ritual_coordinates"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

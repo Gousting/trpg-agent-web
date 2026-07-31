@@ -12,9 +12,7 @@
       "indoor",
       "institutional"
     ],
-    "required_clues": [
-      "summoning_ritual_details"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

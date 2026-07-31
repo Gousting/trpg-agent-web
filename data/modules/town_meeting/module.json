@@ -13,9 +13,7 @@
       "urban",
       "underground"
     ],
-    "required_clues": [
-      "cult_member_roster"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

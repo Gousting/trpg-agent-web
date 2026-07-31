@@ -13,9 +13,7 @@
       "outdoor",
       "graveyard"
     ],
-    "required_clues": [
-      "graveyard_disturbed"
-    ],
+    "required_clues": [],
     "forbidden_clues": [],
     "mood": "horror"
   },

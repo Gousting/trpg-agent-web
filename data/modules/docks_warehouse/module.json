@@ -12,9 +12,7 @@
       "indoor",
       "docks"
     ],
-    "required_clues": [
-      "dockside_horror_witnessed"
-    ],
+    "required_clues": [],
     "forbidden_clues": [],
     "mood": null
   },

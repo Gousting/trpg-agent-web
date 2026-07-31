@@ -11,9 +11,7 @@
       "forest",
       "urban"
     ],
-    "required_clues": [
-      "swamp_hermit_info"
-    ],
+    "required_clues": [],
     "mood": "horror"
   },
   "exits": [

@@ -12,9 +12,7 @@
       "indoor",
       "basement"
     ],
-    "required_clues": [
-      "cursed_slab_found"
-    ],
+    "required_clues": [],
     "forbidden_clues": [],
     "mood": null
   },

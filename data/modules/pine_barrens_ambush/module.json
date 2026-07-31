@@ -13,9 +13,7 @@
       "outdoor",
       "wilderness"
     ],
-    "required_clues": [
-      "pine_barrens_ritual_site"
-    ],
+    "required_clues": [],
     "forbidden_clues": [],
     "mood": "dread"
   },

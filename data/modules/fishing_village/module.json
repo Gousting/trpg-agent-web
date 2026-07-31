@@ -11,9 +11,7 @@
       "coastal",
       "outdoor"
     ],
-    "required_clues": [
-      "stone_fragments_found"
-    ],
+    "required_clues": [],
     "mood": "unease"
   },
   "exits": [

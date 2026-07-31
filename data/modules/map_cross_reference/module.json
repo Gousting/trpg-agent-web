@@ -11,9 +11,7 @@
     "location_types": [
       "indoor"
     ],
-    "required_clues": [
-      "artifact_origin_traced"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

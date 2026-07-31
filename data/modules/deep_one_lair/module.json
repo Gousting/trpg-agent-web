@@ -15,9 +15,7 @@
       "underground",
       "coastal"
     ],
-    "required_clues": [
-      "coastal_cave_ritual_evidence"
-    ],
+    "required_clues": [],
     "forbidden_clues": [],
     "mood": "dread"
   },

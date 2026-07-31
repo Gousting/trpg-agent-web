@@ -11,9 +11,7 @@
       "academic",
       "indoor"
     ],
-    "required_clues": [
-      "whitley_research_known"
-    ],
+    "required_clues": [],
     "mood": "investigation"
   },
   "exits": [

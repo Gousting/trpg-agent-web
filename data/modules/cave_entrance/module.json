@@ -11,9 +11,7 @@
       "underground",
       "indoor"
     ],
-    "required_clues": [
-      "underground_access_found"
-    ],
+    "required_clues": [],
     "mood": "mystery"
   },
   "exits": [

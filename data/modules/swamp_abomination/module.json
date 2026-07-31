@@ -15,9 +15,7 @@
       "swamp",
       "wilderness"
     ],
-    "required_clues": [
-      "cult_supply_cache_found"
-    ],
+    "required_clues": [],
     "forbidden_clues": [],
     "mood": "dread"
   },

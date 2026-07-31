@@ -304,10 +304,11 @@
 <!-- 顶部控制 -->
 <div id="controls">
   <button id="btn-start" onclick="startGame()">▶ 开始跑团</button>
-  <label>Host</label><input id="ollama-host" value="http://192.168.0.108:11434" style="width:180px">
-  <label>KP Key</label><input id="kp-api-key" type="password" placeholder="远程API必填" style="width:140px">
-  <label>KP</label><input id="kp-model" list="kp-models" value="gemma4:12b" style="width:180px">
-  <datalist id="kp-models"><option value="gemma4:12b"><option value="qwen3.6:27b"><option value="deepseek-v4-flash-free"><option value="ornith:9b"></datalist>
+  <label>Host</label><input id="ollama-host" value="https://openrouter.ai/api/v1" style="width:200px">
+  <label>KP Key</label><input id="kp-api-key" type="password" placeholder="远程API必填" style="width:160px">
+  <label>KP</label><input id="kp-model" list="kp-models" value="nvidia/nemotron-3-ultra-550b-a55b:free" style="width:220px">
+  <datalist id="kp-models"><option value="nvidia/nemotron-3-ultra-550b-a55b:free"><option value="gemma4:12b"><option value="qwen3.6:27b"><option value="deepseek-v4-flash-free"><option value="ornith:9b"></datalist>
+  <label>玩家Host</label><input id="player-host" value="http://192.168.0.105:11434" style="width:180px">
   <label>玩家</label><select id="player-model"><option>ornith:9b</option><option>gemma4:12b</option></select>
   <label>轮</label><input id="turns" type="number" value="10" min="3" max="30" style="width:40px">
   <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
@@ -452,6 +453,7 @@ function startGame() {
     seed: document.getElementById('seed').value || '',
     mode: document.getElementById('mode').value,
     kp_api_key: document.getElementById('kp-api-key').value,
+    player_host: document.getElementById('player-host').value,
   });
   if (document.getElementById('compose-modules').checked) params.append('compose_modules', 'true');
   // 从 URL 获取 force_pickup

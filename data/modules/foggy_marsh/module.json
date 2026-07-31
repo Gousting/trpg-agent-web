@@ -13,9 +13,7 @@
       "swamp",
       "rural"
     ],
-    "required_clues": [
-      "cult_supply_cache_found"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

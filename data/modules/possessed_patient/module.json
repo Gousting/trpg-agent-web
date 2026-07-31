@@ -12,9 +12,7 @@
       "indoor",
       "institutional"
     ],
-    "required_clues": [
-      "therapy_records"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

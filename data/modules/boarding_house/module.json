@@ -11,9 +11,7 @@
       "urban",
       "indoor"
     ],
-    "required_clues": [
-      "whitley_history_known"
-    ],
+    "required_clues": [],
     "mood": "paranoia"
   },
   "exits": [

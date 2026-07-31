@@ -11,9 +11,7 @@
     "location_types": [
       "underground"
     ],
-    "required_clues": [
-      "cave_entrance_discovered"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

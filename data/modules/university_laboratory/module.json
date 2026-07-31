@@ -11,9 +11,7 @@
       "academic",
       "indoor"
     ],
-    "required_clues": [
-      "sample_to_analyze"
-    ],
+    "required_clues": [],
     "mood": "investigation"
   },
   "exits": [

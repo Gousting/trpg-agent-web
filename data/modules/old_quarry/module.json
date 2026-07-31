@@ -11,9 +11,7 @@
       "mountain",
       "indoor"
     ],
-    "required_clues": [
-      "whitley_property_secret"
-    ],
+    "required_clues": [],
     "mood": "horror"
   },
   "exits": [

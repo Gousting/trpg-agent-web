@@ -355,6 +355,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                        turns: int, seed: int | None, mode: str,
                        compose_modules: bool = False,
                        kp_api_key: str = "",
+                       player_host: str = "http://localhost:11434",
                        force_pickup: bool = False):
     """SSE 事件流 — 完整的游戏循环。"""
     
@@ -364,7 +365,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         yield _sse("status", {"text": "组合模块剧情..."})
         composer = ModuleComposer(Path(__file__).resolve().parent.parent / "data" / "modules")
         composer.load_all()
-        bundle = composer.compile(seed=seed, max_depth=5)
+        bundle = composer.compile(seed=seed, max_depth=3)
         adventure = bundle.adventure
         yield _sse("status", {"text": f"已组合 {len(bundle.module_ids)} 个模块, {len(adventure._scenes)} 个场景"})
     
@@ -674,7 +675,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                     action = f"（{speaker} 谨慎地观察四周）"
                     yield _sse("player_token", {"text": action, "speaker": speaker})
             else:
-                async for token in _ai_player_stream(host, player_model, inv_data, inv_state,
+                async for token in _ai_player_stream(player_host, player_model, inv_data, inv_state,
                                                       rc, last_narration, speaker):
                     action += token
                     yield _sse("player_token", {"text": token, "speaker": speaker})
@@ -967,7 +968,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     yield _sse("done", {"summary": session.state.scene_summary()})
 
 
-async def _ai_player_stream(host: str, player_model: str,
+async def _ai_player_stream(player_host: str, player_model: str,
                            inv_data: dict, inv_state, rc: dict,
                            last_narration: str, speaker: str):
     """流式生成 AI 玩家行动，逐 token yield。"""
@@ -985,7 +986,7 @@ async def _ai_player_stream(host: str, player_model: str,
         "其次是调查环境或应对威胁。不要替其他调查员说话。"
     )
     player_msg = f"主持人叙述：{last_narration[:600]}\n\n{inv_data['name']}的行动："
-    player_client = OllamaClient(host, player_model, num_ctx=4096, timeout=120)
+    player_client = OllamaClient(player_host, player_model, num_ctx=4096, timeout=120)
     try:
         async for token in player_client.chat_stream(
             player_system, [{"role": "user", "content": player_msg}],
@@ -1110,6 +1111,7 @@ async def stream(
     mode: str = "ai",
     compose_modules: bool = True,
     kp_api_key: str = "",
+    player_host: str = "http://localhost:11434",
     force_pickup: bool = False,
 ):
     try:
@@ -1118,7 +1120,7 @@ async def stream(
         seed_val = None
     return StreamingResponse(
         event_stream(host, kp, player, turns, seed_val, mode, compose_modules,
-                     kp_api_key=kp_api_key, force_pickup=force_pickup),
+                     kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

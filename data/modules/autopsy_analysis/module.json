@@ -12,9 +12,7 @@
       "indoor",
       "institutional"
     ],
-    "required_clues": [
-      "autopsy_findings"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

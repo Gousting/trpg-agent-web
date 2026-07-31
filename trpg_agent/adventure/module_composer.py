@@ -660,9 +660,9 @@ class ModuleComposer:
         difficulty_range: tuple[int, int] | None,
         max_depth: int,
     ) -> ModuleNode:
-        """BFS 构建模块分支图。"""
-        # 选起始模块
-        start_mod = self._pick_start(start_id, rng, difficulty_range)
+        """BFS 构建模块分支图——按深度分阶段加权选择模块类型。"""
+        # 选起始模块（序幕阶段：排除 combat）
+        start_mod = self._pick_start(start_id, rng, difficulty_range, exclude_combat=True)
         root = ModuleNode(module=start_mod)
         node_map: dict[str, ModuleNode] = {start_mod.meta.id: root}
 
@@ -703,14 +703,28 @@ class ModuleComposer:
             #  排在前面的出口（如 victory/defeat）把所有兼容的下游模块抢光，导致排在
             #  后面的出口（如 flee）永远匹配不到任何候选、变成死胡同。）
             is_combat = mod.meta.module_type == "combat"
+            parent_type = mod.meta.module_type
             node_targets: set[str] = set()
             claimed_exits: set[int] = set()
 
             if authored_targets:
+                # 收集有效的手写目标，按阶段加权限制最多 2 个
+                authored_mods: list[tuple[str, Module]] = []
                 for target_id in authored_targets:
                     child_mod = self._resolve_explicit_target(target_id, difficulty_range)
-                    if child_mod is None or child_mod.meta.id in used_ids or child_mod.meta.id in node_targets:
-                        continue
+                    if child_mod is not None and child_mod.meta.id not in used_ids and child_mod.meta.id not in node_targets:
+                        authored_mods.append((target_id, child_mod))
+                if len(authored_mods) > 2:
+                    # 用加权采样缩减
+                    sampled = self._weighted_sample(
+                        [m for _, m in authored_mods], depth, 2, rng,
+                        parent_type=parent_type,
+                    )
+                    # 重建 (target_id, mod) 映射（用 module id 做 key）
+                    mod_to_tid = {m.meta.id: tid for tid, m in authored_mods}
+                    authored_mods = [(mod_to_tid.get(m.meta.id, ""), m) for m in sampled if m.meta.id in mod_to_tid]
+
+                for target_id, child_mod in authored_mods:
 
                     if exit_contexts:
                         exit_idx, exit_state, full_clues = self._pick_exit_for_target(
@@ -744,12 +758,14 @@ class ModuleComposer:
                         ) or exit_state.requires_element,
                     ))
 
-            # 随机兼容匹配作为补充——即使出口已经有手写目标，仍可叠加其它兼容候选，
-            # 以恢复"多出口分支图组合引擎"原本的随机多样性（此前手写目标会完全屏蔽随机匹配）。
+            # 随机兼容匹配——按深度分阶段加权选择（每出口最多 2 个候选）
             for exit_idx, exit_state, full_clues, candidates in exit_contexts:
-                # 战斗模块每个出口独立去重，不与其它出口共享 node_targets（见上方注释）
+                weighted = self._weighted_sample(
+                    candidates, depth, min(len(candidates), 2),
+                    rng, parent_type=parent_type,
+                )
                 exit_claimed = set() if is_combat else node_targets
-                for candidate_mod in candidates:
+                for candidate_mod in weighted:
                     if candidate_mod.meta.id in exit_claimed:
                         continue
                     exit_claimed.add(candidate_mod.meta.id)
@@ -888,9 +904,94 @@ class ModuleComposer:
                         queue.append(edge.next_node)
         return result
 
+    # ── 阶段权重：按深度分幕加权 ──────────────────
+    # 序幕(0-1) 发展(2-3) 高潮(4+)
+    # 权重越高 = 每出口配额越多。同一深度的总配额上限决定了该阶段模块数。
+    _PHASE_WEIGHTS: dict[str, dict[int, float]] = {
+        "story":          {0: 20, 1: 10, 2:  5},
+        "social":         {0: 20, 1: 15, 2:  5},
+        "exploration":    {0: 15, 1: 15, 2: 10},
+        "investigation":  {0: 15, 1: 25, 2: 10},
+        "horror":         {0: 10, 1: 20, 2: 30},
+        "combat":         {0:  0, 1: 10, 2: 30},
+        "rest":           {0: 10, 1:  5, 2: 10},
+    }
+
+    @staticmethod
+    def _phase_for_depth(depth: int) -> int:
+        if depth <= 1: return 0
+        if depth <= 3: return 1
+        return 2
+
+    @classmethod
+    def _module_weight(cls, mod, depth: int) -> float:
+        """返回模块在当前深度的选择权重。"""
+        mtype = getattr(mod.meta, 'module_type', '') or 'story'
+        phase = cls._phase_for_depth(depth)
+        return cls._PHASE_WEIGHTS.get(mtype, {}).get(phase, 1.0)
+
+    def _weighted_sample(self, candidates: list, depth: int, n: int,
+                         rng: random.Random, *, parent_type: str = "") -> list:
+        """从候选列表中按阶段权重彩票抽选 n 个。
+
+        不是按类型配额，而是每个候选模块根据其类型权重持有不同数量"彩票"。
+        权重高的类型被抽中概率大，但权重低的类型仍有机会。
+        连续同类型模块被排除（parent_type 惩罚）。
+        """
+        if len(candidates) <= n:
+            return list(candidates)
+
+        phase = self._phase_for_depth(depth)
+        # 过滤同类型连续
+        filtered = []
+        for mod in candidates:
+            mtype = getattr(mod.meta, 'module_type', '') or 'story'
+            if mtype != parent_type:
+                filtered.append(mod)
+        if not filtered:
+            filtered = list(candidates)
+
+        if len(filtered) <= n:
+            return filtered
+
+        # 构建彩票池：每个模块根据类型权重持有 tickets 张票
+        tickets: list = []
+        for mod in filtered:
+            mtype = getattr(mod.meta, 'module_type', '') or 'story'
+            w = self._PHASE_WEIGHTS.get(mtype, {}).get(phase, 0)
+            if w <= 0:
+                w = 1  # 低保底：权重为 0 的类型仍有一张票
+            # 按权重放票（w 张票），至少 1 张
+            tickets.extend([mod] * max(1, int(w)))
+
+        if not tickets:
+            return rng.sample(filtered, min(n, len(filtered)))
+
+        # 彩票抽选 n 个不重复模块
+        result = []
+        pool = list(tickets)
+        while len(result) < n and pool:
+            winner = rng.choice(pool)
+            if winner not in result:
+                result.append(winner)
+            # 移除该模块所有票（不重复中奖）
+            pool = [t for t in pool if t is not winner]
+
+        # 如果还不够，从剩余候选中补
+        if len(result) < n:
+            remaining = [m for m in filtered if m not in result]
+            if remaining:
+                result.extend(rng.sample(remaining, min(n - len(result), len(remaining))))
+
+        return result[:n]
+
+    # ═══════════════════════════════════════════════════════
+
     def _pick_start(
         self, start_id: str | None, rng: random.Random,
         difficulty_range: tuple[int, int] | None,
+        *,
+        exclude_combat: bool = False,
     ) -> Module:
         candidates: list[Module] = []
         if start_id and start_id in self._modules:
@@ -902,8 +1003,12 @@ class ModuleComposer:
         if difficulty_range:
             lo, hi = difficulty_range
             candidates = [m for m in candidates if lo <= m.meta.difficulty <= hi]
+        if exclude_combat:
+            candidates = [m for m in candidates if m.meta.module_type != "combat"]
         if not candidates:
             candidates = list(self._modules.values())
+            if exclude_combat:
+                candidates = [m for m in candidates if m.meta.module_type != "combat"]
         return rng.choice(candidates)
 
     def _find_compatible(
@@ -922,6 +1027,21 @@ class ModuleComposer:
         if difficulty_range:
             lo, hi = difficulty_range
             candidates = [m for m in candidates if lo <= m.meta.difficulty <= hi]
+        # 随机注入 1-2 个已解锁战斗模块作为随机遭遇（不论地点是否匹配）
+        combat_pool = [
+            m for m in self._modules.values()
+            if m.meta.id not in used_ids
+            and m.meta.module_type == "combat"
+            and not m.meta.entry_required_clues
+            and m not in candidates
+        ]
+        if difficulty_range:
+            combat_pool = [m for m in combat_pool if lo <= m.meta.difficulty <= hi]
+        if combat_pool:
+            n_inject = min(len(combat_pool), 2)
+            import random as _random
+            injected = _random.sample(combat_pool, n_inject)
+            candidates.extend(injected)
         # 渐进放宽：无匹配时先忽略地点类型，再忽略线索要求，最后兜底任意模块
         if not candidates:
             candidates = [

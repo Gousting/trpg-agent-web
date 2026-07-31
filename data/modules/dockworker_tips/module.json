@@ -12,9 +12,7 @@
       "waterfront",
       "industrial"
     ],
-    "required_clues": [
-      "warehouse_inventory"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

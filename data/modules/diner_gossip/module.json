@@ -11,9 +11,7 @@
       "urban",
       "indoor"
     ],
-    "required_clues": [
-      "town_arrived"
-    ],
+    "required_clues": [],
     "mood": "suspense"
   },
   "exits": [

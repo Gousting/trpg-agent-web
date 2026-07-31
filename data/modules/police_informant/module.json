@@ -11,9 +11,7 @@
     "location_types": [
       "indoor"
     ],
-    "required_clues": [
-      "cult_members_identified"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

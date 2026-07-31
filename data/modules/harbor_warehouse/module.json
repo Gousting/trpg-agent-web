@@ -11,9 +11,7 @@
       "industrial",
       "indoor"
     ],
-    "required_clues": [
-      "smuggling_record_found"
-    ],
+    "required_clues": [],
     "mood": "confrontation"
   },
   "exits": [

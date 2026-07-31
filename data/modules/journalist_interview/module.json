@@ -11,9 +11,7 @@
     "location_types": [
       "indoor"
     ],
-    "required_clues": [
-      "police_records_found"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

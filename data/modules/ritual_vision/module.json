@@ -11,9 +11,7 @@
     "location_types": [
       "outdoor"
     ],
-    "required_clues": [
-      "ritual_incomplete_state"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

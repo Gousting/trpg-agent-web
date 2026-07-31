@@ -15,9 +15,7 @@
       "institutional",
       "asylum"
     ],
-    "required_clues": [
-      "ward_horror_witnessed"
-    ],
+    "required_clues": [],
     "forbidden_clues": [],
     "mood": "horror"
   },

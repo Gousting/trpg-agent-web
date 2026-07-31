@@ -13,9 +13,7 @@
       "underground",
       "indoor"
     ],
-    "required_clues": [
-      "underground_passage_found"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [

@@ -13,9 +13,7 @@
       "rural",
       "underground"
     ],
-    "required_clues": [
-      "sawmill_worker_disappeared"
-    ],
+    "required_clues": [],
     "mood": "tension"
   },
   "exits": [
