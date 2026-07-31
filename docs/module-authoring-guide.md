@@ -14,7 +14,7 @@
 | 恐怖 | 5 | `horror` | 同 story（语义标签，留待扩展） |
 | 休息 | 4 | `rest` | 同 story（语义标签，留待扩展） |
 
-**重要**：目前引擎只看 `module_type == "combat"` 这一个分支。其余六种类型（story/investigation/exploration/social/horror/rest）在组合引擎层面行为完全一致——都走场景序列流程。`module_type` 作为 `transition` 元数据传递给 web_server，可用于过渡文案风格差异化，但目前 web_server 尚未消费此字段。这些标签主要用于模块组织和未来扩展。
+**重要**：组合引擎（`ModuleComposer`）层面只看 `module_type == "combat"` 这一个分支。其余六种类型（story/investigation/exploration/social/horror/rest）在组合引擎层面行为完全一致——都走场景序列流程。`module_type` 会作为 `from_type`/`to_type` 写入过渡场景的 `transition` 元数据，`web_server.py` 在生成跨模块过渡叙事指令时会读取它（映射为“战斗/调查/剧情”等中文标签，未在映射表中的类型回退为原始英文），提示 KP 在类型切换时（如调查→战斗）体现氛围升级；除此之外，这些标签目前仍主要用于模块组织和未来扩展，没有驱动其它引擎分支逻辑。
 
 ## 目录结构
 
@@ -33,7 +33,7 @@ data/modules/<module_id>/
 |---|---|---|---|
 | `id` | string | ✓ | 模块唯一 ID，建议与目录名一致 |
 | `title` | string | ✓ | 模块标题，用于展示和过渡文案 |
-| `module_type` | string | - | `story`/`combat`/`investigation`/`exploration`/`social`/`horror`/`rest`，默认 `story`。目前仅 `combat` 触发不同引擎行为，其余为语义标签 |
+| `module_type` | string | - | `story`/`combat`/`investigation`/`exploration`/`social`/`horror`/`rest`，默认 `story`。组合引擎仅 `combat` 触发不同场景生成行为，其余为语义标签；`web_server.py` 会消费该字段生成过渡叙事的中文类型标签 |
 | `genre` | string[] | - | 题材标签，如 `["horror","mythos","underwater"]` |
 | `difficulty` | int | - | 难度 1-4，配合 `--difficulty-range` 过滤 |
 | `duration_estimate` | string | - | 展示用，如 `"2-3 turns"` |

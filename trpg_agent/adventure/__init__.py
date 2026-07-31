@@ -348,10 +348,16 @@ class Adventure:
                 lines.append(f"\nSAN 检定触发：{scene.san_check.get('trigger', '')} "
                              f"— 等级 {scene.san_check.get('level', 'MAJOR')}")
 
-            # 战斗
+            # 战斗（新版 combat 模块：{"enabled": True, "encounter": CombatEncounter}；
+            # 兼容旧版场景内嵌战斗触发器：{"trigger": ..., "enemy": ...}）
             if scene.combat:
-                lines.append(f"\n战斗触发：{scene.combat.get('trigger', '')} "
-                             f"— 敌人 {scene.combat.get('enemy', '')}")
+                encounter = scene.combat.get("encounter")
+                if scene.combat.get("enabled") and encounter is not None:
+                    enemy_names = "、".join(e.name for e in encounter.enemies[:3])
+                    lines.append(f"\n⚔️ 战斗遭遇：{encounter.title} — 敌人 {enemy_names}")
+                elif scene.combat.get("trigger") or scene.combat.get("enemy"):
+                    lines.append(f"\n战斗触发：{scene.combat.get('trigger', '')} "
+                                 f"— 敌人 {scene.combat.get('enemy', '')}")
 
             # 投票
             if scene.vote_prompt:

@@ -324,6 +324,29 @@ class CombatLoop:
         self._state.phase = "enter"
         return None
 
+    def force_end(self, outcome_id: str) -> CombatOutcome | None:
+        """强制以指定结局结束战斗，不检查 encounter.check_outcome() 的达成条件。
+
+        用途：resolve() 只在 encounter.check_outcome() 命中时才会结束战斗
+        （即 all_enemies_dead() 或调用方显式传入 investigators_fled/investigators_down），
+        而当前没有任何代码从 LLM 叙事文本里解析伤害或撤退——纯靠叙事无法自然终结战斗。
+        调用方（如 web_server 的回合数上限兜底）可以用这个方法强制收尾，避免战斗无限进行。
+
+        参数:
+            outcome_id: 目标结局 ID（如 "flee"/"defeat"/"victory"），必须存在于
+                encounter.outcomes 中，否则返回 None 且不改变状态。
+
+        返回:
+            对应的 CombatOutcome，若 outcome_id 无效则返回 None。
+        """
+        outcome = self._state.encounter.outcomes.get(outcome_id)
+        if outcome is None:
+            return None
+        self._state.phase = "end"
+        self._state.outcome = outcome
+        self._state.outcome_id = outcome_id
+        return outcome
+
     def end_summary(self) -> str:
         """生成战斗结束的叙事摘要。"""
         if not self._state.outcome:

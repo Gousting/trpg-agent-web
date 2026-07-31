@@ -637,6 +637,12 @@ class ModuleComposer:
                 exit_contexts.append((exit_idx, exit_state, full_clues, candidates))
 
             # 本节点已经连出去的模块 id——防止手写目标和随机候选重复连同一个模块
+            # （仅对叙事模块的跨出口去重有意义：它的多个出口是同一收敛场景里并列的
+            #  分支选项，同一下游模块出现两次没有意义。战斗模块的 victory/defeat/flee
+            #  三个出口互斥——同一局战斗只会走其中一条——不需要跨出口去重，否则会出现
+            #  排在前面的出口（如 victory/defeat）把所有兼容的下游模块抢光，导致排在
+            #  后面的出口（如 flee）永远匹配不到任何候选、变成死胡同。）
+            is_combat = mod.meta.module_type == "combat"
             node_targets: set[str] = set()
             claimed_exits: set[int] = set()
 
@@ -681,10 +687,12 @@ class ModuleComposer:
             # 随机兼容匹配作为补充——即使出口已经有手写目标，仍可叠加其它兼容候选，
             # 以恢复"多出口分支图组合引擎"原本的随机多样性（此前手写目标会完全屏蔽随机匹配）。
             for exit_idx, exit_state, full_clues, candidates in exit_contexts:
+                # 战斗模块每个出口独立去重，不与其它出口共享 node_targets（见上方注释）
+                exit_claimed = set() if is_combat else node_targets
                 for candidate_mod in candidates:
-                    if candidate_mod.meta.id in node_targets:
+                    if candidate_mod.meta.id in exit_claimed:
                         continue
-                    node_targets.add(candidate_mod.meta.id)
+                    exit_claimed.add(candidate_mod.meta.id)
 
                     if candidate_mod.meta.id in node_map:
                         child = node_map[candidate_mod.meta.id]
@@ -960,25 +968,56 @@ class ModuleComposer:
                 if sc.id not in {s.id for s in final_scenes}:
                     final_scenes.append(sc)
 
-            # 处理该模块的出口边：修改最后场景的 leads_to 和 exit_requires
+            # 处理该模块的出口边：挂载 leads_to / exit_labels / exit_requires
+            #
+            # 叙事模块：所有出口是同一个收敛场景（最后一个场景）里并列的分支选项，
+            #   全部挂到 mod_scenes[-1] 上，符合"最后一场戏投票走向哪条线"的设计。
+            # 战斗模块：victory/defeat/flee 是三个互斥的独立结局场景，每个结局
+            #   只应该继承"自己"那个 exit 匹配到的下游模块边，不能互相覆盖/合并——
+            #   否则会出现结局场景 leads_to 为空（死胡同）或错误结局继承了别的
+            #   结局的出口和标签的问题。按 exit_state.id 找到对应的
+            #   "{module_id}::combat_{outcome_id}" 场景作为该 exit 的挂载目标。
             if node.edges and mod_scenes:
+                is_combat = node.module.meta.module_type == "combat"
                 last_scene = mod_scenes[-1]
-                # 保留模块作者手写的 exit_labels + exit_requires（翻译 key 到过渡场景 ID）
-                authored_labels: dict[str, str] = dict(last_scene.exit_labels)
-                authored_exits: dict[str, str] = dict(last_scene.exit_requires)
-                new_leads: list[str] = []
-                new_exits: dict[str, str] = {}
-                new_labels: dict[str, str] = {}
+                scenes_by_id = {sc.id: sc for sc in mod_scenes}
+
+                # {scene_id: {"scene": Scene, "authored_labels": {...}, "authored_exits": {...},
+                #             "leads": [...], "labels": {...}, "exits": {...}}}
+                accum: dict[str, dict] = {}
+
+                def _accum_for(scene) -> dict:
+                    entry = accum.get(scene.id)
+                    if entry is None:
+                        entry = {
+                            "scene": scene,
+                            "authored_labels": dict(scene.exit_labels),
+                            "authored_exits": dict(scene.exit_requires),
+                            "leads": [],
+                            "labels": {},
+                            "exits": {},
+                        }
+                        accum[scene.id] = entry
+                    return entry
 
                 for exit_idx, exit_edges in node.edges.items():
                     exit_state = node.module.meta.exits[exit_idx] if exit_idx < len(node.module.meta.exits) else None
+
+                    target_scene = last_scene
+                    if is_combat and exit_state is not None and exit_state.id:
+                        target_scene = scenes_by_id.get(
+                            f"{node.module.meta.id}::combat_{exit_state.id}", last_scene
+                        )
+
+                    a = _accum_for(target_scene)
+
                     for edge in exit_edges:
                         child_node = edge.next_node
                         trans_id = edge.transition_scene_id
                         child_first = f"{child_node.module.meta.id}::{_first_scene_id(child_node.module)}"
                         child_module_id = child_node.module.meta.id
                         trans = _make_transition_scene(
-                            last_scene.id,
+                            target_scene.id,
                             from_module=node.module,
                             to_module=child_node.module,
                             exit_mood=exit_state.mood if exit_state else None,
@@ -989,28 +1028,30 @@ class ModuleComposer:
                         trans.id = trans_id
                         if trans.id not in {s.id for s in final_scenes}:
                             final_scenes.append(trans)
-                        new_leads.append(trans.id)
+                        a["leads"].append(trans.id)
 
                         # 标签：优先用手写的 exit_labels，回退到出口状态标签
-                        label = edge.label or authored_labels.get(edge.target_hint)
+                        label = edge.label or a["authored_labels"].get(edge.target_hint)
                         if not label:
-                            label = authored_labels.get(child_module_id) or authored_labels.get(child_first)
+                            label = a["authored_labels"].get(child_module_id) or a["authored_labels"].get(child_first)
                         if not label and exit_state and exit_state.label:
                             label = exit_state.label
                         if label:
-                            new_labels[trans.id] = label
+                            a["labels"][trans.id] = label
                         # 门控：优先手写的，回退到出口状态
-                        req = edge.required_element or authored_exits.get(edge.target_hint)
+                        req = edge.required_element or a["authored_exits"].get(edge.target_hint)
                         if not req:
-                            req = authored_exits.get(child_module_id) or authored_exits.get(child_first)
+                            req = a["authored_exits"].get(child_module_id) or a["authored_exits"].get(child_first)
                         if not req and exit_state and exit_state.requires_element:
                             req = exit_state.requires_element
                         if req:
-                            new_exits[trans.id] = req
+                            a["exits"][trans.id] = req
 
-                last_scene.leads_to = new_leads
-                last_scene.exit_requires = new_exits
-                last_scene.exit_labels = new_labels
+                for a in accum.values():
+                    scene = a["scene"]
+                    scene.leads_to = a["leads"]
+                    scene.exit_requires = a["exits"]
+                    scene.exit_labels = a["labels"]
 
                 # 递归处理所有子节点
                 for exit_edges in node.edges.values():

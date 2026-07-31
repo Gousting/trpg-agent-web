@@ -33,6 +33,7 @@ from trpg_agent.mapgen import DungeonMap
 from trpg_agent.scene_matcher import SceneMatcher
 from trpg_agent.adventure.module_composer import ModuleComposer
 from trpg_agent.adventure import Adventure
+from trpg_agent.combat import CombatLoop
 
 log = logging.getLogger(__name__)
 
@@ -99,6 +100,10 @@ app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
 _vote_tallies: dict[str, dict[str, int]] = {}
 _vote_queues: dict[str, asyncio.Queue] = {}
 VOTE_WINDOW_SECONDS = 32  # 略长于前端 30s 倒计时，确保超时自动投的那一票也能被计入
+
+# CombatLoop 不解析 LLM 叙事文本判定伤害/撤退——纯叙事无法自然触发结局，
+# 回合数超过此上限后强制收尾，避免战斗无限进行。
+COMBAT_MAX_ROUNDS = 6
 
 # EXIT 标记：AI 玩家模式下，KP 叙述末尾可附加 <<EXIT n>> 请求移动到第 n 个场景出口
 _EXIT_MARKER_RE = re.compile(r"<<\s*EXIT[\s:]*(\d+)\s*>>", re.IGNORECASE)
@@ -310,6 +315,41 @@ def _dice_consequence(dice_context: str, inv_state) -> dict | None:
     return None
 
 
+def _investigators_state_text(session: Session) -> str:
+    """生成调查员状态摘要文本，供 CombatLoop 的战斗 prompt 使用。"""
+    parts = []
+    for inv in session.state.investigators:
+        cond = f"（{', '.join(inv.conditions)}）" if inv.conditions else ""
+        parts.append(f"{inv.name} HP {inv.hp}/{inv.max_hp} SAN {inv.san}/{inv.max_san}{cond}")
+    return "；".join(parts)
+
+
+async def _vote_window(sid: str):
+    """投票窗口——推送实时票数变化，最后一次 yield 是 ('__result__', tally)。
+
+    共享给常规投票和战斗投票两种场景使用。
+    """
+    _vote_tallies[sid] = {}
+    vote_queue: asyncio.Queue = asyncio.Queue()
+    _vote_queues[sid] = vote_queue
+    deadline = asyncio.get_event_loop().time() + VOTE_WINDOW_SECONDS
+    try:
+        while True:
+            remaining = deadline - asyncio.get_event_loop().time()
+            if remaining <= 0:
+                break
+            try:
+                await asyncio.wait_for(vote_queue.get(), timeout=remaining)
+                current_tally = _vote_tallies.get(sid, {})
+                yield ("vote_tally", {"tally": dict(current_tally)})
+            except asyncio.TimeoutError:
+                break
+    finally:
+        _vote_queues.pop(sid, None)
+    tally = _vote_tallies.pop(sid, {})
+    yield ("__result__", tally)
+
+
 async def event_stream(host: str, kp_model: str, player_model: str,
                        turns: int, seed: int | None, mode: str,
                        compose_modules: bool = False,
@@ -460,12 +500,160 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     player_order = [inv["name"] for inv in INVESTIGATORS]
     current_bgm = bgm_track
     current_scene = scene_info
+    combat_loop: CombatLoop | None = None  # 非空时表示当前正处于战斗遭遇场景
 
     for turn in range(turns):
         speaker = player_order[turn % len(player_order)]
         inv_data = next(inv for inv in INVESTIGATORS if inv["name"] == speaker)
         inv_state = session.state.find_investigator(speaker)
         rc = dmap.room_context()
+
+        # ── 战斗场景检测：命中 combat.enabled 的场景时，整回合交给 CombatLoop 驱动 ──
+        current_combat_scene = None
+        if adventure is not None:
+            _scene_here = adventure.get_scene(session.state.scene_id)
+            if _scene_here is not None and _scene_here.combat and _scene_here.combat.get("enabled"):
+                current_combat_scene = _scene_here
+
+        if current_combat_scene is not None:
+            if combat_loop is None:
+                encounter = current_combat_scene.combat["encounter"]
+                combat_loop = CombatLoop(encounter, investigators_state=_investigators_state_text(session))
+                yield _sse("status", {"text": f"⚔️ 战斗开始：{encounter.title}"})
+
+            # ── 进场/回合叙事 + 三选项（LLM 生成）──
+            enter_sys = combat_loop.build_enter_prompt()
+            enter_usr = combat_loop.build_enter_user_prompt()
+            yield _sse("kp_stream_start", {})
+            enter_output = ""
+            async for token in _chat_stream(kp_client, enter_sys, enter_usr,
+                                            temperature=0.85, max_tokens=1200):
+                enter_output += token
+                yield _sse("kp_token", {"text": token})
+            if not enter_output:
+                enter_output = (
+                    "（战斗陷入僵局……）\n---\n**观望局势**\n静观其变，等待时机。"
+                    "\n---\n**主动出击**\n冒险突进，正面对抗。\n---\n**且战且退**\n边打边撤，寻找生路。"
+                )
+            round_state = combat_loop.start_round(enter_output)
+            audio_url = await _speak(round_state.opening_narration[:500])
+            yield _sse("kp_stream_end", {
+                "state": _state_snapshot(session),
+                "scene": None,
+                "audio_url": audio_url,
+                "bgm_track": None,
+            })
+
+            # ── 展示投票：三个赌注式选项 ──
+            vote_options = {opt.option_key.lower(): opt.label for opt in round_state.options}
+            if not vote_options:
+                vote_options = {"a": "观望局势", "b": "主动出击", "c": "且战且退"}
+            yield _sse("vote", {
+                "options": vote_options,
+                "session_id": sid,
+                "speaker": speaker,
+            })
+
+            tally: dict[str, int] = {}
+            async for evt_name, evt_data in _vote_window(sid):
+                if evt_name == "__result__":
+                    tally = evt_data
+                else:
+                    yield _sse(evt_name, evt_data)
+            if tally:
+                choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
+            else:
+                choice = next(iter(vote_options.keys()), "a")
+
+            chosen_opt = combat_loop.submit_vote(choice.upper())
+            action = f"（全员选择了「{chosen_opt.label if chosen_opt else vote_options.get(choice, '')}」）"
+            yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
+            yield _sse("player_token", {"text": action, "speaker": speaker})
+            yield _sse("player_stream_end", {"speaker": speaker})
+            await asyncio.sleep(0.2)
+
+            # ── 结算：LLM 判定行动结果 ──
+            res_sys = combat_loop.build_resolve_prompt()
+            res_usr = combat_loop.build_resolve_user_prompt()
+            yield _sse("kp_stream_start", {})
+            resolution_output = ""
+            async for token in _chat_stream(kp_client, res_sys, res_usr,
+                                            temperature=0.8, max_tokens=1500):
+                resolution_output += token
+                yield _sse("kp_token", {"text": token})
+            if not resolution_output:
+                resolution_output = "（结果混沌不清……）"
+            outcome = combat_loop.resolve(resolution_output)
+            narration = resolution_output
+
+            # 安全兜底：回合数超限仍未达成结局（LLM 叙事无法驱动 HP/撤退判定）时强制收尾
+            if outcome is None and combat_loop.current_round >= COMBAT_MAX_ROUNDS:
+                encounter = current_combat_scene.combat["encounter"]
+                fallback_id = next(
+                    (oid for oid in ("flee", "defeat", "victory") if oid in encounter.outcomes),
+                    next(iter(encounter.outcomes), ""),
+                )
+                if fallback_id:
+                    outcome = combat_loop.force_end(fallback_id)
+                    narration += "\n\n（战斗持续过久，局势再也无法维持……）"
+
+            if outcome is not None:
+                end_text = combat_loop.end_summary()
+                yield _sse("kp_token", {"text": "\n\n" + end_text})
+                narration += "\n\n" + end_text
+
+            session.record_turn(action, narration, speaker=speaker)
+            last_narration = narration
+            audio_url = await _speak(narration[:500])
+
+            moved_scene = None
+            if outcome is not None:
+                # 战斗结束——按结局 ID 跳转到对应的结局过渡场景，走完模块内自动过渡
+                module_id = current_combat_scene.id.split("::", 1)[0]
+                target_scene_id = f"{module_id}::combat_{outcome.id}"
+                moved_scene = session.move_to_scene(target_scene_id, adventure)
+                if moved_scene is not None:
+                    moved_scene, _trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+                combat_loop = None
+
+            # ── 场景切换（仅战斗结束且成功跳转时）/ 收尾 ──
+            scene_changed = False
+            bgm_changed = False
+            new_bgm = current_bgm
+            room_change = None
+            if moved_scene is not None:
+                session.state.location = moved_scene.title
+                current_scene = {"image": moved_scene.image, "location": moved_scene.title, "mood": moved_scene.mood}
+                scene_changed = True
+                if moved_scene.mood:
+                    track = _bgm_for_mood(moved_scene.mood)
+                    if track != current_bgm:
+                        new_bgm = track
+                        current_bgm = track
+                        bgm_changed = True
+                room_change = {
+                    "room_id": None,
+                    "room_name": moved_scene.title,
+                    "room_desc": moved_scene.description,
+                    "items": [],
+                    "map": dmap.to_dict(),
+                    "grid": dmap.grid,
+                    "image": moved_scene.image or dmap.relative_path,
+                    "room": rc,
+                }
+                yield _sse("room_change", room_change)
+                await asyncio.sleep(0.5)
+
+            yield _sse("kp_stream_end", {
+                "state": _state_snapshot(session),
+                "scene": current_scene if scene_changed else None,
+                "audio_url": audio_url,
+                "bgm_track": new_bgm if bgm_changed else None,
+                "room_change": room_change,
+                "room": rc,
+            })
+            await asyncio.sleep(0.3)
+            continue  # 战斗回合自成一体，跳过下方常规行动/叙述流程
 
         # ── 玩家行动 ───────────────────────────
         moved_scene = None  # 投票驱动的模块场景切换结果（仅模块模式下可能非 None）
@@ -531,24 +719,12 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             })
 
             # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
-            _vote_tallies[sid] = {}
-            vote_queue: asyncio.Queue = asyncio.Queue()
-            _vote_queues[sid] = vote_queue
-            deadline = asyncio.get_event_loop().time() + VOTE_WINDOW_SECONDS
-            try:
-                while True:
-                    remaining = deadline - asyncio.get_event_loop().time()
-                    if remaining <= 0:
-                        break
-                    try:
-                        await asyncio.wait_for(vote_queue.get(), timeout=remaining)
-                        current_tally = _vote_tallies.get(sid, {})
-                        yield _sse("vote_tally", {"tally": dict(current_tally)})
-                    except asyncio.TimeoutError:
-                        break
-            finally:
-                _vote_queues.pop(sid, None)
-            tally = _vote_tallies.pop(sid, {})
+            tally: dict[str, int] = {}
+            async for evt_name, evt_data in _vote_window(sid):
+                if evt_name == "__result__":
+                    tally = evt_data
+                else:
+                    yield _sse(evt_name, evt_data)
             if tally:
                 choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
             else:
