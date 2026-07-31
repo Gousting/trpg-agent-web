@@ -10,3 +10,5 @@ data/sessions/*/history.jsonl
 data/saves/
 data/tts_cache/
 trpg_agent_web/static/maps/current_*.png
+# ComfyUI 输出残留（图片应放在模块子目录内）
+data/modules/*.png
