@@ -370,13 +370,13 @@ def _scene_for_room(room_type: str) -> dict | None:
             matches = sm.match_exact_scene_type(scene_type)
             if matches:
                 m = matches[0]
-                return {"image": m.filename, "location": m.location, "mood": m.mood, "score": 1.0}
+                return {"image": f"/images/scenes/{m.filename}", "location": m.location, "mood": m.mood, "score": 1.0}
         # 回退：随机场景
         if sm._images:
             import random
             fname = random.choice(list(sm._images.keys()))
             tags = sm._images[fname]
-            return {"image": fname, "location": tags.get("location", ""),
+            return {"image": f"/images/scenes/{fname}", "location": tags.get("location", ""),
                     "mood": (tags.get("mood", [""]) or [""])[0], "score": 0}
     except Exception:
         log.debug("房间场景匹配失败: room_type=%r", room_type, exc_info=True)
