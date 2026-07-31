@@ -870,20 +870,26 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             narration = "（KP 沉思……）"
 
         # 模块模式 + AI 玩家：解析 KP 叙述里的 <<EXIT n>>，驱动场景切换
+        # 如果 KP 没输出 <<EXIT n>>，自动推进到下一个模块场景（保持背景图持续更新）
         if adventure is not None and mode == "ai":
             m = _EXIT_MARKER_RE.search(narration)
+            current_exits = adventure.scene_exits(
+                session.state.scene_id, resolved_ids=session.state.resolved_elements,
+            )
+            exit_choice = None
             if m:
                 narration = _EXIT_MARKER_RE.sub("", narration).rstrip()
                 exit_choice = int(m.group(1))
-                current_exits = adventure.scene_exits(
-                    session.state.scene_id, resolved_ids=session.state.resolved_elements,
+            elif current_exits and _non_combat_turns > 0:
+                # KP 没给出口标记 → 自动选择（单出口直接走，多出口随机）
+                import random as _random
+                exit_choice = 1 if len(current_exits) == 1 else _random.randint(1, len(current_exits))
+            if exit_choice is not None and 1 <= exit_choice <= len(current_exits):
+                moved_scene = session.move_to_scene(
+                    current_exits[exit_choice - 1].target_id, adventure,
                 )
-                if 1 <= exit_choice <= len(current_exits):
-                    moved_scene = session.move_to_scene(
-                        current_exits[exit_choice - 1].target_id, adventure,
-                    )
-                    if moved_scene is not None:
-                        moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+                if moved_scene is not None:
+                    moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
 
         session.record_turn(action, narration, speaker=speaker)
         last_narration = narration
@@ -953,10 +959,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 yield _sse("room_change", room_change)
                 await asyncio.sleep(0.5)
 
-        # 无场景变化时，不推 scene
+        # 始终推送当前场景图，让前端自行去重
         yield _sse("kp_stream_end", {
             "state": _state_snapshot(session),
-            "scene": current_scene if scene_changed else None,
+            "scene": current_scene,
             "audio_url": audio_url,
             "bgm_track": new_bgm if bgm_changed else None,
             "room_change": room_change,

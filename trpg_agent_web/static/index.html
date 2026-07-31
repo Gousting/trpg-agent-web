@@ -507,8 +507,11 @@ function startGame() {
     if (d.state) updateState(d.state);
     if (d.scene) {
       const img = document.getElementById('scene-img');
-      img.src = d.scene.image;  // image 已包含完整路径
-      img.classList.add('active');
+      const newSrc = d.scene.image || '';
+      if (img.src !== newSrc && img.getAttribute('src') !== newSrc) {
+        img.src = newSrc;
+        img.classList.add('active');
+      }
       document.getElementById('scene-label').textContent = d.scene.location || '';
       document.getElementById('scene-mood').textContent = d.scene.mood || '';
     }
