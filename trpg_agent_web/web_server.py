@@ -361,12 +361,22 @@ _ROOM_SCENE_MAP: dict[str, str] = {
 }
 
 
+_WORLD_NAME_RE = re.compile(r"^[a-z0-9_]+$")
+
+
 def _modules_dir_for_world(world: str) -> Path:
     """按世界观选择模块池目录。world 为空或 coc 时用默认 COC 模块池，
-    其他世界观用独立子目录（互不影响）。"""
+    其他世界观用独立子目录（互不影响）。
+
+    world 来自不受信任的请求参数，仅允许 [a-z0-9_]，否则回退默认池，
+    避免通过 "../" 等构造路径穿越到 data/ 之外的目录（CWE-22）。
+    """
     base = Path(__file__).resolve().parent.parent / "data"
     world = (world or "").strip().lower()
     if world in ("", "coc", "cof", "克苏鲁", "克苏鲁的呼唤"):
+        return base / "modules"
+    if not _WORLD_NAME_RE.match(world):
+        log.warning("非法 world 参数已拒绝，回退默认 COC 模块池: %r", world)
         return base / "modules"
     return base / f"modules_{world}"
 
@@ -732,18 +742,24 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             yield _sse("player_token", {"text": f"（全员选择了「{vote_options[choice]}」）", "speaker": speaker})
             yield _sse("player_stream_end", {"speaker": speaker})
-            # ── 应用伤害到调查员状态 ──
+            # ── 应用伤害到调查员状态（按人数精确分摊，总和不超过原始伤害）──
             if mech_result.damage_to_investigators:
-                dmg_per = max(1, mech_result.damage_to_investigators // len(INVESTIGATORS))
-                for invd in INVESTIGATORS:
+                n = len(INVESTIGATORS)
+                base_dmg, remainder = divmod(mech_result.damage_to_investigators, n)
+                for i, invd in enumerate(INVESTIGATORS):
+                    dmg = base_dmg + (1 if i < remainder else 0)
+                    if dmg <= 0:
+                        continue
                     st = session.state.find_investigator(invd["name"])
                     if st:
-                        st.take_damage(dmg_per)
+                        st.take_damage(dmg)
             if mech_result.san_loss:
                 inv_state.san = max(0, inv_state.san - mech_result.san_loss)
-            # 推送掷骰/伤害结果到前端
+            # 推送掷骰/伤害结果到前端（speaker/skill 供前端日志/骰子叠加层展示）
             yield _sse("dice_roll", {
                 "text": mech_result.summary,
+                "speaker": speaker,
+                "skill": mech_result.skill or "",
                 "success": mech_result.success,
                 "damage_to_enemies": mech_result.damage_to_enemies,
                 "damage_to_investigators": mech_result.damage_to_investigators,

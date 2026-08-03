@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## v1.2 — 直播演出化界面 & 手机直播变体 (2026-08-03)
+
+### Web 前端演出化升级 (`trpg_agent_web/static/index.html`)
+
+- 视觉风格重构为舞台化叙事布局：中心场景舞台 + 左侧调查员档案 + 右侧投票板 + 底部叙事卡
+- 新增统一色彩变量与纸张质感组件（卷宗卡、投票板、胶带/污渍装饰），强化悬疑叙事氛围
+- `player-host` 默认值修正为 `http://localhost:11434`（移除开发机局域网地址残留）
+- 投票板标题改为「嫌疑人投票」，与直播剧情表达统一
+
+### 叙事节奏与直播演出反馈 (`trpg_agent_web/static/index.html`)
+
+- KP 文本流改为前端逐字渲染队列：按中文标点动态停顿，叙事更接近视觉小说节奏
+- `kp_stream_end` 改为等待文本队列清空后再收尾，避免“场景先切、文字未播完”
+- 投票面板新增领先项脉冲效果（`leading`）与结算盖章（`票选锁定 X`）
+- 新增直播提示条 `#live-callout`：场景切换、锁票、伤害、回合完成、结局落幕等事件统一提示
+- 新增镜头演出效果：`vote-focus` 聚焦推进、`hit-flash` 受击红闪、`cameraPush` 轻推镜头
+
+### 直播模式可读性预设 (`trpg_agent_web/static/index.html`)
+
+- 新增 `broadcast` 样式预设：仅 `mode=live` 自动启用
+- 提升日志卡字号与行高、增强卡片对比与边界、调整投票板和提示条尺度，优化远距观看可读性
+- 新增轮次提示（`第 x / y 轮叙事完成`），降低直播观看中的上下文丢失
+
+### 纯手机直播页变体 (`trpg_agent_web/static/index.html`)
+
+- 新增手机断点优化（`<=760px` 与 `<=430px 竖屏`）：舞台首屏优先、日志与投票重排、可触达性优化
+- 新增 `mobile-live` 变体：仅在 `live + broadcast + 小屏` 自动启用，不影响大屏效果
+- 调查员面板改为抽屉：`#mobile-roster-toggle` / `#mobile-roster-scrim`，默认收起，按需展开
+- 投票出现时自动收起角色抽屉，保障手机端主交互区域（投票）不被遮挡
+- 新增 `syncMobileLiveVariant()`，并在 `resize` / `orientationchange` 时同步状态
+
+### 兼容性与影响范围
+
+- 大屏布局与非直播模式行为保持兼容；手机变体仅在满足条件时启用
+- 所有改动均为前端样式与展示逻辑增强，未变更后端 API 协议或事件字段
+
 ## v1.1 — 多世界观入口 (2026-08-01)
 
 ### 新增世界观选择 (`trpg_agent_web/web_server.py`, `static/index.html`)
