@@ -37,7 +37,7 @@ from trpg_agent.llm import echo_guard, consistency, intro_guard
 from trpg_agent.memory.game_state import Investigator
 from trpg_agent.mapgen import DungeonMap
 from trpg_agent.scene_matcher import SceneMatcher
-from trpg_agent.adventure.module_composer import ModuleComposer
+from trpg_agent.adventure.module_composer import ModuleComposer, _combat_to_scene
 from trpg_agent.adventure import Adventure
 from trpg_agent.combat.orchestrator import CombatOrchestrator
 from trpg_agent.combat.encounter import CombatEncounter
@@ -361,6 +361,16 @@ _ROOM_SCENE_MAP: dict[str, str] = {
 }
 
 
+def _modules_dir_for_world(world: str) -> Path:
+    """按世界观选择模块池目录。world 为空或 coc 时用默认 COC 模块池，
+    其他世界观用独立子目录（互不影响）。"""
+    base = Path(__file__).resolve().parent.parent / "data"
+    world = (world or "").strip().lower()
+    if world in ("", "coc", "cof", "克苏鲁", "克苏鲁的呼唤"):
+        return base / "modules"
+    return base / f"modules_{world}"
+
+
 def _scene_for_room(room_type: str) -> dict | None:
     """根据房间类型匹配场景图。"""
     try:
@@ -477,18 +487,36 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                        kp_api_key: str = "",
                        player_host: str = "http://localhost:11434",
                        force_pickup: bool = False,
-                       vote_seconds: int = 32):
+                       vote_seconds: int = 32,
+                       force_combat: bool = False,
+                       world: str = ""):
     """SSE 事件流 — 完整的游戏循环。"""
     
     # ── 模块组合模式 ──────────────────────────
     adventure: Adventure | None = None
     if compose_modules:
         yield _sse("status", {"text": "组合模块剧情..."})
-        composer = ModuleComposer(Path(__file__).resolve().parent.parent / "data" / "modules")
+        modules_dir = _modules_dir_for_world(world)
+        composer = ModuleComposer(modules_dir)
         composer.load_all()
+        if not composer._modules:
+            yield _sse("error", {"text": f"世界观 [{world or 'coc'}] 模块池为空：{modules_dir}"})
+            return
         bundle = composer.compile(seed=seed, max_depth=3)
         adventure = bundle.adventure
-        yield _sse("status", {"text": f"已组合 {len(bundle.module_ids)} 个模块, {len(adventure._scenes)} 个场景"})
+        yield _sse("status", {"text": f"已组合 {len(bundle.module_ids)} 个模块, {len(adventure._scenes)} 个场景 (世界观: {world or 'coc'})"})
+
+        # ── 强制战斗注入 ──
+        if force_combat:
+            import random as _rnd
+            combat_mods = [m for m in composer._modules.values()
+                          if m.meta.module_type == "combat" and m.encounter is not None]
+            if combat_mods:
+                cm = _rnd.choice(combat_mods)
+                cs = _combat_to_scene(cm.meta.id, cm.encounter)
+                adventure._scenes[cs.id] = cs
+                adventure.start_scene = cs.id
+                yield _sse("status", {"text": f"⚔️ 强制战斗：{cm.encounter.title} (难度 {cm.encounter.difficulty})"})
     
     yield _sse("status", {"text": "生成地图..."})
 
@@ -702,8 +730,25 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             # ── 机制 + 叙事结算 ──
             mech_result = combat_orch.submit_and_resolve_mechanics(choice)
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
-            yield _sse("player_token", {"text": f"（全员选择了「{choice}」）", "speaker": speaker})
+            yield _sse("player_token", {"text": f"（全员选择了「{vote_options[choice]}」）", "speaker": speaker})
             yield _sse("player_stream_end", {"speaker": speaker})
+            # ── 应用伤害到调查员状态 ──
+            if mech_result.damage_to_investigators:
+                dmg_per = max(1, mech_result.damage_to_investigators // len(INVESTIGATORS))
+                for invd in INVESTIGATORS:
+                    st = session.state.find_investigator(invd["name"])
+                    if st:
+                        st.take_damage(dmg_per)
+            if mech_result.san_loss:
+                inv_state.san = max(0, inv_state.san - mech_result.san_loss)
+            # 推送掷骰/伤害结果到前端
+            yield _sse("dice_roll", {
+                "text": mech_result.summary,
+                "success": mech_result.success,
+                "damage_to_enemies": mech_result.damage_to_enemies,
+                "damage_to_investigators": mech_result.damage_to_investigators,
+                "san_loss": mech_result.san_loss,
+            })
             await asyncio.sleep(0.2)
 
             res_sys, res_usr = combat_orch.prepare_resolve()
@@ -1301,6 +1346,8 @@ async def stream(
     player_host: str = "http://localhost:11434",
     force_pickup: bool = False,
     vote_seconds: int = Query(default=60, ge=5, le=600),
+    force_combat: bool = False,
+    world: str = Query(default="", max_length=32),
 ):
     try:
         seed_val = int(seed) if seed else None
@@ -1309,7 +1356,7 @@ async def stream(
     return StreamingResponse(
         event_stream(host, kp, player, turns, seed_val, mode, compose_modules,
                      kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup,
-                     vote_seconds=vote_seconds),
+                     vote_seconds=vote_seconds, force_combat=force_combat, world=world),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

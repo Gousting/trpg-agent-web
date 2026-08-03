@@ -1,0 +1,68 @@
+{
+ "id": "hogwarts_entrance",
+ "title": "霍格沃茨·入学之夜",
+ "genre": [
+  "harry_potter",
+  "magic"
+ ],
+ "difficulty": 1,
+ "entry": {
+  "location_types": [
+   "magic_school",
+   "indoor"
+  ],
+  "required_clues": [],
+  "mood": "wonder"
+ },
+ "exits": [
+  {
+   "id": "to_great_hall",
+   "label": "前往大礼堂参加分院仪式",
+   "provides_clues": [
+    "sorted_into_house"
+   ],
+   "mood": "awe",
+   "next_location_type": "indoor"
+  },
+  {
+   "id": "to_forbidden_corridor",
+   "label": "独自探索城堡的偏僻走廊",
+   "provides_clues": [
+    "castle_secret_rumor"
+   ],
+   "mood": "mystery",
+   "next_location_type": "indoor"
+  }
+ ],
+ "scenes": [
+  {
+   "id": "entrance_hall",
+   "description": "你站在霍格沃茨城堡的大门前，石阶两侧的魔法火把自动亮起，城堡的巨门缓缓打开。门厅高得看不见天花板，天花板被施了魔法，呈现出一片繁星点点的夜空。麦格教授站在门厅中央，严肃地打量着你们。远处传来大礼堂的喧闹声——分院仪式即将开始。",
+   "image_prompt": "magical castle entrance hall at night, enchanted ceiling showing starry sky, floating torches, stone staircase, professor standing at center, warm candlelight, Hogwarts style gothic architecture, cinematic wide shot, fantasy illustration, magical atmosphere, no text",
+   "leads_to": [
+    "sorting_ceremony",
+    "corridor_whisper"
+   ]
+  },
+  {
+   "id": "sorting_ceremony",
+   "description": "大礼堂里四张长桌分别坐着四个学院的师生。麦格教授捧着一顶破旧的分院帽走到前面。分院帽张开它的口子，唱了一首歌，然后大厅安静下来——轮到你戴上它了。",
+   "image_prompt": "grand banquet hall with four long tables, floating candles above, old ragged sorting hat on stool, students in robes watching, warm golden light, enchanted ceiling, gothic castle hall, fantasy illustration, cinematic composition, no text",
+   "vote_prompt": "分院帽在你耳边低语：你渴望勇气、智慧、忠诚，还是野心？",
+   "exit_labels": {
+    "great_hall_gossip::dinner_table": "分入学院后与同院学生共进晚餐",
+    "forbidden_corridor::locked_door": "晚宴后决定去查看那条禁止进入的走廊"
+   }
+  },
+  {
+   "id": "corridor_whisper",
+   "description": "你绕开人群，穿过一条条石质走廊。壁画像活人一样窃窃私语，看着你经过。在一幅挂毯后面，你听到两个高年级学生在低声谈论：'他们又在四楼发现了什么……那条走廊，连费尔奇都不敢进去。'",
+   "image_prompt": "empty castle corridor at night, animated portraits whispering on walls, flickering torchlight, stone arches, tapestry at end, mysterious atmosphere, gothic castle, fantasy illustration, suspenseful mood, no text",
+   "vote_prompt": "偷听来的线索，你打算怎么用？",
+   "exit_labels": {
+    "forbidden_corridor::locked_door": "立即去四楼走廊一探究竟",
+    "great_hall_gossip::dinner_table": "先回礼堂，把消息告诉同院的学长"
+   }
+  }
+ ]
+}

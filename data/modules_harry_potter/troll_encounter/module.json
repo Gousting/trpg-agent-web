@@ -1,0 +1,126 @@
+{
+ "id": "troll_encounter",
+ "title": "女盥洗室·山怪突袭",
+ "module_type": "combat",
+ "genre": [
+  "harry_potter",
+  "combat"
+ ],
+ "difficulty": 2,
+ "duration_estimate": "2-4 turns",
+ "entry": {
+  "location_types": [
+   "indoor",
+   "bathroom"
+  ],
+  "required_clues": [],
+  "forbidden_clues": [],
+  "mood": "panic"
+ },
+ "exits": [
+  {
+   "id": "victory",
+   "label": "击败山怪，救出被困的同学",
+   "provides_clues": [
+    "troll_defeated",
+    "friend_saved"
+   ],
+   "mood": "relief",
+   "next_location_type": "indoor"
+  },
+  {
+   "id": "defeat",
+   "label": "被山怪击倒，昏迷过去",
+   "provides_clues": [
+    "captured_by_troll"
+   ],
+   "mood": "despair",
+   "next_location_type": "indoor"
+  },
+  {
+   "id": "flee",
+   "label": "引开山怪，掩护同学逃跑",
+   "provides_clues": [
+    "troll_led_away"
+   ],
+   "mood": "anxiety",
+   "next_location_type": "indoor"
+  }
+ ],
+ "enemies": [
+  {
+   "id": "mountain_troll",
+   "name": "十二英尺山怪",
+   "hp": 18,
+   "armor": 1,
+   "attack_bonus": 3,
+   "damage": "1d6+3",
+   "abilities": [
+    {
+     "name": "蛮力挥击",
+     "effect": "命中后 STR 检定，失败则被击飞（受额外 1d3 伤害并倒地一回合）"
+    },
+    {
+     "name": "再生",
+     "effect": "每两回合恢复 2 HP（被火焰或魔法打断）"
+    }
+   ],
+   "behavior": "疯狂地砸碎盥洗室设施，优先攻击靠近被困同学的人",
+   "count": 1
+  }
+ ],
+ "environment": {
+  "terrain": "女盥洗室被砸得一片狼藉，水龙头喷出高压水柱，地面湿滑",
+  "hazards": [
+   "湿滑地板——DEX 检定失败则滑倒（受 1d2 伤害，本回合无法行动）",
+   "喷水的水管——可切断制造高压水柱冲击山怪（击退 1 回合）",
+   "散落的盥洗室门板——可举起作为盾牌（抵挡 1d4 伤害）"
+  ],
+  "lighting": "flickering"
+ },
+ "rules": [
+  "魔法（如漂浮咒、缴械咒）对山怪有效，但山怪免疫部分普通攻击",
+  "火焰魔法可打断山怪的再生",
+  "山怪对突然出现的猫（如洛丽丝夫人）会分心，本回合回避 -2"
+ ],
+ "outcomes": {
+  "victory": {
+   "condition": "击倒山怪",
+   "provides_clues": [
+    "troll_defeated",
+    "friend_saved"
+   ],
+   "next_location_type": "indoor",
+   "reward": "被困的赫奇帕奇同学告诉你：她看到山怪是从四楼那扇锁着的门里跑出来的",
+   "consequence": "整层楼的师生被惊动，麦格教授赶来时山怪已经倒下，她严厉地瞪了你们一眼"
+  },
+  "defeat": {
+   "condition": "全体调查员 HP=0",
+   "provides_clues": [
+    "captured_by_troll"
+   ],
+   "next_location_type": "indoor",
+   "consequence": "山怪的巨棒砸下，你眼前一黑。醒来时你躺在医疗翼的病床上，庞弗雷夫人正在给你灌魔药"
+  },
+  "flee": {
+   "condition": "引开山怪并掩护同学撤离",
+   "provides_clues": [
+    "troll_led_away"
+   ],
+   "next_location_type": "indoor",
+   "consequence": "你边跑边喊，山怪砸碎了一排盔甲追了上来。当费尔奇带着教授赶到时，山怪已经被锁进了地窖"
+  }
+ },
+ "scaling": {
+  "per_extra_player": {
+   "enemies": "山怪 HP +4"
+  }
+ },
+ "image_prompt": "giant mountain troll rampaging in girls bathroom, smashed sinks, high-pressure water jets, wet tiled floor, broken door panels, flickering lights, terrified students hiding, fantasy combat scene, dynamic action, gothic castle interior, dramatic lighting, no text",
+ "escalation": [
+  "山怪砸碎了天花板的水管，整个房间被水淹没——水面上升，所有人都必须每回合做 DEX 检定避免滑倒（失败则本回合无法行动）。",
+  "山怪的再生能力被触发，它发出一声咆哮，伤口开始愈合（恢复 2 HP）。火焰魔法可以打断这个效果。",
+  "洛丽丝夫人（管理员费尔奇的猫）被水声引来，在门口惊恐地炸毛。山怪被吸引注意——本回合它回避 -2，但如果猫被抓住，费尔奇会冲进来。",
+  "地窖方向传来更多沉重的脚步声——如果不在 2 轮内结束战斗，另一只山怪将破门而入。"
+ ]
+}

@@ -1,0 +1,69 @@
+{
+ "id": "great_hall_gossip",
+ "title": "大礼堂·晚宴流言",
+ "genre": [
+  "harry_potter",
+  "social"
+ ],
+ "difficulty": 1,
+ "entry": {
+  "location_types": [
+   "indoor",
+   "dining_hall"
+  ],
+  "required_clues": [],
+  "mood": "warm"
+ },
+ "exits": [
+  {
+   "id": "to_library",
+   "label": "去图书馆查阅那个名字",
+   "provides_clues": [
+    "name_in_history",
+    "library_lead"
+   ],
+   "mood": "curiosity",
+   "next_location_type": "indoor"
+  },
+  {
+   "id": "to_dungeons",
+   "label": "跟着可疑的高年级学生去地窖",
+   "provides_clues": [
+    "slytherin_activity"
+   ],
+   "mood": "suspense",
+   "next_location_type": "underground"
+  }
+ ],
+ "scenes": [
+  {
+   "id": "dinner_table",
+   "description": "长桌上摆满了烤牛肉、约克郡布丁和南瓜汁。你旁边的二年级学生压低声音说：'你听说了吗？四楼走廊被封锁了，好像跟……那个名字有关。'她不敢说出那个名字，但用指尖在桌布上写下了一个名字的开头字母。周围的幽灵飘过，好奇地打量着你们。",
+   "image_prompt": "crowded dining hall table with roast beef, yorkshire pudding, pumpkin juice, young students whispering, ghost floating above, floating candles, warm firelight, enchanted ceiling, gothic hall, fantasy illustration, cozy but mysterious mood, no text",
+   "leads_to": [
+    "library_visit",
+    "dungeon_follow"
+   ]
+  },
+  {
+   "id": "library_visit",
+   "description": "图书馆里，平斯夫人用锐利的目光盯着每一个借书的人。你翻到《霍格沃茨：一段校史》，在禁书目录的附注里看到了那个名字——以及一行被划掉的批注：'此人与密室有关。'书页间夹着一张发黄的地图碎片。",
+   "image_prompt": "ancient library with towering bookshelves, strict librarian watching, dusty books, candlelight on reading table, yellowed map fragment, gothic atmosphere, warm lamplight, fantasy illustration, mysterious mood, no text",
+   "vote_prompt": "地图碎片上有一行模糊的字迹，指向城堡某处——你决定？",
+   "exit_labels": {
+    "forbidden_corridor::locked_door": "按地图碎片指示前往那个位置",
+    "dungeons_slytherin::common_room": "先去地窖的斯莱特林公共休息室附近打探"
+   }
+  },
+  {
+   "id": "dungeon_follow",
+   "description": "你跟着那两个高年级学生走下旋转楼梯，来到阴冷的地窖走廊。他们在一扇装饰着蛇形浮雕的门前停下，低声对暗号。门后隐约传来低沉的呢喃声——不像是人在说话。",
+   "image_prompt": "cold dungeon corridor with serpent relief on stone door, two older students whispering password, torchlight, damp stone walls, greenish glow from door crack, gothic underground, fantasy illustration, suspenseful mood, no text",
+   "vote_prompt": "门内传来非人的低语，你要不要靠近？",
+   "exit_labels": {
+    "troll_encounter::bathroom_ambush": "破门而入看个究竟",
+    "library_visit_return": "记下位置，先撤回去找老师"
+   }
+  }
+ ]
+}

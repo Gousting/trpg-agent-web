@@ -1,0 +1,58 @@
+{
+ "id": "forbidden_corridor",
+ "title": "四楼禁走廊·三头犬的秘密",
+ "genre": [
+  "harry_potter",
+  "mystery"
+ ],
+ "difficulty": 2,
+ "entry": {
+  "location_types": [
+   "indoor",
+   "corridor"
+  ],
+  "required_clues": [],
+  "mood": "dread"
+ },
+ "exits": [
+  {
+   "id": "to_trapdoor",
+   "label": "想办法安抚三头犬，查看它守着的活板门",
+   "provides_clues": [
+    "trapdoor_found",
+    "fluffy_guard"
+   ],
+   "mood": "tension",
+   "next_location_type": "underground"
+  },
+  {
+   "id": "to_mirror",
+   "label": "先退回去，把发现告诉教授",
+   "provides_clues": [
+    "reported_to_professor"
+   ],
+   "mood": "caution",
+   "next_location_type": "indoor"
+  }
+ ],
+ "scenes": [
+  {
+   "id": "locked_door",
+   "description": "四楼走廊尽头的门被一把魔法锁锁住。门上刻着：'禁止进入——否则后果自负'。门缝里透出微弱的光，还有一股潮湿的、动物般的腥气。你听到门后传来三声巨大的鼾声，地板随之微微震动。",
+   "image_prompt": "locked wooden door at end of corridor, warning sign, faint light from crack, giant snoring sound implied by shaking floorboards, damp smell atmosphere, torchlight, gothic castle, fantasy illustration, dread mood, no text",
+   "leads_to": [
+    "three_headed_dog"
+   ]
+  },
+  {
+   "id": "three_headed_dog",
+   "description": "门开了。一只巨大的三头犬——显然是混血巨犬——正趴在地板上打盹，三个脑袋轮流打鼾。它脚下是一块活板门，门缝里透出深不见底的黑暗。角落里有架竖琴，琴弦还在微微颤动——有人刚才在这里演奏过，用它安抚了巨犬。",
+   "image_prompt": "enormous three-headed dog sleeping on stone floor, trapdoor beneath its paws, harp in corner with vibrating strings, dark pit visible through trapdoor crack, torchlit chamber, fantasy illustration, tense mood, no text",
+   "vote_prompt": "三头犬守着活板门，竖琴似乎能让它入睡——你怎么办？",
+   "exit_labels": {
+    "troll_encounter::bathroom_ambush": "用竖琴让它沉睡，掀开活板门下去",
+    "professor_office::report": "不冒险，回去向教授报告这个发现"
+   }
+  }
+ ]
+}

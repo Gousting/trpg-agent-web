@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v1.1 — 多世界观入口 (2026-08-01)
+
+### 新增世界观选择 (`trpg_agent_web/web_server.py`, `static/index.html`)
+
+- `/api/stream` 新增 `world` 参数；`coc`（默认，空值同）→ `data/modules/`，其他世界观 → `data/modules_<world>/`
+- 新增 `_modules_dir_for_world()` 目录选择函数；模块池为空时返回明确 error 事件
+- 前端控制栏新增「世界观」下拉（克苏鲁 COC / 哈利波特），透传 API
+- 新增哈利波特模块池 `data/modules_harry_potter/`：hogwarts_entrance（入学之夜）、great_hall_gossip（晚宴流言）、forbidden_corridor（三头犬禁走廊）、troll_encounter（山怪战斗）
+- 不同世界观模块池完全隔离，互不加载
+- 修改记录规范：新增 `docs/development-changes.md`，每次代码变更后追加
+
+### 战斗伤害结算修复 (`trpg_agent_web/web_server.py`)
+
+- 战斗机制层的伤害/SAN 损失此前只存在于 `mech_result` 文本，从未写入调查员状态——已修复：伤害按人数分摊写入 HP，SAN 损失直接扣除
+- 新增 `dice_roll` SSE 事件，把检定结果/伤害数值推送到前端
+
 ## v1.0 — 模块组合引擎重构 & 界面独立化 (2026-07-31)
 
 ### 模块组合引擎重构 (`trpg_agent/adventure/module_composer.py`)
