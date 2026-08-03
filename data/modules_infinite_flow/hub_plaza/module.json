@@ -1,0 +1,89 @@
+{
+  "id": "hub_plaza",
+  "title": "主神空间·轮回广场",
+  "genre": [
+    "infinite_flow",
+    "hub"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "1 turn",
+  "reusable": true,
+  "entry": {
+    "location_types": [
+      "hub"
+    ],
+    "required_clues": [],
+    "forbidden_clues": [],
+    "mood": "mysterious"
+  },
+  "exits": [
+    {
+      "id": "to_resident_evil",
+      "label": "进入副本【生化危机】——蜂巢实验室",
+      "provides_clues": [
+        "hub_visited"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "to_juon",
+      "label": "进入副本【咒怨】——佐伯家凶宅",
+      "provides_clues": [
+        "hub_visited"
+      ],
+      "mood": "horror",
+      "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "to_xiuxian",
+      "label": "进入副本【修仙】——青云宗外门",
+      "provides_clues": [
+        "hub_visited"
+      ],
+      "mood": "mysterious",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "plaza",
+      "title": "轮回广场",
+      "part": 0,
+      "scene_type": "主神空间",
+      "image_prompt": "vast cosmic plaza floating in void, ancient stone arches forming a circle, three glowing doorways each with different colored light (toxic green, blood red, jade gold), starfield background with nebula, central obelisk with runes, mysterious otherworldly atmosphere, epic scale, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "description": "脚下是光滑的黑色石面，像一面倒映着星空的镜子。十二根刻满符文的石柱围成一圈，顶端悬浮着暗淡的光球。广场中央矗立着一座黑色方尖碑，碑面缓缓流动着金色的纹路——那是你从未见过的文字，却莫名能读懂其意：「轮回者，选择你的试炼。」\n\n方尖碑周围悬浮着三扇巨大的光门，每扇门的颜色与气息都截然不同：\n\n左首的门泛着病态的绿色荧光，隐约能听到机械运转与低沉的嘶吼——「生化危机」\n\n中间的门透着暗红血色，寒气从门缝渗出，似乎有什么东西在门的另一侧注视着你们——「咒怨」\n\n右首的门流转着温润的青玉色光泽，有檀香与剑气的气息——「修仙」\n\n碑文在你们注视光门时微微发亮，一行新的文字浮现：「完成试炼，可得轮回点。轮回点可强化己身。」",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "h1",
+          "text": "触摸方尖碑，查看轮回者规则与可兑换的强化列表"
+        },
+        {
+          "id": "h2",
+          "text": "观察三扇光门，感受各自的气息与危险程度"
+        },
+        {
+          "id": "h3",
+          "text": "检查自己身上的装备与状态，确认是否做好了进入副本的准备"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "hs1",
+          "text": "方尖碑的符文在你们转身时会短暂改变排列——它似乎有自己的意志，在挑选轮回者"
+        },
+        {
+          "id": "hs2",
+          "text": "三扇光门的颜色对应的并不是危险度，而是不同体系的轮回者分配——绿色主科技、红色主灵异、青色主修真"
+        }
+      ],
+      "vote_prompt": "三扇光门在你面前，选择进入哪个副本？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "主神空间是无限流的枢纽。选择副本后进入对应剧情链，通关后返回此场景可再次选择。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

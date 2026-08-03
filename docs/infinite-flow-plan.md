@@ -28,10 +28,10 @@
 | 模块 | entry.location_types | 出口 next_location_type |
 |---|---|---|
 | hub（reusable） | `["hub"]` | `dungeon_rs` / `dungeon_jy` / `dungeon_xt` |
-| 副本入口（生化） | `["hub"]` | `dungeon_rs` |
+| 副本入口（生化） | `["dungeon_rs"]` | `dungeon_rs` |
 | 副本内部（生化） | `["dungeon_rs"]` | `dungeon_rs` |
 | 副本通关（生化） | `["dungeon_rs"]` | `hub` |
-| 副本入口（咒怨） | `["hub"]` | `dungeon_jy` |
+| 副本入口（咒怨） | `["dungeon_jy"]` | `dungeon_jy` |
 
 副本 A 的模块与副本 B 的入口 location_type 无交集 → 永不串线。
 
@@ -44,22 +44,29 @@
 ```
 data/modules_infinite_flow/
   hub_plaza/module.json          # reusable: true
-  dungeon_resident_evil/...      # 生化危机副本（4-6 层）
-  dungeon_juon/...               # 咒怨副本
-  dungeon_xiuxian/...            # 修仙副本
+  dungeon_rs_*/module.json       # 生化危机副本（4 模块链）
+  dungeon_juon_*/module.json     # 咒怨副本（4 模块链）
+  dungeon_xiuxian_*/module.json  # 修仙副本（4 模块链）
 ```
 
 ### 3. 冲突规避清单
 
 1. **副本串线**：`_find_compatible` 的渐进放宽会忽略 location_type——规避办法是副本内部模块数量足够、线索链完整，保证每个出口都能匹配到候选，永不触发放宽分支
-2. **hub 多出口撞同一副本入口**：副本入口模块 entry 要求不同线索，让它们互斥
-3. **深度限制**：`max_depth` 当前默认 3，副本链 = hub + 内部 N 层 + 结算，需调大到 4-6
+2. **hub 多出口撞同一副本入口**：副本入口 entry 要求不同线索（`forbidden_clues` 禁止其他副本的 `*_entered` 线索），让它们互斥
+3. **深度限制**：`_compose_max_depth()` 按世界观调整——无限流 6 层，其他世界观保持 3
 4. **多副本循环**：已由 `reusable` 字段解决——hub 豁免去重可被多次进入，BFS 深度上限防死循环
 
-### 4. 待办
+### 4. 已完成（2026-08-03 实现）
 
-- [ ] 编写 hub_plaza 模块（reusable: true，3+ 副本出口）
-- [ ] 编写 3 个副本模块池（生化 / 咒怨 / 修仙），每个 4-6 层剧情链
-- [ ] `web_server.py` 的 `world` 参数已支持多目录——接入 `data/modules_infinite_flow/`
-- [ ] 验证：主神空间 → 进副本 A → 通关 → 返回 hub → 进副本 B 全链路
+- [x] 编写 hub_plaza 模块（reusable: true，3+ 副本出口）
+- [x] 编写 3 个副本模块池（生化 / 咒怨 / 修仙），每个 4 模块剧情链（入口→中段→深层→BOSS）
+- [x] `web_server.py` 接入 `world=infinite_flow` → `data/modules_infinite_flow/` + `_compose_max_depth()` 深度参数化
+- [x] 前端世界观下拉新增「无限流」选项
+- [x] 验证：13 模块加载、validate 零问题、副本隔离不串线、BOSS 结局回 hub、web 全链路跑通
+- [x] `tests/test_infinite_flow.py` 4 个专项测试，全量 190 个测试无回归
+
+### 5. 后续待办
+
 - [ ] 评估：轮回者三维属性（力量/敏捷/精神）+ 强化树是否进本阶段
+- [ ] 验证：主神空间 → 进副本 A → 通关 → 返回 hub → 进副本 B 的完整直播流程（需 Ollama 在线）
+- [ ] 副本内容扩展：每个副本可加更多分支模块提升重玩性

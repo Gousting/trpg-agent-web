@@ -1,0 +1,81 @@
+{
+  "id": "dungeon_rs_lab",
+  "title": "生化危机·T病毒实验室",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "survival"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_corridor_cleared"
+    ],
+    "forbidden_clues": [],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_boss",
+      "label": "深入主实验室，面对最终实验体",
+      "provides_clues": [
+        "rs_lab_accessed"
+      ],
+      "mood": "panic",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "lab",
+      "title": "T病毒主实验室",
+      "part": 0,
+      "scene_type": "实验室",
+      "image_prompt": "massive underground virology laboratory, rows of cylindrical glass containment tanks filled with green liquid, strange mutated creatures suspended inside, broken monitors showing DNA helix diagrams, central console with red warning lights, overhead pipes leaking steam, survival horror, sterile yet ominous atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "description": "实验室的门被撞开。这里曾是蜂巢的核心——巨大的玻璃培养槽排列成行，绿色液体里悬浮着形状各异的……东西。有些接近人形，有些不完全是。\n\n正中央的控制台上，全息投影亮着，一个由无数红色像素组成的小女孩形象悬浮在空中——蜂巢的主控 AI「红后」。\n\n「入侵者。」红后的声音毫无感情，「我建议你们立即离开。主实验室的深层培养槽将在 15 分钟后解除限制。届时，所有实验体都将苏醒。」\n\n投影停顿了一瞬，补了一句：「……但如果你们是来关闭我的，请往深处走。我的主机在对面。祝你们好运。」",
+      "npcs_here": [
+        "红后"
+      ],
+      "opportunities": [
+        {
+          "id": "rl1",
+          "text": "与红后对话——询问蜂巢的秘密与逃生路线"
+        },
+        {
+          "id": "rl2",
+          "text": "研究培养槽里的实验体——了解 T 病毒的进化方向"
+        },
+        {
+          "id": "rl3",
+          "text": "直接前往红后主机房，寻找关闭自毁协议的方法"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rls1",
+          "text": "红后隐去了一个关键信息：她并不是要保护人类——她在研究轮回者的能量，试图用 T 病毒复制轮回者的力量。你们体内的轮回者印记让她兴奋"
+        },
+        {
+          "id": "rls2",
+          "text": "培养槽的标签显示，最新的实验体融合了「某种不属于这个世界的能量」——正是轮回者的能量样本"
+        }
+      ],
+      "vote_prompt": "红后的警告在耳畔回响，你们选择深入还是撤退？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "生化副本深层。红后是关键 NPC，BOSS 战前的情报窗口。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "红后",
+      "description": "蜂巢主控 AI 的全息投影，红色像素构成的小女孩形象。语气冰冷机械，但偶尔流露出超出 AI 的……情感？",
+      "attitude": "neutral"
+    }
+  ],
+  "variance": null
+}

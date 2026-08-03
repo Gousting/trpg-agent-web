@@ -1,0 +1,73 @@
+{
+  "id": "dungeon_rs_corridor",
+  "title": "生化危机·地下通道",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "survival"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "to_lab",
+      "label": "穿过通道进入实验室区",
+      "provides_clues": [
+        "rs_corridor_cleared"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "corridor",
+      "title": "B层走廊",
+      "part": 0,
+      "scene_type": "通道",
+      "image_prompt": "long dark underground corridor with metal doors on both sides, flickering emergency lights, blood smears on walls, scattered documents and broken glass, distant groaning sounds implied, survival horror, claustrophobic atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "description": "你们沿着隧道前行，进入一条更宽阔的走廊。两侧是编号的金属门——B-01、B-02……门上贴着生物危害标志。地上散落着文件、翻倒的推车和打碎的培养皿，玻璃碎片里残留着深绿色的液体。\n\n走廊尽头的灯坏了，黑暗中有什么东西在移动。沉重的、拖拽式的脚步声，夹杂着低沉的喉音——不是人类能发出的声音。\n\n墙上的紧急地图显示：前方是「T病毒实验室」，左侧是「冷冻库」，右侧是「员工休息室」。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "rc1",
+          "text": "捡起地上的文件——了解蜂巢的实验内容"
+        },
+        {
+          "id": "rc2",
+          "text": "进入左侧冷冻库搜索补给"
+        },
+        {
+          "id": "rc3",
+          "text": "握紧武器，直接向走廊尽头的黑暗走去"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rcs1",
+          "text": "散落的文件记载：「T病毒实验体 47 号……成功融合……建议投入实战测试」——签名是「W·伯金」"
+        },
+        {
+          "id": "rcs2",
+          "text": "冷冻库里有一台还在运行的服务器——它保存着蜂巢主控 AI「红后」的一部分日志，里面提到了「限制解除协议」"
+        }
+      ],
+      "vote_prompt": "走廊深处的脚步声越来越近，你们选择？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "生化副本中层。收集情报或搜索补给，准备面对第一波感染者。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

@@ -1,0 +1,99 @@
+{
+  "id": "dungeon_rs_boss",
+  "title": "生化危机·暴君融合体",
+  "module_type": "combat",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "combat"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_lab_accessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "panic"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击败暴君融合体，完成生化副本",
+      "provides_clues": [
+        "rs_cleared",
+        "dungeon_clear_rs"
+      ],
+      "mood": "relief",
+      "next_location_type": "hub"
+    },
+    {
+      "id": "defeat",
+      "label": "被暴君击倒，副本失败",
+      "provides_clues": [
+        "rs_failed"
+      ],
+      "mood": "despair",
+      "next_location_type": "hub"
+    },
+    {
+      "id": "flee",
+      "label": "撤退逃离实验室",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "tyrant",
+      "name": "暴君融合体",
+      "hp": 26,
+      "armor": 2,
+      "attack_bonus": 5,
+      "damage": "1d8+4",
+      "abilities": [
+        {
+          "name": "横扫重击",
+          "effect": "对全体调查员造成 1d4 伤害，力量检定成功则减半",
+          "target": "all"
+        },
+        {
+          "name": "再生",
+          "effect": "每回合恢复 2 HP，需火焰或持续伤害打断"
+        }
+      ],
+      "behavior": "缓慢逼近，优先攻击携带发光能量碎片的人，胸口结晶在受创后发出刺眼光芒",
+      "count": 1
+    }
+  ],
+  "environment": {
+    "terrain": "暴君培养槽大厅——空旷的圆形空间，中央是破碎的巨大培养槽",
+    "lighting": "应急红灯闪烁，绿液雾气弥漫",
+    "hazards": []
+  },
+  "description": "你们推开主实验室的深处大门。巨大的培养槽轰然碎裂，绿色的液体涌出。一个三米高的身影缓缓站起——它曾经是人类，但 T 病毒与轮回者能量的融合让它变成了超越常识的怪物。\n\n它的肌肉表面覆盖着深绿色的生物装甲，胸口嵌着一块发着微弱金光的碎片——那是轮回者能量结晶，被红后用作实验材料。\n\n「实验体……成功……」红后的声音从广播里传来，带着一丝……狂热？「杀了他们，回收能量。」",
+  "image_prompt": "massive bio-organic tyrant monster emerging from broken glass containment tank, green glowing veins across muscular body, golden crystal embedded in chest, red emergency lighting, laboratory ruins, survival horror boss encounter, cinematic composition, balanced 16:9 widescreen, focal center, no empty areas, fully filled frame, dark oppressive atmosphere",
+  "outcomes": {
+    "victory": {
+      "label": "胜利",
+      "consequence": "暴君融合体轰然倒地，胸口的金色结晶碎裂。红后的声音突然中断，全息投影闪烁几下后消失——蜂巢的自毁倒计时停了。",
+      "reward": "获得轮回点 ×3。通关奖励：生化副本完成度 100%"
+    },
+    "defeat": {
+      "label": "失败",
+      "consequence": "你们被暴君的重击逐一击倒。意识模糊间，绿光将你们吞没——你们被传送回主神空间，轮回点清零，身上多了几道未愈的伤疤。",
+      "reward": "副本失败惩罚：轮回点 -1"
+    },
+    "flee": {
+      "label": "撤退",
+      "consequence": "你们且战且退，在暴君的怒吼声中逃回绿色光门。传送的光芒亮起——这次试炼以撤退告终。",
+      "reward": "副本撤退：无奖励，无惩罚"
+    }
+  }
+}

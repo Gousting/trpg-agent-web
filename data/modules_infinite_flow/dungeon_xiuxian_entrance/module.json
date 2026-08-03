@@ -1,0 +1,84 @@
+{
+  "id": "dungeon_xiuxian_entrance",
+  "title": "修仙·青云宗外门",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "fantasy"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "hub_visited"
+    ],
+    "forbidden_clues": [
+      "rs_entered",
+      "jy_entered"
+    ],
+    "mood": "mysterious"
+  },
+  "exits": [
+    {
+      "id": "deeper",
+      "label": "通过外门试炼，进入青云宗内门",
+      "provides_clues": [
+        "xt_entered"
+      ],
+      "mood": "mysterious",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "mountain_gate",
+      "title": "青云山门",
+      "part": 0,
+      "scene_type": "入口",
+      "image_prompt": "ancient Chinese mountain gate carved from white jade, stone steps ascending into misty clouds, pine trees, a bronze bell hanging from the gate, floating islands visible in distance, ethereal golden light, xianxia cultivation atmosphere, epic scale, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment and architecture",
+      "description": "青玉光门将你们吐出，落在一条蜿蜒向上的石阶前。山顶云雾缭绕，一座巨大的白玉山门矗立云端，门上刻着三个龙飞凤舞的大字——「青云宗」。\n\n空气中弥漫着淡淡的檀香与灵气。远处传来悠扬的钟声，山门旁一块石碑上刻着：\n\n「青云宗外门试炼：通过者入内门，得修仙机缘。失败者——尘归尘。」\n\n一个穿着青色道袍的少年从门后探出头，好奇地打量你们：「咦？这次的轮回者，看起来……有点弱啊。不过没关系，试炼场在前面，跟我来。」",
+      "npcs_here": [
+        "青衫少年"
+      ],
+      "opportunities": [
+        {
+          "id": "x1",
+          "text": "与青衫少年交谈——了解青云宗的试炼规则"
+        },
+        {
+          "id": "x2",
+          "text": "触摸山门石碑——尝试感应灵气，测试自己的修炼天赋"
+        },
+        {
+          "id": "x3",
+          "text": "观察四周环境——寻找捷径或隐藏的机缘"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xs1",
+          "text": "青衫少年腰间挂着一枚黑色令牌，令牌背面刻着「弃徒」二字。他自称是外门弟子，但气质远不止如此"
+        },
+        {
+          "id": "xs2",
+          "text": "石碑背面刻着一行小字：「轮回者不得在试炼中杀死考核弟子，否则试炼作废」——这条规则本身透露了试炼的真相"
+        }
+      ],
+      "vote_prompt": "青云宗的山门前，你们选择如何开始试炼？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "修仙副本入口。仙侠氛围，天赋测试与规则了解。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "青衫少年",
+      "description": "穿着青云宗青色道袍的少男，笑容狡黠，腰间挂着一枚刻着「弃徒」二字的黑色令牌",
+      "attitude": "friendly"
+    }
+  ],
+  "variance": null
+}

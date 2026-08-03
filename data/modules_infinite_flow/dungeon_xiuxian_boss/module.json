@@ -1,0 +1,113 @@
+{
+  "id": "dungeon_xiuxian_boss",
+  "title": "修仙·入魔长老",
+  "module_type": "combat",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "combat"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_danfang_accessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击败入魔长老，完成修仙副本",
+      "provides_clues": [
+        "xt_cleared",
+        "dungeon_clear_xt"
+      ],
+      "mood": "relief",
+      "next_location_type": "hub"
+    },
+    {
+      "id": "defeat",
+      "label": "被炼成丹炉材料，副本失败",
+      "provides_clues": [
+        "xt_failed"
+      ],
+      "mood": "despair",
+      "next_location_type": "hub"
+    },
+    {
+      "id": "flee",
+      "label": "逃出青云宗",
+      "provides_clues": [
+        "xt_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "demon_elder",
+      "name": "入魔长老·玄冥",
+      "hp": 24,
+      "armor": 1,
+      "attack_bonus": 5,
+      "damage": "1d6+4",
+      "abilities": [
+        {
+          "name": "剑意化形",
+          "effect": "凝聚飞剑攻击，对单个调查员造成 1d8 伤害",
+          "target": "single"
+        },
+        {
+          "name": "丹火护体",
+          "effect": "每回合恢复 2 HP，并反弹 1d2 伤害给攻击者",
+          "target": "self"
+        },
+        {
+          "name": "炉鼎汲取",
+          "effect": "尝试吸取轮回者能量，全体调查员进行 STR 检定，失败则被吸走 1d4 HP 并转化为长老的 HP"
+        }
+      ],
+      "behavior": "吸取丹炉能量后入魔，眼中金光转为暗红，出手狠辣，试图将调查员投入丹炉",
+      "count": 1
+    }
+  ],
+  "environment": {
+    "terrain": "炼丹房——青铜丹炉轰鸣，火舌翻涌，药架倾倒",
+    "lighting": "丹炉的金红火光，忽明忽暗",
+    "hazards": [
+      "丹炉火焰——近身攻击时可能被灼伤（1d2 伤害）",
+      "倾倒的药架——可推倒制造障碍",
+      "滚烫的丹液——可引导泼向长老（造成 1d4 伤害并打断丹火护体一回合）"
+    ]
+  },
+  "rules": [
+    "长老的丹火护体可被寒冷或水系攻击打断",
+    "击碎他怀中的能量结晶可让他的攻击力 -2",
+    "若青衫少年在场，他会在关键时刻出手相助（为一名调查员抵挡一次伤害）"
+  ],
+  "description": "长老一把抓碎手中暗红色的能量结晶，狂涌的灵气与魔气在他体内碰撞。他的双眼变成暗红色，道袍猎猎作响，头发根根竖起。\n\n「既然你们不想做炉鼎——」他狞笑，「那就做丹渣！」\n\n丹炉轰然炸开，金红色的火焰席卷丹房。长老踏焰而起，手中凝出一柄燃烧的飞剑。\n\n身后，青衫少年不知何时站到了门口。他看着长老的背影，攥紧了腰间那枚「弃徒」令牌，眼底闪过一丝复杂的光芒。",
+  "image_prompt": "demonized cultivation elder with glowing red eyes and burning sword, dark robes billowing with demonic energy, surrounded by golden flame from exploding alchemy furnace, fallen disciple watching from doorway, xianxia boss battle, dramatic lighting, epic confrontation, balanced 16:9 widescreen, focal center, no empty areas, fully filled frame, dark intense atmosphere",
+  "outcomes": {
+    "victory": {
+      "label": "胜利",
+      "consequence": "长老被你们的合击击退，跌入碎裂的丹炉。他挣扎着还想站起，却被一只手按住了肩膀——是青衫少年。少年拔出腰间的令牌，令牌泛起青光：「玄冥长老，残害轮回者，炼人为丹。奉掌门令，拿下。」原来他根本不是什么引路弟子——他是青云宗执法堂的人，一直在等这一刻。",
+      "reward": "获得轮回点 ×4。副本通关奖励：修仙副本完成度 100%"
+    },
+    "defeat": {
+      "label": "失败",
+      "consequence": "你们被长老的飞剑逐一击倒，投入滚烫的丹炉。意识消散前，你们听到少年的一声惊呼，然后是长老的狞笑。红光将你们的残躯拽回主神空间——副本失败，轮回点清零。",
+      "reward": "副本失败惩罚：轮回点 -1"
+    },
+    "flee": {
+      "label": "撤退",
+      "consequence": "你们砸碎丹房的窗户，跃下万丈山崖。坠落的失重感中，青色光门在下方亮起——你们穿门而出，狼狈地跌回主神空间。回头望去，青云宗的山门在云雾中若隐若现，像一只张开的兽口。",
+      "reward": "副本撤退：无奖励，无惩罚"
+    }
+  }
+}

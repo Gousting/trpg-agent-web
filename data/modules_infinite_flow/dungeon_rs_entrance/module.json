@@ -1,0 +1,76 @@
+{
+  "id": "dungeon_rs_entrance",
+  "title": "生化危机·蜂巢入口",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "survival"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "hub_visited"
+    ],
+    "forbidden_clues": [
+      "jy_entered",
+      "xt_entered"
+    ],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "deeper",
+      "label": "进入蜂巢地下通道",
+      "provides_clues": [
+        "rs_entered"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "tram",
+      "title": "列车残骸",
+      "part": 0,
+      "scene_type": "入口",
+      "image_prompt": "derelict underground tram car crashed into tunnel wall, flickering fluorescent lights, water dripping from ceiling, rusted metal, biohazard warning signs, ominous green glow from far end of tunnel, survival horror atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment and architecture",
+      "description": "穿过绿色光门，眩晕感过后，你们发现自己站在一节倾覆的列车车厢里。荧光灯忽明忽暗，发出令人不安的嗡嗡声。车厢外是幽深的隧道，远处隐约有绿色灯光在闪烁。空气里弥漫着消毒水与腐肉混合的气味。\n\n车壁上贴着褪色的标志：「UMBRELLA 制药 · 蜂巢地下研究设施」——这个副本的名称是《生化危机》。\n\n地上散落着几具穿着保安制服的尸体，他们的皮肤灰白，指甲发黑，像是被什么东西吸干了。其中一具尸体的手指微微抽动了一下。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "rs1",
+          "text": "搜刮尸体与列车——寻找武器或补给"
+        },
+        {
+          "id": "rs2",
+          "text": "检查列车控制台——尝试启动或查询设施地图"
+        },
+        {
+          "id": "rs3",
+          "text": "观察隧道深处的绿光——确认那是什么"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rss1",
+          "text": "其中一具保安尸体口袋里有一把沾着干涸血迹的战术刀，还有一张模糊的照片——照片上是一家三口在游乐园，背面写着「他们把我女儿变成怪物」"
+        },
+        {
+          "id": "rss2",
+          "text": "列车控制台的屏幕虽然坏了，但紧急广播系统还在工作——它循环播放着：「请所有员工撤离……蜂巢已启动自毁协议……倒计时开始……」"
+        }
+      ],
+      "vote_prompt": "你们在蜂巢入口的列车残骸中，下一步怎么行动？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "生化副本入口。获取装备和地图信息，决定深入策略。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

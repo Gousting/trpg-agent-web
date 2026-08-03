@@ -1,0 +1,76 @@
+{
+  "id": "dungeon_juon_entrance",
+  "title": "咒怨·佐伯家凶宅",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "hub_visited"
+    ],
+    "forbidden_clues": [
+      "rs_entered",
+      "xt_entered"
+    ],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "deeper",
+      "label": "踏入佐伯家大门",
+      "provides_clues": [
+        "jy_entered"
+      ],
+      "mood": "horror",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "gate",
+      "title": "佐伯家门前",
+      "part": 0,
+      "scene_type": "入口",
+      "image_prompt": "abandoned Japanese house at dusk, overgrown garden, broken wooden gate, peeling paint, a single window on second floor showing a pale figure, oppressive haunted atmosphere, muted cold colors, film grain, j-horror aesthetic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment",
+      "description": "红色光门将你们吐出，落在一条荒芜的街道上。天色昏黄，像是永远停在黄昏那一刻。面前的日式老宅破败不堪，木质外墙爬满藤蔓，二楼的一扇窗户黑洞洞地注视着你们。\n\n门牌上写着「佐伯」——字迹像是被什么液体浸过，模糊了半边。\n\n空气冷得不正常。明明没有风，院子里的枯树却轻轻晃动。\n\n你们能感觉到，有什么东西正在宅子里等着。它已经等了很久。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "j1",
+          "text": "观察宅院四周——寻找进入的路线与异常之处"
+        },
+        {
+          "id": "j2",
+          "text": "检查门牌与信箱——收集关于佐伯家的信息"
+        },
+        {
+          "id": "j3",
+          "text": "尝试敲门——回应你们的会是什么？"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "js1",
+          "text": "信箱里有一张褪色的全家福照片，边缘烧焦。照片上的一家三口脸上都被黑色的手印覆盖，唯独那个男孩——他不在照片里"
+        },
+        {
+          "id": "js2",
+          "text": "地面上的影子比你们多了一个。它在你们身后三米处，一动不动"
+        }
+      ],
+      "vote_prompt": "佐伯家的凶宅矗立在黄昏中，你们选择如何进入？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "咒怨副本入口。经典日式恐怖氛围，进入宅子前的情报收集。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

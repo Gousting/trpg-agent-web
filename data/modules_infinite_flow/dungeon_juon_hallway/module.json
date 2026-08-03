@@ -1,0 +1,73 @@
+{
+  "id": "dungeon_juon_hallway",
+  "title": "咒怨·二楼走廊",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "to_attic",
+      "label": "走向走廊尽头的阁楼",
+      "provides_clues": [
+        "jy_hallway_cleared"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hallway",
+      "title": "二楼走廊",
+      "part": 0,
+      "scene_type": "通道",
+      "image_prompt": "dark narrow Japanese house hallway at night, tatami mats, sliding doors slightly ajar, a child's ball rolling on the floor, flickering dim light, wet footprints on wood, terrifying j-horror atmosphere, muted cold tones, film grain, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment",
+      "description": "你们推开吱呀作响的木门，踏入二楼走廊。榻榻米散发着一股陈旧的霉味，混杂着难以言说的甜腻气息。走廊不长，尽头是一扇通往阁楼的木门。\n\n走廊中央，一颗红色的皮球静静地躺在那里。上一秒它还在走廊那头——你们刚进门时它明明在尽头。\n\n头顶传来细碎的脚步声，像是什么人在楼顶慢慢走动。可二楼之上就是阁楼，而阁楼的窗户你们刚才从外面看是封死的。\n\n走廊的滑动门上，多了一道湿漉漉的、小小的手印——它正在你们眼前缓慢地移动。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "jh1",
+          "text": "跟随皮球——它似乎在引导你们去某个地方"
+        },
+        {
+          "id": "jh2",
+          "text": "拉开身旁的滑动门——检查里面的房间"
+        },
+        {
+          "id": "jh3",
+          "text": "握住武器，直接走向阁楼的门"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jhs1",
+          "text": "滑动门后的房间里，衣柜门开着一道缝。缝隙里有一双眼睛——灰色的，瞳孔涣散，直勾勾地盯着你们。等你们眨眼，衣柜门已经关上了"
+        },
+        {
+          "id": "jhs2",
+          "text": "地上的皮球上有几个牙印，像是被什么咬过。咬痕很小，像是孩子的牙——但咬合的力量深得渗人"
+        }
+      ],
+      "vote_prompt": "走廊的诡异逐渐逼近，你们选择？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "咒怨副本中层。经典的日式恐怖桥段，SAN 检定高发区。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

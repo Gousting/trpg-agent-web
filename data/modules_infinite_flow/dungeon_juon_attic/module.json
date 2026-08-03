@@ -1,0 +1,73 @@
+{
+  "id": "dungeon_juon_attic",
+  "title": "咒怨·阁楼真相",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_hallway_cleared"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "to_boss",
+      "label": "面对阁楼里的诅咒之源",
+      "provides_clues": [
+        "jy_attic_accessed"
+      ],
+      "mood": "panic",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "attic",
+      "title": "封死的阁楼",
+      "part": 0,
+      "scene_type": "阁楼",
+      "image_prompt": "dusty dark attic filled with old furniture covered in white sheets, a single overturned chair, faded children's drawings on the wall showing a family with a cat, a small door in the floor slightly open, terrifying j-horror atmosphere, cold blue-grey tones, film grain, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment and objects",
+      "description": "阁楼的门没有锁。推开后，扑面而来的是令人窒息的灰尘与……一种说不出的、像是腐烂又像是香料的气味。\n\n阁楼不大，堆满了蒙着白布的家具。墙上贴满褪色的儿童画——画里是一个三口之家，牵着手的爸爸妈妈和小男孩。奇怪的是，每张画的背景里都有一只猫。\n\n画的下方，用蜡笔歪歪扭扭地写着几行字：\n\n「妈妈说要带我去新家」\n「爸爸说俊雄要听话」\n「猫咪不见了」\n「我想和猫咪一起玩」\n\n最后一张画被撕碎了，只留下半个字：「咒……」\n\n阁楼角落的地板上，有一扇小小的、通往楼下的暗门。门缝里渗出的寒意，让你们所有人的汗毛都竖了起来。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "ja1",
+          "text": "收集墙上的儿童画——拼凑出佐伯家的故事"
+        },
+        {
+          "id": "ja2",
+          "text": "检查蒙着白布的家具——寻找线索或武器"
+        },
+        {
+          "id": "ja3",
+          "text": "打开地板暗门——直面诅咒的源头"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jas1",
+          "text": "最大的一幅画背面，写着一段几乎无法辨认的话：「不是猫杀了他。是妈妈。妈妈在衣柜里。」笔迹颤抖，与儿童画的蜡笔完全不同——这是另一个人写的"
+        },
+        {
+          "id": "jas2",
+          "text": "白布下盖着的不是家具，是一个孩子的旧书包。里面有一本日记，最后一页写着：「明天开始，我要永远和妈妈在一起了」"
+        }
+      ],
+      "vote_prompt": "阁楼的真相渐渐浮现，你们选择？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "咒怨副本深层。背景真相收集完毕，准备面对诅咒本体。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

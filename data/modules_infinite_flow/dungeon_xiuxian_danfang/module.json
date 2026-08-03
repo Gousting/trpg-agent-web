@@ -1,0 +1,81 @@
+{
+  "id": "dungeon_xiuxian_danfang",
+  "title": "修仙·丹房风云",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "fantasy"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_trial_passed"
+    ],
+    "forbidden_clues": [],
+    "mood": "mysterious"
+  },
+  "exits": [
+    {
+      "id": "to_boss",
+      "label": "直面青云宗的真相",
+      "provides_clues": [
+        "xt_danfang_accessed"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "danfang",
+      "title": "炼丹房",
+      "part": 0,
+      "scene_type": "丹房",
+      "image_prompt": "ancient Chinese alchemy chamber with bronze cauldrons bubbling with glowing liquid, shelves of herbs and jade bottles, a massive pill furnace in the center emitting golden smoke, a stern old cultivator in dark robes, xianxia atmosphere with hidden menace, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, dark mysterious lighting",
+      "description": "通过试炼后，少年将你们引向丹房。但推开门的瞬间，你们闻到了一股不该有的气味——血腥味，被浓重的药香勉强盖住。\n\n丹房中央，一尊巨大的青铜丹炉正冒着金色的烟气。丹炉旁站着一位身着玄色道袍的长老，他背对着你们，正在往丹炉里投放药材。\n\n「通过试炼了？不错。」长老的声音低沉，「轮回者……你们的灵气，比本门弟子浓郁得多。真是……上佳的炉鼎材料。」\n\n他缓缓转身。丹炉的火光映在他脸上，明明灭灭。他的手里拿着的不是药材——是一枚闪着暗红色光芒的、明显不属于这个世界的能量结晶。\n\n「那位陨落的轮回者，为我们提供了完美的样本。」长老舔了舔嘴唇，「现在，我们需要更多。」",
+      "npcs_here": [
+        "玄袍长老"
+      ],
+      "opportunities": [
+        {
+          "id": "xd1",
+          "text": "假装顺从，寻找时机逃脱或反击"
+        },
+        {
+          "id": "xd2",
+          "text": "质问长老——青云宗到底在做什么"
+        },
+        {
+          "id": "xd3",
+          "text": "检查丹房环境——寻找武器或逃生的机会"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xds1",
+          "text": "丹炉底部，一具已经失去生机的躯体蜷缩着——那是一位穿着青云宗道袍的弟子。丹炉的烟气里，隐约可见他的面孔，与青衫少年有几分相似"
+        },
+        {
+          "id": "xds2",
+          "text": "长老腰间挂着一枚令牌，与少年的「弃徒」令牌一模一样——原来少年不是弃徒，他是被长老派去引路的人。青云宗早已把轮回者当作炼丹材料"
+        }
+      ],
+      "vote_prompt": "丹房的真相暴露，青云宗露出了獠牙，你们选择？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "修仙副本深层。真相揭露，BOSS 战前的最后抉择。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "玄袍长老",
+      "description": "青云宗炼丹长老，玄色道袍，目光阴鸷，视轮回者为炼丹材料",
+      "attitude": "hostile"
+    }
+  ],
+  "variance": null
+}

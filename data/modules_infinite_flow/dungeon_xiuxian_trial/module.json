@@ -1,0 +1,81 @@
+{
+  "id": "dungeon_xiuxian_trial",
+  "title": "修仙·试炼之地",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "fantasy"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "mysterious"
+  },
+  "exits": [
+    {
+      "id": "to_danfang",
+      "label": "通过试炼，前往丹房",
+      "provides_clues": [
+        "xt_trial_passed"
+      ],
+      "mood": "serene",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "trial_field",
+      "title": "剑意试炼场",
+      "part": 0,
+      "scene_type": "试炼场",
+      "image_prompt": "ancient cultivation trial ground with floating stone platforms, sword qi energy visible as blue light trails, a stone golem standing in the center, mist and golden light, xianxia fantasy atmosphere, epic scale, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment",
+      "description": "青衫少年领着你们穿过云雾，来到一片开阔的试炼场。场地中央悬浮着九块石台，每块石台上都插着一柄不同的剑——有的古朴、有的华丽、有的锈迹斑斑。\n\n「外门试炼很简单。」少年指了指石台，「拔剑。拔得出来，就证明你有修炼的资质；拔不出来……」他耸耸肩，「就在山门外等着吧。」\n\n场地边缘，一块青石碑上刻着试炼规则。碑文的最后一行若隐若现——「剑择其主，心择其道。」\n\n你们注意到，其中一柄黑色的锈剑在你们靠近时，剑身微微颤动了一下。",
+      "npcs_here": [
+        "青衫少年"
+      ],
+      "opportunities": [
+        {
+          "id": "xt1",
+          "text": "走向那柄黑色锈剑——它似乎对你们有反应"
+        },
+        {
+          "id": "xt2",
+          "text": "检查其他石台上的剑——寻找最顺手的兵器"
+        },
+        {
+          "id": "xt3",
+          "text": "询问少年关于试炼的更多细节"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xts1",
+          "text": "黑色锈剑不是青云宗的剑。它是某位「陨落的轮回者」留下的——剑柄内部刻着一行字：「别相信试炼。山门之后是陷阱。」"
+        },
+        {
+          "id": "xts2",
+          "text": "少年在你们选剑时，眼神微微闪烁。他的手指无意识地摩挲着腰间那枚「弃徒」令牌"
+        }
+      ],
+      "vote_prompt": "九柄剑静静等待主人的到来，你们选择？",
+      "leads_to": [],
+      "exit_labels": {},
+      "guidance": "修仙副本中层。选剑定缘，埋下青云宗阴谋的伏笔。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "青衫少年",
+      "description": "青云宗外门引路弟子，笑容背后藏着秘密",
+      "attitude": "friendly"
+    }
+  ],
+  "variance": null
+}

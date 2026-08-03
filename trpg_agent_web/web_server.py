@@ -381,6 +381,19 @@ def _modules_dir_for_world(world: str) -> Path:
     return base / f"modules_{world}"
 
 
+def _compose_max_depth(world: str) -> int:
+    """按世界观返回组合深度上限。
+
+    无限流副本链 = hub(1) + 副本入口(1) + 内部(1-2) + 通关(1) + 返回 hub，
+    至少需要 5 层，默认 max_depth=3 会截断副本链导致无法通关。其他世界观
+    保持原默认深度。
+    """
+    world = (world or "").strip().lower()
+    if world == "infinite_flow" or world == "无限流":
+        return 6
+    return 3
+
+
 def _scene_for_room(room_type: str) -> dict | None:
     """根据房间类型匹配场景图。"""
     try:
@@ -512,7 +525,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         if not composer._modules:
             yield _sse("error", {"text": f"世界观 [{world or 'coc'}] 模块池为空：{modules_dir}"})
             return
-        bundle = composer.compile(seed=seed, max_depth=3)
+        bundle = composer.compile(seed=seed, max_depth=_compose_max_depth(world))
         adventure = bundle.adventure
         yield _sse("status", {"text": f"已组合 {len(bundle.module_ids)} 个模块, {len(adventure._scenes)} 个场景 (世界观: {world or 'coc'})"})
 

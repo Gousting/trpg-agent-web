@@ -1,0 +1,112 @@
+{
+  "id": "dungeon_juon_boss",
+  "title": "咒怨·伽椰子",
+  "module_type": "combat",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "combat"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "3-4 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_attic_accessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "panic"
+  },
+  "exits": [
+    {
+      "id": "victory",
+      "label": "击退伽椰子，完成咒怨副本",
+      "provides_clues": [
+        "jy_cleared",
+        "dungeon_clear_jy"
+      ],
+      "mood": "relief",
+      "next_location_type": "hub"
+    },
+    {
+      "id": "defeat",
+      "label": "被诅咒吞没，副本失败",
+      "provides_clues": [
+        "jy_failed"
+      ],
+      "mood": "despair",
+      "next_location_type": "hub"
+    },
+    {
+      "id": "flee",
+      "label": "逃出佐伯家",
+      "provides_clues": [
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
+    }
+  ],
+  "enemies": [
+    {
+      "id": "kayako",
+      "name": "伽椰子·咒怨本体",
+      "hp": 22,
+      "armor": 1,
+      "attack_bonus": 4,
+      "damage": "1d6+3",
+      "abilities": [
+        {
+          "name": "爬行突袭",
+          "effect": "从天花板爬下，对随机一名调查员造成 1d6 伤害，DEX 检定成功可闪避",
+          "target": "single"
+        },
+        {
+          "name": "诅咒蔓延",
+          "effect": "每回合所有调查员进行 SAN 检定，失败则损失 1d4 SAN"
+        },
+        {
+          "name": "猫的注视",
+          "effect": "俊雄的灵体干扰，全体调查员本回合攻击检定 -1"
+        }
+      ],
+      "behavior": "从天花板上方和地面两个位置交替出现，发出「咯咯」的喉音，逼近时空气会凝固",
+      "count": 1
+    }
+  ],
+  "environment": {
+    "terrain": "狭窄的阁楼——低矮的天花板，蒙着白布的家具堆叠",
+    "lighting": "唯一的光源是地板暗门透出的惨白微光",
+    "hazards": [
+      "低矮天花板——大型武器施展不开，近战攻击检定 -1",
+      "散落的儿童画——可以撕碎制作临时符咒（消耗一回合）",
+      "暗门——通往楼下，可在战斗中撤离"
+    ]
+  },
+  "rules": [
+    "伽椰子的攻击无法被常规武器完全抵挡，但火焰与圣物可以造成额外伤害",
+    "直视伽椰子的脸会触发 SAN 检定，闭眼战斗则攻击检定 -2",
+    "找到并安抚俊雄的灵体（如在战斗中念出日记里的内容）可让伽椰子的攻击 -2"
+  ],
+  "description": "地板暗门缓缓打开，一只苍白的手从下面伸出，以违反人体结构的角度攀上了地板。\n\n然后，是头发。长长的、湿漉漉的黑发，从暗门里涌出来，像活物一样蔓延。\n\n一个穿着白色连衣裙的女人缓缓爬出。她的脸隐藏在黑发后面，但你们能听到她的声音——那是一种喉咙被挤压后发出的、断断续续的喉音：\n\n「……俊雄……我的……孩子……」\n\n她抬起头。黑发滑落，露出一张惨白的脸——没有表情，没有瞳孔，只有两个漆黑的洞。\n\n她动了。快得不像人类。",
+  "image_prompt": "terrifying ghost woman in white dress crawling out of floor hatch in dark attic, long black hair covering face, pale skin, surrounded by floating children's drawings, cold blue-grey tones, j-horror boss encounter, extreme dread, cinematic composition, balanced 16:9 widescreen, focal center, no empty areas, fully filled frame, dark oppressive atmosphere",
+  "outcomes": {
+    "victory": {
+      "label": "胜利",
+      "consequence": "伽椰子的身体在你们面前炸裂成漫天飞灰。黑发落尽，露出地板上的暗门——门的另一侧是红色光门。俊雄的灵体站在门口，朝你们鞠了一躬，然后消散。诅咒解除了。",
+      "reward": "获得轮回点 ×4。副本通关奖励：咒怨副本完成度 100%"
+    },
+    "defeat": {
+      "label": "失败",
+      "consequence": "你们被黑发缠住，拉入地板之下。无边的黑暗与寒冷中，你们听到俊雄的声音：「留下来……陪我们……」红光将你们拽回主神空间——副本失败，轮回点清零。",
+      "reward": "副本失败惩罚：轮回点 -1"
+    },
+    "flee": {
+      "label": "撤退",
+      "consequence": "你们翻滚着从暗门跳回二楼，砸穿走廊地板滚出宅子。回头时，佐伯家二楼的窗户里，那个苍白的影子仍在注视着你们。红光将你们传送回主神空间。",
+      "reward": "副本撤退：无奖励，无惩罚"
+    }
+  }
+}
