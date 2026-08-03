@@ -6,6 +6,7 @@
 <title>COC TRPG 跑团</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;600;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
+  html { overflow-x: hidden; }
   :root {
     --void: #11100d; --surface: #24211b; --surface-alt: #322d23;
     --blood: #7a1f1f; --blood-glow: rgba(122,31,31,0.3);
@@ -17,6 +18,12 @@
     --font-display: 'Noto Serif SC', 'Crimson Text', serif;
     --font-body: 'Crimson Text', 'Noto Serif SC', serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --ui-edge: 18px;
+    --left-panel-w: 212px;
+    --right-panel-w: 234px;
+    --panel-gap: 18px;
+    --log-h: 174px;
+    --log-bottom: 16px;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -30,6 +37,7 @@
     grid-template-columns: 1fr;
     grid-template-rows: 36px 1fr;
     overflow: hidden;
+    overflow-x: hidden;
     position: relative;
   }
   body::after {
@@ -87,8 +95,11 @@
   body.live #controls #status { font-size: 9px; margin-left: 0; display: block; }
 
   /* 直播预设：更大字号、更强对比、更低视觉噪声 */
-  body.broadcast #scene {
-    padding: 54px 300px 266px 270px;
+  body.broadcast {
+    --left-panel-w: 208px;
+    --right-panel-w: 238px;
+    --log-h: 214px;
+    --log-bottom: 12px;
   }
   body.broadcast #characters,
   body.broadcast #vote-bar,
@@ -96,17 +107,10 @@
     border-color: #ac9470;
     box-shadow: 0 14px 38px rgba(0,0,0,0.42);
   }
-  body.broadcast #characters {
-    width: 236px;
-  }
   body.broadcast .char-card:not(.active) {
     opacity: 0.74;
   }
   body.broadcast #action-log {
-    left: 274px;
-    right: 296px;
-    bottom: 12px;
-    height: 236px;
     background:
       linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0.16) 22%, transparent 65%),
       var(--paper);
@@ -125,10 +129,7 @@
   body.broadcast .log-msg.damage {
     font-size: 13px;
   }
-  body.broadcast #vote-bar {
-    width: 272px;
-    top: 52px;
-  }
+  body.broadcast #vote-bar { top: 52px; }
   body.broadcast #vote-bar .vote-title {
     font-size: 30px;
   }
@@ -148,26 +149,110 @@
   #scene {
     grid-column: 1; grid-row: 2;
     position: relative;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     overflow: hidden;
-    padding: 56px 320px 250px 284px;
+    padding:
+      50px
+      calc(var(--ui-edge) + var(--right-panel-w) + var(--panel-gap))
+      calc(var(--log-bottom) + var(--log-h) + 18px)
+      calc(var(--ui-edge) + var(--left-panel-w) + var(--panel-gap));
+  }
+  #scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(123,95,63,0.14) 0%, rgba(20,16,13,0) 42%),
+      linear-gradient(180deg, rgba(10,8,6,0.22) 0%, rgba(10,8,6,0.58) 100%);
+    pointer-events: none;
+  }
+  .scene-stage {
+    position: relative;
+    width: min(100%, 1080px);
+    aspect-ratio: 16 / 10;
+    min-height: clamp(400px, 56vh, 760px);
+    z-index: 2;
+  }
+  .scene-stage::before {
+    content: '';
+    position: absolute;
+    inset: -14px -18px;
+    border-radius: 14px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(235,211,161,0.16) 0%, rgba(235,211,161,0.04) 28%, rgba(0,0,0,0) 62%),
+      linear-gradient(180deg, rgba(255,248,228,0.06) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0.18) 100%);
+    box-shadow:
+      0 22px 56px rgba(0,0,0,0.3),
+      0 0 0 1px rgba(214,186,138,0.08) inset;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .scene-stage::after {
+    content: 'LIVE STAGE';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(205,175,123,0.26);
+    background: linear-gradient(180deg, rgba(61,44,29,0.92) 0%, rgba(35,25,18,0.94) 100%);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.26);
+    color: #e9d7b4;
+    font-size: 10px;
+    letter-spacing: 3px;
+    font-family: var(--font-mono);
+    pointer-events: none;
+    z-index: 5;
   }
   #scene-bg {
     position: absolute; inset: 0;
     background:
-      radial-gradient(ellipse at 50% 45%, #47362d 0%, #2a1e17 50%, #17130f 100%);
+      radial-gradient(ellipse at 50% 46%, rgba(97,74,56,0.28) 0%, rgba(34,26,20,0.94) 48%, rgba(19,15,12,0.98) 100%),
+      linear-gradient(180deg, #231b16 0%, #17120f 100%);
     display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(199,169,116,0.34);
+    border-radius: 7px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(255,240,210,0.04) inset,
+      0 20px 50px rgba(0,0,0,0.42),
+      0 0 0 12px rgba(0,0,0,0.2);
+  }
+  #scene-bg::before {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    border: 1px solid rgba(212,184,130,0.18);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  #scene-bg::after {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    background:
+      linear-gradient(180deg, rgba(8,6,4,0.36) 0%, rgba(8,6,4,0.12) 32%, rgba(8,6,4,0.08) 60%, rgba(8,6,4,0.4) 100%),
+      radial-gradient(circle at 50% 44%, rgba(255,246,228,0.04) 0%, rgba(0,0,0,0) 52%);
+    pointer-events: none;
+    z-index: 3;
+  }
+  #scene-bg .scene-ledger {
+    display: none;
   }
   #scene-img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%; object-fit: cover;
+    position: absolute;
+    inset: 18px;
+    width: calc(100% - 36px);
+    height: calc(100% - 36px);
+    object-fit: contain;
     opacity: 0; transition: opacity 1.2s ease-out;
-    filter: sepia(0.28) brightness(0.7) saturate(0.72) contrast(1.08);
-    border: 1px solid rgba(200,170,110,0.35);
-    box-shadow:
-      0 0 0 8px rgba(0,0,0,0.28),
-      0 30px 60px rgba(0,0,0,0.45);
+    filter: sepia(0.22) brightness(0.58) saturate(0.58) contrast(0.96);
     transform: scale(1);
+    z-index: 2;
   }
   #scene-img.active { opacity: 1; }
   body.vote-focus #scene-img.active {
@@ -179,16 +264,16 @@
     100% { transform: scale(1); filter: sepia(0.28) brightness(0.7) saturate(0.72) contrast(1.08); }
   }
   #scene-label {
-    position: absolute; bottom: 16px; left: 20px;
-    font-size: 13px; color: #d9c49a; letter-spacing: 3px;
+    position: absolute; bottom: 18px; left: 26px;
+    font-size: 13px; color: #e1cfab; letter-spacing: 3px;
     text-shadow: 0 0 12px rgba(0,0,0,0.8);
-    z-index: 7;
+    z-index: 4;
   }
   #scene-mood {
-    position: absolute; bottom: 16px; right: 20px;
-    font-size: 10px; color: #bca57f;
+    position: absolute; bottom: 18px; right: 26px;
+    font-size: 10px; color: #ceb388;
     display: flex; align-items: center; gap: 6px;
-    z-index: 7;
+    z-index: 4;
   }
   #scene-mood::before {
     content: ''; display: inline-block;
@@ -196,15 +281,69 @@
   }
   /* 场景角落装饰 */
   .scene-corners {
-    position: absolute; inset: 56px 320px 250px 284px; pointer-events: none;
-    z-index: 6;
+    position: absolute; inset: 0; pointer-events: none;
+    z-index: 4;
   }
   .scene-corners::before, .scene-corners::after {
     content: ''; position: absolute; width: 40px; height: 40px;
     border-color: var(--gold); border-style: solid; opacity: 0.32;
   }
-  .scene-corners::before { top: 0; left: 0; border-width: 2px 0 0 2px; }
-  .scene-corners::after { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+  .scene-corners::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+  .scene-corners::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+
+  .stage-aside {
+    width: min(100%, 128px);
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    align-self: stretch;
+    justify-content: center;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.92;
+  }
+  .stage-note {
+    padding: 11px 11px 10px;
+    border: 1px solid rgba(190,160,108,0.24);
+    border-radius: 5px;
+    background:
+      linear-gradient(180deg, rgba(54,41,30,0.82) 0%, rgba(27,21,17,0.92) 100%);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.2);
+    color: #dbc8a7;
+  }
+  .stage-note h3 {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: #f0ddb8;
+    font-family: var(--font-display);
+    margin-bottom: 7px;
+  }
+  .stage-note p,
+  .stage-note li {
+    font-size: 10px;
+    line-height: 1.6;
+    color: #baa98a;
+  }
+  .stage-note ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stage-kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .stage-kv span:first-child {
+    color: #9f8d6d;
+  }
+  .stage-kv strong {
+    font-weight: 600;
+    color: #f0dec0;
+  }
 
   /* 骰子叠加层 */
   #dice-mask {
@@ -249,8 +388,9 @@
   /* 角色卡 */
   #characters {
     position: fixed;
-    top: 54px; left: 18px;
-    width: 250px;
+    top: 54px;
+    left: var(--ui-edge);
+    width: var(--left-panel-w);
     max-height: calc(100vh - 72px);
     overflow-y: auto;
     pointer-events: auto;
@@ -309,10 +449,10 @@
   /* 行动日志 */
   #action-log {
     position: fixed;
-    left: 286px;
-    right: 314px;
-    bottom: 16px;
-    height: 208px;
+    left: calc(var(--ui-edge) + var(--left-panel-w) + var(--panel-gap));
+    right: calc(var(--ui-edge) + var(--right-panel-w) + var(--panel-gap));
+    bottom: var(--log-bottom);
+    height: var(--log-h);
     overflow-y: auto;
     pointer-events: auto;
     padding: 16px 18px 14px;
@@ -441,8 +581,8 @@
     display: none;
     position: fixed;
     top: 54px;
-    right: 18px;
-    width: 282px;
+    right: var(--ui-edge);
+    width: var(--right-panel-w);
     max-height: calc(100vh - 72px);
     overflow-y: auto;
     pointer-events: auto;
@@ -579,26 +719,92 @@
   }
 
   @media (max-width: 1280px) {
-    #scene { padding: 46px 280px 238px 256px; }
-    .scene-corners { inset: 46px 280px 238px 256px; }
-    #characters { width: 224px; left: 12px; }
-    #vote-bar { width: 252px; right: 12px; }
-    #action-log { left: 250px; right: 272px; }
+    :root {
+      --ui-edge: 12px;
+      --left-panel-w: 192px;
+      --right-panel-w: 212px;
+      --panel-gap: 16px;
+      --log-h: 166px;
+      --log-bottom: 14px;
+    }
+    body.broadcast {
+      --left-panel-w: 192px;
+      --right-panel-w: 212px;
+      --log-h: 190px;
+      --log-bottom: 10px;
+    }
+    .scene-stage::after { top: -10px; }
+  }
+
+  @media (max-height: 760px) and (min-width: 981px) {
+    :root {
+      --ui-edge: 12px;
+      --left-panel-w: 188px;
+      --right-panel-w: 206px;
+      --panel-gap: 14px;
+      --log-h: 156px;
+      --log-bottom: 10px;
+    }
+    body.broadcast {
+      --left-panel-w: 188px;
+      --right-panel-w: 206px;
+      --log-h: 148px;
+      --log-bottom: 8px;
+    }
+    .scene-stage {
+      width: min(100%, 760px);
+      min-height: 258px;
+    }
+    body.broadcast #scene {
+      padding-top: 40px;
+    }
+  }
+
+  @media (max-height: 820px) and (min-width: 1200px) {
+    .scene-stage {
+      max-height: calc(100vh - var(--log-h) - var(--log-bottom) - 96px);
+      min-height: clamp(320px, 50vh, 500px);
+    }
+  }
+
+  @media (min-width: 1700px) {
+    #scene {
+      display: grid;
+      grid-template-columns: minmax(56px, 0.58fr) minmax(640px, 1080px) minmax(56px, 0.58fr);
+      gap: 10px;
+      justify-items: center;
+    }
+    .stage-aside {
+      display: flex;
+    }
   }
 
   @media (max-width: 980px) {
-    body { grid-template-rows: auto 1fr; overflow: auto; }
+    body { grid-template-rows: auto 1fr; overflow-x: hidden; overflow-y: auto; }
     #controls { flex-wrap: wrap; height: auto; padding: 6px 10px; gap: 6px; }
     #scene {
       padding: 10px;
       min-height: 420px;
       align-items: stretch;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .scene-stage {
+      width: 100%;
+      max-width: none;
+      min-height: 360px;
     }
     #scene-img {
-      border-width: 0;
-      box-shadow: none;
+      inset: 14px;
+      width: calc(100% - 28px);
+      height: calc(100% - 28px);
     }
-    .scene-corners { display: none; }
+    #scene-bg::before,
+    #scene-bg::after,
+    .scene-stage::before,
+    .scene-stage::after,
+    .scene-corners,
+    .stage-aside { display: none; }
     #characters,
     #vote-bar,
     #action-log {
@@ -680,9 +886,18 @@
       padding: 0;
       align-items: stretch;
       overflow: hidden;
+      grid-template-columns: 1fr;
+    }
+    .scene-stage {
+      width: 100%;
+      min-height: 52dvh;
     }
     #scene-bg {
       inset: 0;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      background: radial-gradient(ellipse at 50% 45%, #47362d 0%, #2a1e17 52%, #17130f 100%);
     }
     #scene-img {
       inset: 0;
@@ -690,9 +905,15 @@
       height: 100%;
       border: none;
       box-shadow: none;
+      object-fit: cover;
       filter: sepia(0.2) brightness(0.74) saturate(0.86) contrast(1.06);
     }
-    .scene-corners {
+    #scene-bg::before,
+    #scene-bg::after,
+    .scene-stage::before,
+    .scene-stage::after,
+    .scene-corners,
+    .stage-aside {
       display: none;
     }
     #scene-label,
@@ -1082,25 +1303,55 @@
 
 <!-- 左侧：场景舞台 -->
 <div id="scene">
-  <div id="scene-bg">
-    <img id="scene-img" src="" alt="">
+  <div class="stage-aside stage-aside-left">
+    <div class="stage-note">
+      <h3>舞台焦点</h3>
+      <div class="stage-kv"><span>场景</span><strong id="stage-scene-name">待进入</strong></div>
+      <div class="stage-kv"><span>氛围</span><strong id="stage-scene-mood">未揭示</strong></div>
+      <div class="stage-kv"><span>世界</span><strong id="stage-world">COC</strong></div>
+    </div>
+    <div class="stage-note">
+      <h3>观演提示</h3>
+      <ul>
+        <li>场景图改为完整居中显示</li>
+        <li>主要叙事改由底部记录承接</li>
+        <li>左右信息不再遮挡主画面</li>
+      </ul>
+    </div>
   </div>
-  <div class="scene-corners"></div>
-  <div id="scene-label">—</div>
-  <div id="scene-mood">—</div>
+  <div class="scene-stage">
+    <div id="scene-bg">
+      <img id="scene-img" src="" alt="">
+    </div>
+    <div class="scene-corners"></div>
+    <div id="scene-label">—</div>
+    <div id="scene-mood">—</div>
 
-  <div id="dice-mask"></div>
-  <div id="dice-overlay">
-    <div id="dice-circle">—</div>
-    <div id="dice-skill"></div>
+    <div id="dice-mask"></div>
+    <div id="dice-overlay">
+      <div id="dice-circle">—</div>
+      <div id="dice-skill"></div>
+    </div>
+    <!-- 物品弹出卡 -->
+    <div id="item-popup">
+      <div class="item-icon">📦</div>
+      <div class="item-text"></div>
+    </div>
+    <!-- 房间物品提示 -->
+    <div id="room-items"></div>
   </div>
-  <!-- 物品弹出卡 -->
-  <div id="item-popup">
-    <div class="item-icon">📦</div>
-    <div class="item-text"></div>
+  <div class="stage-aside stage-aside-right">
+    <div class="stage-note">
+      <h3>直播状态</h3>
+      <div class="stage-kv"><span>模式</span><strong id="stage-mode">待开始</strong></div>
+      <div class="stage-kv"><span>轮次</span><strong id="stage-turn">第 0 / 0 轮</strong></div>
+      <div class="stage-kv"><span>互动</span><strong id="stage-vote-state">等待互动</strong></div>
+    </div>
+    <div class="stage-note">
+      <h3>舞台说明</h3>
+      <p>现在主画面保留完整构图，投票、角色与叙事各自退到舞台外缘，优先让观众先看见场景。</p>
+    </div>
   </div>
-  <!-- 房间物品提示 -->
-  <div id="room-items"></div>
 </div>
 
 <!-- 右侧面板 -->
@@ -1170,6 +1421,29 @@ let kpRenderTick = 0;
 let stageCueTimer = null;
 let calloutTimer = null;
 
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function syncStageMeta() {
+  const modeValue = document.getElementById('mode')?.value || 'ai';
+  const worldValue = document.getElementById('world')?.value || 'coc';
+  const modeLabel = modeValue === 'live' ? '直播演出' : modeValue === 'human' ? '人类玩家' : 'AI自动';
+  const worldLabel = worldValue === 'harry_potter' ? '哈利波特' : 'COC';
+  const label = document.getElementById('scene-label')?.textContent?.trim() || '待进入';
+  const mood = document.getElementById('scene-mood')?.textContent?.trim() || '未揭示';
+  setText('stage-scene-name', label === '—' ? '待进入' : label);
+  setText('stage-scene-mood', mood === '—' ? '未揭示' : mood);
+  setText('stage-world', worldLabel);
+  setText('stage-mode', modeLabel);
+  setText('stage-turn', '第 ' + currentTurn + ' / ' + totalTurns + ' 轮');
+}
+
+function setStageVoteState(text) {
+  setText('stage-vote-state', text || '等待互动');
+}
+
 function syncMobileLiveVariant() {
   const isLive = document.body.classList.contains('live');
   const isBroadcast = document.body.classList.contains('broadcast');
@@ -1207,6 +1481,8 @@ function startGame() {
   hideDice();
   currentTurn = 0;
   totalTurns = parseInt(document.getElementById('turns').value) || 10;
+  syncStageMeta();
+  setStageVoteState(selectedMode === 'live' ? '等待第一轮' : '非投票模式');
 
   const params = new URLSearchParams({
     host: document.getElementById('ollama-host').value,
@@ -1246,6 +1522,7 @@ function startGame() {
     if (d.image) img.src = d.image;
     document.getElementById('scene-label').textContent = gmap.current_room_name || '';
     document.getElementById('status').textContent = '地圖生成完成';
+    syncStageMeta();
   });
 
   es.addEventListener('init', (e) => {
@@ -1257,6 +1534,7 @@ function startGame() {
     });
     document.getElementById('status').textContent = '遊戲開始';
     if (d.vote_seconds) totalVoteSeconds = d.vote_seconds;
+    syncStageMeta();
   });
 
   es.addEventListener('kp_stream_start', () => {
@@ -1307,6 +1585,7 @@ function startGame() {
     if (d.room) updateRoomItems(d.room);
     currentTurn++;
     document.getElementById('progress-bar').style.width = (currentTurn/totalTurns*100)+'%';
+    syncStageMeta();
     if (document.body.classList.contains('broadcast')) {
       showLiveCallout('第 ' + currentTurn + ' / ' + totalTurns + ' 轮叙事完成');
     }
@@ -1425,6 +1704,7 @@ function startGame() {
     if (d.image) img.src = d.image;
     document.getElementById('scene-label').textContent = d.room_name || '';
     addLog('system', '', '📍 進入 ' + d.room_name + ' — ' + d.room_desc);
+    syncStageMeta();
     stageFocusCue();
     showLiveCallout('场景切换: ' + (d.room_name || '未知地点'));
   });
@@ -1439,6 +1719,7 @@ function startGame() {
     const d = JSON.parse(e.data);
     addLog('system', '', '📋 遊戲結束');
     document.getElementById('status').textContent = '完成 ✓';
+    setStageVoteState('本局结束');
     showLiveCallout('本局落幕', 'alert');
     resetBtn();
   });
@@ -1482,6 +1763,8 @@ function resetBtn() {
     calloutTimer = null;
   }
   hideVoteBar();
+  syncStageMeta();
+  setStageVoteState('等待互动');
 }
 
 /* ── 投票条 ── */
@@ -1512,6 +1795,7 @@ function showVoteBar(evt) {
   stamp.classList.remove('show');
   stamp.textContent = '票选锁定';
   bar.classList.add('active');
+  setStageVoteState('投票进行中');
   updateVoteCounts();
   startVoteTimer();
 }
@@ -1526,6 +1810,7 @@ function hideVoteBar() {
     stamp.textContent = '票选锁定';
   }
   clearVoteTimer();
+  setStageVoteState(document.body.classList.contains('live') ? '等待下一轮' : '等待互动');
 }
 
 function startVoteTimer() {
@@ -1562,6 +1847,7 @@ function castVote(key) {
   // 不停止倒计时——投票窗口保持开放，其他人仍可投票
   const bar = document.getElementById('vote-bar');
   bar.querySelector(`[data-key="${key}"]`).classList.add('voted');
+  setStageVoteState('已投 ' + key.toUpperCase());
   updateVoteCounts();
   // 发送选择到服务器（服务器端累加 tally 并通过 SSE 广播）
   fetch('/api/vote', {
@@ -1626,6 +1912,7 @@ function lockVoteResultVisual() {
     stamp.classList.add('show');
   }
   stageFocusCue();
+  setStageVoteState('锁定 ' + winner.toUpperCase());
   showLiveCallout('本轮锁票: ' + winner.toUpperCase(), 'alert');
 }
 
@@ -1815,7 +2102,10 @@ function updateState(state) {
       condEl.textContent = '';
     }
   }
+  syncStageMeta();
 }
+
+syncStageMeta();
 </script>
 </body>
 </html>
