@@ -1358,6 +1358,20 @@
 <div id="right-panel">
   <div id="characters">
     <h2>調查員檔案</h2>
+    <div class="char-card" id="card-reincarnator" style="display:none">
+      <div class="char-info">
+        <div class="char-name" style="color:#d4af37">🌀 轮回者</div>
+        <div class="stat-row"><span class="stat-label">HP</span><span id="rein-hp">12/12</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="rein-hpbar" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">力量</span><span id="rein-str">10</span></div>
+        <div class="stat-row"><span class="stat-label">敏捷</span><span id="rein-agi">10</span></div>
+        <div class="stat-row"><span class="stat-label">精神</span><span id="rein-spr">10</span></div>
+        <div class="stat-row"><span class="stat-label">AP</span><span id="rein-ap">0</span></div>
+        <div class="stat-row"><span class="stat-label">强化</span><span id="rein-talents">无</span></div>
+        <div class="conditions" id="rein-cond"></div>
+        <button id="btn-open-talents" onclick="openTalentPanel()" style="margin-top:8px;width:100%;padding:6px;background:linear-gradient(135deg,#d4af37,#8b6914);border:none;border-radius:6px;color:#fff;cursor:pointer;font-weight:bold">⚡ 强化面板</button>
+      </div>
+    </div>
     <div class="char-card" id="card-陈明">
       <img class="char-portrait" id="portrait-陈明" src="" onerror="this.style.display='none'">
       <div class="char-info">
@@ -1410,6 +1424,19 @@
 
 <!-- 进度条 -->
 <div id="progress"><div id="progress-bar"></div></div>
+
+<!-- 强化面板 -->
+<div id="talent-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:9999;justify-content:center;align-items:center">
+  <div style="background:#1a1625;border:1px solid #d4af37;border-radius:12px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto;padding:20px;color:#e8e0d0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="margin:0;color:#d4af37">⚡ 强化面板</h3>
+      <span id="talent-ap" style="color:#fff;font-weight:bold">AP: 0</span>
+    </div>
+    <div id="talent-stats" style="background:rgba(255,255,255,0.06);padding:10px;border-radius:8px;margin-bottom:14px;font-size:14px;color:#cbb97a"></div>
+    <div id="talent-list"></div>
+    <button onclick="closeTalentPanel()" style="margin-top:14px;width:100%;padding:8px;background:rgba(255,255,255,0.12);border:none;border-radius:8px;color:#fff;cursor:pointer">关闭</button>
+  </div>
+</div>
 
 <script>
 let es = null, totalTurns = 10, currentTurn = 0, gmap = null, tileGrid = null;
@@ -1532,6 +1559,15 @@ function startGame() {
       const img = document.getElementById('portrait-' + inv.name);
       if (img && inv.portrait) img.src = '/images/characters/' + inv.portrait;
     });
+    // 无限流：显示轮回者卡，隐藏 COC 调查员
+    if (d.reincarnator) {
+      document.getElementById('card-reincarnator').style.display = '';
+      ['card-陈明','card-林晓','card-王刚'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      renderReincarnator(d.reincarnator);
+    }
     document.getElementById('status').textContent = '遊戲開始';
     if (d.vote_seconds) totalVoteSeconds = d.vote_seconds;
     syncStageMeta();
@@ -2074,6 +2110,9 @@ function highlightCard(name) {
 
 /* ── 狀態更新 ── */
 function updateState(state) {
+  if (state && state.reincarnator) {
+    renderReincarnator(state.reincarnator);
+  }
   for (const [name, s] of Object.entries(state)) {
     const hpEl = document.getElementById('hp-' + name);
     const sanEl = document.getElementById('san-' + name);
@@ -2103,6 +2142,99 @@ function updateState(state) {
     }
   }
   syncStageMeta();
+}
+
+// ── 无限流轮回者 ────────────────────────────
+
+function renderReincarnator(rein) {
+  if (!rein) return;
+  document.getElementById('rein-hp').textContent = rein.hp + '/' + rein.max_hp;
+  const hpBar = document.getElementById('rein-hpbar');
+  if (hpBar) {
+    const pct = rein.hp / rein.max_hp * 100;
+    hpBar.style.width = pct + '%';
+  }
+  document.getElementById('rein-str').textContent = rein.strength;
+  document.getElementById('rein-agi').textContent = rein.agility;
+  document.getElementById('rein-spr').textContent = rein.spirit;
+  document.getElementById('rein-ap').textContent = rein.ap;
+  document.getElementById('rein-talents').textContent = (rein.talents && rein.talents.length) ? rein.talents.join(', ') : '无';
+  const condEl = document.getElementById('rein-cond');
+  if (condEl) condEl.textContent = (rein.conditions && rein.conditions.length) ? '⚠ ' + rein.conditions.join(', ') : '';
+}
+
+function openTalentPanel() {
+  if (!voteSessionId) return;
+  document.getElementById('talent-modal').style.display = 'flex';
+  fetch('/api/talents?session_id=' + encodeURIComponent(voteSessionId))
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('talent-ap').textContent = 'AP: ' + (d.reincarnator ? d.reincarnator.ap : 0);
+      document.getElementById('talent-stats').textContent = d.stats_text || '';
+      const list = document.getElementById('talent-list');
+      list.innerHTML = '';
+      const lines = { '力量': [], '敏捷': [], '精神': [] };
+      (d.talents || []).forEach(t => {
+        lines[t.line] = lines[t.line] || [];
+        lines[t.line].push(t);
+      });
+      const lineNames = { '力量': '💪 力量线', '敏捷': '🏃 敏捷线', '精神': '🧠 精神线' };
+      Object.keys(lines).forEach(line => {
+        const h = document.createElement('div');
+        h.style.cssText = 'margin:10px 0 6px;font-weight:bold;color:#d4af37';
+        h.textContent = lineNames[line] || line;
+        list.appendChild(h);
+        lines[line].forEach(t => {
+          const owned = (d.reincarnator && d.reincarnator.talents || []).includes(t.id);
+          const available = (d.available || []).includes(t.id);
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px;margin-bottom:6px;border-radius:8px;background:rgba(255,255,255,0.05);border-left:3px solid ' + (owned ? '#d4af37' : available ? '#4a90d9' : '#444');
+          const info = document.createElement('div');
+          info.style.flex = '1';
+          const nm = document.createElement('div');
+          nm.textContent = 'Lv' + t.level + ' ' + t.name + (owned ? ' ✅' : '');
+          nm.style.fontWeight = 'bold';
+          const desc = document.createElement('div');
+          desc.textContent = t.description;
+          desc.style.fontSize = '12px';
+          desc.style.color = '#a09080';
+          info.appendChild(nm); info.appendChild(desc);
+          row.appendChild(info);
+          if (!owned) {
+            const btn = document.createElement('button');
+            btn.textContent = available ? '习得 (1 AP)' : (d.reincarnator ? '前置未解锁' : '—');
+            btn.disabled = !available;
+            btn.style.cssText = 'padding:4px 10px;border:none;border-radius:6px;cursor:' + (available ? 'pointer' : 'not-allowed') + ';background:' + (available ? 'linear-gradient(135deg,#d4af37,#8b6914)' : 'rgba(255,255,255,0.08)') + ';color:#fff;font-size:12px';
+            if (available) btn.onclick = () => purchaseTalent(t.id);
+            row.appendChild(btn);
+          }
+          list.appendChild(row);
+        });
+      });
+      if (!(d.talents || []).length) list.innerHTML = '<div style="color:#a09080;text-align:center;padding:20px">强化树为空</div>';
+    })
+    .catch(() => { document.getElementById('talent-list').innerHTML = '<div style="color:#c0392b;text-align:center;padding:20px">加载失败</div>'; });
+}
+
+function purchaseTalent(talentId) {
+  fetch('/api/talents/purchase', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({talent_id: talentId, session_id: voteSessionId})
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        renderReincarnator(d.reincarnator);
+        openTalentPanel();  // 刷新面板
+      } else {
+        alert(d.reason || '购买失败');
+      }
+    });
+}
+
+function closeTalentPanel() {
+  document.getElementById('talent-modal').style.display = 'none';
 }
 
 syncStageMeta();

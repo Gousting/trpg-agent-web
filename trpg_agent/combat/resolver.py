@@ -140,10 +140,16 @@ class CombatMechanics:
         encounter: CombatEncounter,
         *,
         rng: random.Random | None = None,
+        melee_bonus: int = 0,          # 轮回者力量 → 近战伤害加成
+        dodge_bonus: int = 0,          # 轮回者敏捷 → 闪避率加成（百分比点）
+        spirit_resist_bonus: int = 0,  # 轮回者精神 → 精神抗性加成（百分比点）
     ) -> None:
         self._encounter = encounter
         self._rng = rng or random.Random()
         self._profile = _COC_PROFILE
+        self.melee_bonus = melee_bonus
+        self.dodge_bonus = dodge_bonus
+        self.spirit_resist_bonus = spirit_resist_bonus
 
     @property
     def encounter(self) -> CombatEncounter:
@@ -187,20 +193,28 @@ class CombatMechanics:
 
         living = self._encounter.living_enemies()
         if success and living:
-            # 成功：对主要敌人造成伤害（2d6 基础伤害）
-            dmg = sum(self._rng.randint(1, 6) for _ in range(2))
+            # 成功：对主要敌人造成伤害（2d6 基础伤害 + 力量加成）
+            dmg = sum(self._rng.randint(1, 6) for _ in range(2)) + self.melee_bonus
             primary = living[0]
             actual = primary.take_damage(dmg)
             damage_to_enemies[primary.id] = actual
         elif not success and living:
-            # 失败：敌人反击（使用敌人伤害骰）
-            for enemy in living[:2]:  # 最多两个敌人反击
-                try:
-                    roll_result = roll_damage(enemy.damage, self._rng)
-                    damage_to_investigators += roll_result.total
-                except Exception:
-                    # 解析骰子表达式失败时用默认值
-                    damage_to_investigators += self._rng.randint(1, 4)
+            # 失败：敌人反击（使用敌人伤害骰）；敏捷加成提供闪避概率
+            dodged = self.dodge_bonus > 0 and self._rng.randint(1, 100) <= self.dodge_bonus
+            if not dodged:
+                for enemy in living[:2]:  # 最多两个敌人反击
+                    try:
+                        roll_result = roll_damage(enemy.damage, self._rng)
+                        damage_to_investigators += roll_result.total
+                    except Exception:
+                        # 解析骰子表达式失败时用默认值
+                        damage_to_investigators += self._rng.randint(1, 4)
+
+        # 精神加成减免 SAN 损失（百分比点，最多减免一半）
+        if san_loss and self.spirit_resist_bonus > 0:
+            resist_chance = min(50, self.spirit_resist_bonus)
+            if self._rng.randint(1, 100) <= resist_chance:
+                san_loss = max(1, san_loss // 2)
 
         # ── 检查结局 ──
         outcome_id: str = self._encounter.check_outcome(

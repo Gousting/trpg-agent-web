@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "description": "无限流轮回者强化树。每条线（力量/敏捷/精神）3 级，逐级解锁。",
+  "cost_per_level": 1,
+  "talents": [
+    {
+      "id": "str_1",
+      "name": "蛮力",
+      "line": "力量",
+      "level": 1,
+      "description": "力量 +2，近战伤害 +1",
+      "effects": {"strength": 2, "melee_bonus": 1}
+    },
+    {
+      "id": "str_2",
+      "name": "铁臂",
+      "line": "力量",
+      "level": 2,
+      "requires": ["str_1"],
+      "description": "力量 +2，近战伤害 +1",
+      "effects": {"strength": 2, "melee_bonus": 1}
+    },
+    {
+      "id": "str_3",
+      "name": "破军",
+      "line": "力量",
+      "level": 3,
+      "requires": ["str_2"],
+      "description": "力量 +3，近战伤害 +2",
+      "effects": {"strength": 3, "melee_bonus": 2}
+    },
+    {
+      "id": "agi_1",
+      "name": "迅捷",
+      "line": "敏捷",
+      "level": 1,
+      "description": "敏捷 +2，闪避率 +4%",
+      "effects": {"agility": 2, "dodge_bonus": 4}
+    },
+    {
+      "id": "agi_2",
+      "name": "鬼步",
+      "line": "敏捷",
+      "level": 2,
+      "requires": ["agi_1"],
+      "description": "敏捷 +2，闪避率 +4%",
+      "effects": {"agility": 2, "dodge_bonus": 4}
+    },
+    {
+      "id": "agi_3",
+      "name": "幻影身法",
+      "line": "敏捷",
+      "level": 3,
+      "requires": ["agi_2"],
+      "description": "敏捷 +3，闪避率 +6%",
+      "effects": {"agility": 3, "dodge_bonus": 6}
+    },
+    {
+      "id": "spr_1",
+      "name": "凝神",
+      "line": "精神",
+      "level": 1,
+      "description": "精神 +2，精神抗性 +4%",
+      "effects": {"spirit": 2, "spirit_resist_bonus": 4}
+    },
+    {
+      "id": "spr_2",
+      "name": "心如止水",
+      "line": "精神",
+      "level": 2,
+      "requires": ["spr_1"],
+      "description": "精神 +2，精神抗性 +4%",
+      "effects": {"spirit": 2, "spirit_resist_bonus": 4}
+    },
+    {
+      "id": "spr_3",
+      "name": "不动明王",
+      "line": "精神",
+      "level": 3,
+      "requires": ["spr_2"],
+      "description": "精神 +3，精神抗性 +6%",
+      "effects": {"spirit": 3, "spirit_resist_bonus": 6}
+    }
+  ]
+}

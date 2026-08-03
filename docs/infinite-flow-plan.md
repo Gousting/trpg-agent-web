@@ -67,6 +67,75 @@ data/modules_infinite_flow/
 
 ### 5. 后续待办
 
-- [ ] 评估：轮回者三维属性（力量/敏捷/精神）+ 强化树是否进本阶段
+- [x] ~~评估：轮回者三维属性（力量/敏捷/精神）+ 强化树是否进本阶段~~ → 已实现（见第 6 节）
 - [ ] 验证：主神空间 → 进副本 A → 通关 → 返回 hub → 进副本 B 的完整直播流程（需 Ollama 在线）
 - [ ] 副本内容扩展：每个副本可加更多分支模块提升重玩性
+
+---
+
+## 第二阶段：轮回者三维属性 + 强化树（2026-07-13 实现）
+
+### 目标
+
+给无限流世界观加角色成长循环：轮回者三维属性（力量/敏捷/精神）+ 强化点（AP）+ 强化树，副本通关获得 AP，消费 AP 购买强化，强化以简单线性公式影响战斗数值。**不破坏 COC 模式**——Investigator 原样保留，无限流用独立的 Reincarnator 状态类。
+
+### 数据层
+
+- `trpg_agent/memory/game_state.py`：新增 `Reincarnator` 类
+  - 字段：`name / max_hp / hp / strength / agility / spirit / ap / talents / conditions / bonus_melee / bonus_dodge / bonus_resist`
+  - 线性加成公式（属性推导 + 天赋额外加成）：
+    - `melee_bonus()`：力量每高出基准 2 点 +1 近战伤害，再加天赋 `bonus_melee`
+    - `dodge_bonus()`：敏捷每高出基准 2 点 +1 闪避率（封顶 +20），再加天赋 `bonus_dodge`
+    - `spirit_resist_bonus()`：精神每高出基准 2 点 +1 精神抗性（封顶 +20），再加天赋 `bonus_resist`
+  - `GameState` 新增 `reincarnator: Reincarnator | None` 字段，序列化/反序列化完整支持（向后兼容，旧存档无此字段时为 None）
+- `data/infinite_flow/talents.json`：强化树数据
+  - 三线各 3 级共 9 个强化：力量线（蛮力→铁臂→破军）、敏捷线（迅捷→鬼步→幻影身法）、精神线（凝神→心如止水→不动明王）
+  - 每级 cost 1 AP，逐级前置解锁，effects 声明属性加成
+
+### 强化系统
+
+- `trpg_agent/infinite_flow/talents.py`：`TalentCatalog`（加载/查询/购买）
+  - `line_talents(line)`：按线取强化
+  - `available_for(rein)`：前置满足 + 未购买 + AP 足够
+  - `purchase(rein, talent_id)`：校验前置 + AP → 扣 AP → 应用 effects → 追加 talents 列表
+
+### 战斗接入（线性公式）
+
+- `trpg_agent/combat/resolver.py`：`CombatMechanics.__init__` 新增 `melee_bonus / dodge_bonus / spirit_resist_bonus` 三参数
+  - 成功攻击伤害 = 2d6 + `melee_bonus`
+  - 失败反击时按 `dodge_bonus` 概率闪避（伤害归零）
+  - SAN 损失按 `spirit_resist_bonus` 概率减半（上限 50% 减免）
+- `trpg_agent/combat/loop.py`：`CombatLoop` 透传三参数给 `CombatMechanics`
+- `trpg_agent/combat/orchestrator.py`：`CombatOrchestrator` 新增 `reincarnator` 引用参数
+  - `_bonuses()` 每次创建 CombatLoop 时动态读取轮回者加成——**强化后立即生效，无需重开 session**
+
+### web 接入
+
+- `trpg_agent_web/web_server.py`：
+  - `event_stream` 里 `world=infinite_flow` 时创建 Reincarnator（三维 10/10/10 + 15 AP 自由分配），跳过 COC 调查员创建
+  - 全局 `_sessions` 注册表：sid → Session，供强化 API 跨请求访问
+  - 战斗结束结算 AP：victory +3，defeat/flee +1 保底
+  - `_investigators_state_text` / `_state_snapshot` 适配轮回者
+  - 新端点：
+    - `GET /api/talents?session_id=`：强化树 + 轮回者状态 + 可用强化
+    - `POST /api/talents/purchase`：购买强化（校验 + 应用）
+- `trpg_agent_web/static/index.html`：
+  - 轮回者状态卡（HP/力量/敏捷/精神/AP/已购强化）+ 强化面板按钮
+  - 强化面板 modal：三线分组展示、前置锁定、已购 ✅ 标记、AP 实时显示
+  - `init` 事件带 `reincarnator` 时自动隐藏 COC 调查员卡；`updateState` 同步轮回者状态
+
+### 测试
+
+- `tests/test_reincarnator.py`：16 个用例
+  - Reincarnator 默认值/序列化 roundtrip、GameState 序列化
+  - 属性加成公式（含封顶、天赋叠加、低于基准不惩罚）
+  - 强化树加载（9 个、三线各 3 级）、前置校验、AP 扣减、重复拒绝、效果应用（力量+bonus 叠加）
+  - 战斗透传：力量加成叠加到成功攻击伤害
+- 全量 **206 个测试通过**（190 + 16 新增）零回归
+
+### 待办
+
+- [ ] web 在线验证：强化 API 全链路（创建流 → 查树 → 购买 → 验证属性变化）——端口 8766 曾被旧实例占用，需清端口后重启验证
+- [ ] 完整直播流程验证（需 Ollama 在线）
+- [ ] 副本内容扩展
+

@@ -143,6 +143,8 @@ app.mount("/audio/tts", StaticFiles(directory=str(TTS_DIR)), name="tts")
 # 前端实时更新票数分布。窗口结束后取多数票。
 _vote_tallies: dict[str, dict[str, int]] = {}
 _vote_queues: dict[str, asyncio.Queue] = {}
+# 无限流强化：sid → Session 引用（强化接口读取/修改轮回者状态）
+_sessions: dict[str, "Session"] = {}
 VOTE_WINDOW_SECONDS = 32  # 略长于前端 30s 倒计时，确保超时自动投的那一票也能被计入
 LIVE_VOTE_SECONDS = 90     # 直播模式投票窗口（给观众打字+弹幕延迟留时间）
 
@@ -189,7 +191,17 @@ def _scene_matcher() -> SceneMatcher:
 
 
 def _state_snapshot(session: Session) -> dict:
-    """调查员状态快照。"""
+    """调查员状态快照。无限流模式返回轮回者。"""
+    if session.state is not None and session.state.reincarnator is not None:
+        rein = session.state.reincarnator
+        return {
+            "reincarnator": {
+                "hp": rein.hp, "max_hp": rein.max_hp,
+                "strength": rein.strength, "agility": rein.agility, "spirit": rein.spirit,
+                "ap": rein.ap, "talents": list(rein.talents),
+                "conditions": list(rein.conditions),
+            }
+        }
     import sys
     snap = {
         inv.name: {
@@ -470,7 +482,16 @@ def _dice_consequence(dice_context: str, inv_state) -> dict | None:
 
 
 def _investigators_state_text(session: Session) -> str:
-    """生成调查员状态摘要文本，供 CombatLoop 的战斗 prompt 使用。"""
+    """生成调查员状态摘要文本，供 CombatLoop 的战斗 prompt 使用。
+
+    无限流模式输出轮回者三维属性 + HP + AP；COC 模式走原逻辑。
+    """
+    if session.state is not None and session.state.reincarnator is not None:
+        rein = session.state.reincarnator
+        cond = f"（{', '.join(rein.conditions)}）" if rein.conditions else ""
+        return (f"轮回者 {rein.name} HP {rein.hp}/{rein.max_hp} "
+                f"力量 {rein.strength} 敏捷 {rein.agility} 精神 {rein.spirit} "
+                f"AP {rein.ap}{cond}")
     parts = []
     for inv in session.state.investigators:
         cond = f"（{', '.join(inv.conditions)}）" if inv.conditions else ""
@@ -576,8 +597,21 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     if old_dir.exists():
         shutil.rmtree(old_dir)
     session = Session(sid, auto_save_interval=0, max_context=8192)
+    _sessions[sid] = session
 
-    for inv_data in INVESTIGATORS:
+    # ── 无限流：创建轮回者 ──────────────────────
+    is_infinite_flow = (world or "").strip().lower() in ("infinite_flow", "无限流")
+    if is_infinite_flow:
+        from trpg_agent.memory.game_state import Reincarnator, INITIAL_ALLOCATION_POINTS
+        rein = Reincarnator(name="轮回者", max_hp=12, hp=12,
+                            strength=10, agility=10, spirit=10, ap=0)
+        # 自由分配初始属性点：用户可后续通过强化面板分配
+        rein.ap += INITIAL_ALLOCATION_POINTS
+        if session.state is not None:
+            session.state.reincarnator = rein
+        yield _sse("status", {"text": f"🌀 轮回者已创建 — 三维属性 10/10/10，{INITIAL_ALLOCATION_POINTS} 点可分配"})
+
+    for inv_data in ([] if is_infinite_flow else INVESTIGATORS):
         # 避免重复：characters.json 可能已经加载过
         existing = session.state.find_investigator(inv_data["name"])
         if existing:
@@ -616,8 +650,19 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                             location=adventure.start_scene,
                         ))
 
+    rein_data = None
+    if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+        rein = session.state.reincarnator
+        rein_data = {
+            **rein.to_dict(),
+            "stats_text": (
+                f"力量 {rein.strength} | 敏捷 {rein.agility} | 精神 {rein.spirit} "
+                f"| HP {rein.hp}/{rein.max_hp} | AP {rein.ap}"
+            ),
+        }
     yield _sse("init", {
-        "investigators": INVESTIGATORS,
+        "investigators": [] if is_infinite_flow else INVESTIGATORS,
+        "reincarnator": rein_data,
         "kp_model": kp_model, "player_model": player_model,
         "opening": opening_text, "room": rc, "mode": mode,
         "compose_modules": compose_modules,
@@ -688,7 +733,16 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     current_bgm = bgm_track
     current_scene = scene_info
     # ── 战斗编排器 ──
-    combat_orch = CombatOrchestrator(investigators_state=_investigators_state_text(session))
+    rein = None
+    if is_infinite_flow and session.state is not None:
+        rein = session.state.reincarnator
+    combat_orch = CombatOrchestrator(
+        investigators_state=_investigators_state_text(session),
+        melee_bonus=rein.melee_bonus() if rein else 0,
+        dodge_bonus=rein.dodge_bonus() if rein else 0,
+        spirit_resist_bonus=rein.spirit_resist_bonus() if rein else 0,
+        reincarnator=rein,
+    )
 
     _turn = 0  # 循环迭代计数（含战斗回合）
     _non_combat_turns = 0  # 非战斗回合计数
@@ -757,16 +811,20 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             yield _sse("player_stream_end", {"speaker": speaker})
             # ── 应用伤害到调查员状态（按人数精确分摊，总和不超过原始伤害）──
             if mech_result.damage_to_investigators:
-                n = len(INVESTIGATORS)
-                base_dmg, remainder = divmod(mech_result.damage_to_investigators, n)
-                for i, invd in enumerate(INVESTIGATORS):
-                    dmg = base_dmg + (1 if i < remainder else 0)
-                    if dmg <= 0:
-                        continue
-                    st = session.state.find_investigator(invd["name"])
-                    if st:
-                        st.take_damage(dmg)
-            if mech_result.san_loss:
+                if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+                    rein = session.state.reincarnator
+                    rein.take_damage(mech_result.damage_to_investigators)
+                else:
+                    n = len(INVESTIGATORS)
+                    base_dmg, remainder = divmod(mech_result.damage_to_investigators, n)
+                    for i, invd in enumerate(INVESTIGATORS):
+                        dmg = base_dmg + (1 if i < remainder else 0)
+                        if dmg <= 0:
+                            continue
+                        st = session.state.find_investigator(invd["name"])
+                        if st:
+                            st.take_damage(dmg)
+            if mech_result.san_loss and not is_infinite_flow:
                 inv_state.san = max(0, inv_state.san - mech_result.san_loss)
             # 推送掷骰/伤害结果到前端（speaker/skill 供前端日志/骰子叠加层展示）
             yield _sse("dice_roll", {
@@ -812,6 +870,18 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 summary = combat_orch.combat_summary()
                 if summary:
                     session.record_combat(summary)
+
+            # ── 无限流：副本通关结算 AP ──────────
+            ap_gained = 0
+            if is_infinite_flow and outcome is not None and session.state is not None and session.state.reincarnator is not None:
+                rein = session.state.reincarnator
+                if outcome == "victory":
+                    ap_gained = 3
+                elif outcome in ("defeat", "flee"):
+                    ap_gained = 1
+                if ap_gained:
+                    rein.ap += ap_gained
+                    yield _sse("status", {"text": f"💰 副本结算：获得 {ap_gained} 强化点（AP），当前 {rein.ap} 点"})
 
             audio_url = await _speak(resolution_output[:500])
 
@@ -1424,6 +1494,71 @@ async def handle_vote(req: VoteRequest):
                 pass
         return {"accepted": True, "choice": req.choice, "tally": tally}
     return {"accepted": False, "reason": "no active vote"}
+
+
+# ── 无限流强化端点 ───────────────────────────
+
+
+class TalentPurchaseRequest(BaseModel):
+    talent_id: str = Field(..., max_length=64)
+    session_id: str = Field(default="", max_length=64)
+
+
+@app.get("/api/talents")
+async def list_talents(session_id: str = Query(default="", max_length=64)):
+    """查询强化树 + 当前轮回者状态（可用强化/已购强化/AP）。"""
+    from trpg_agent.infinite_flow.talents import TalentCatalog
+    catalog = TalentCatalog.load()
+    session = _sessions.get(session_id) if session_id else None
+    rein = None
+    if session is not None and session.state is not None:
+        rein = session.state.reincarnator
+
+    talents = [
+        {
+            "id": t.id, "name": t.name, "line": t.line, "level": t.level,
+            "description": t.description, "requires": t.requires,
+            "effects": t.effects,
+        }
+        for t in catalog.talents.values()
+    ]
+    resp: dict = {
+        "talents": talents,
+        "cost_per_level": catalog.cost_per_level,
+    }
+    if rein is not None:
+        resp["reincarnator"] = rein.to_dict()
+        resp["available"] = [t.id for t in catalog.available_for(rein)]
+        resp["stats_text"] = (
+            f"力量 {rein.strength} | 敏捷 {rein.agility} | 精神 {rein.spirit} "
+            f"| HP {rein.hp}/{rein.max_hp} | AP {rein.ap}"
+        )
+    return resp
+
+
+@app.post("/api/talents/purchase")
+async def purchase_talent(req: TalentPurchaseRequest):
+    """购买强化——校验前置 + AP，应用效果到轮回者。"""
+    from trpg_agent.infinite_flow.talents import TalentCatalog
+    catalog = TalentCatalog.load()
+    session = _sessions.get(req.session_id) if req.session_id else None
+    if session is None or session.state is None or session.state.reincarnator is None:
+        return {"ok": False, "reason": "session 不存在或不是无限流模式"}
+
+    rein = session.state.reincarnator
+    ok, msg = catalog.purchase(rein, req.talent_id)
+    if not ok:
+        return {"ok": False, "reason": msg}
+    return {
+        "ok": True,
+        "message": msg,
+        "reincarnator": rein.to_dict(),
+        "available": [t.id for t in catalog.available_for(rein)],
+        "stats_text": (
+            f"力量 {rein.strength} | 敏捷 {rein.agility} | 精神 {rein.spirit} "
+            f"| HP {rein.hp}/{rein.max_hp} | AP {rein.ap}"
+        ),
+    }
 
 
 # ── 入口 ─────────────────────────────────────

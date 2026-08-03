@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from trpg_agent.combat.encounter import CombatEncounter, CombatOutcome
 from trpg_agent.combat.loop import CombatLoop, CombatRoundState
@@ -46,9 +47,30 @@ class CombatOrchestrator:
             # → 根据 result.outcome 判断是否结束
     """
 
-    def __init__(self, investigators_state: str = "") -> None:
+    def __init__(
+        self,
+        investigators_state: str = "",
+        melee_bonus: int = 0,
+        dodge_bonus: int = 0,
+        spirit_resist_bonus: int = 0,
+        reincarnator: Any | None = None,   # 轮回者对象引用——动态读取加成（强化后立即生效）
+    ) -> None:
         self.combat_loop: CombatLoop | None = None
         self._investigators_state = investigators_state
+        self._melee_bonus = melee_bonus
+        self._dodge_bonus = dodge_bonus
+        self._spirit_resist_bonus = spirit_resist_bonus
+        self._reincarnator = reincarnator
+
+    def _bonuses(self) -> tuple[int, int, int]:
+        """当前加成——若持有轮回者引用则动态读取，否则用构造快照。"""
+        if self._reincarnator is not None:
+            return (
+                self._reincarnator.melee_bonus(),
+                self._reincarnator.dodge_bonus(),
+                self._reincarnator.spirit_resist_bonus(),
+            )
+        return self._melee_bonus, self._dodge_bonus, self._spirit_resist_bonus
 
     def check_combat(self, adventure, scene_id: str) -> bool:
         """检测当前场景是否为战斗场景。
@@ -68,9 +90,13 @@ class CombatOrchestrator:
             return False
 
         encounter = scene.combat["encounter"]
+        melee_bonus, dodge_bonus, spirit_resist_bonus = self._bonuses()
         self.combat_loop = CombatLoop(
             encounter,
             investigators_state=self._investigators_state,
+            melee_bonus=melee_bonus,
+            dodge_bonus=dodge_bonus,
+            spirit_resist_bonus=spirit_resist_bonus,
         )
         return True
 

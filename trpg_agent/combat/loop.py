@@ -93,12 +93,20 @@ class CombatLoop:
         encounter: CombatEncounter,
         *,
         investigators_state: str = "",
+        melee_bonus: int = 0,
+        dodge_bonus: int = 0,
+        spirit_resist_bonus: int = 0,
     ) -> None:
         self._state = CombatState(
             encounter=encounter,
             investigators_state=investigators_state,
         )
-        self._mechanics = CombatMechanics(encounter)
+        self._mechanics = CombatMechanics(
+            encounter,
+            melee_bonus=melee_bonus,
+            dodge_bonus=dodge_bonus,
+            spirit_resist_bonus=spirit_resist_bonus,
+        )
         self._last_mech_result: CombatMechanicResult | None = None
         encounter.start()
 

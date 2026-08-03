@@ -106,6 +106,116 @@ class Investigator:
         return self.san <= 0
 
 
+# ── 无限流轮回者 ────────────────────────────────────
+
+
+# 三维属性默认基准（3d6 期望值 ≈ 10.5）
+BASE_STATS = {"力量": 10, "敏捷": 10, "精神": 10}
+# 属性分配起始点数（自由分配模式）
+INITIAL_ALLOCATION_POINTS = 15
+
+
+@dataclass
+class Reincarnator:
+    """轮回者——无限流世界观的玩家状态层。
+
+    与 Investigator（COC）并存：world=infinite_flow 时使用，其他世界观走原逻辑。
+    三维属性 + 强化点（AP）+ 已购强化列表。强化效果由 talents 表定义，
+    战斗系统通过 stat_bonus() 读取属性带来的线性数值加成。
+    """
+
+    name: str
+    max_hp: int = 12
+    hp: int = 12
+    strength: int = BASE_STATS["力量"]
+    agility: int = BASE_STATS["敏捷"]
+    spirit: int = BASE_STATS["精神"]
+    ap: int = 0                                  # 强化点（副本通关结算获得）
+    talents: list[str] = field(default_factory=list)   # 已购强化 ID
+    conditions: list[str] = field(default_factory=list)
+    bonus_melee: int = 0                          # 天赋额外近战伤害
+    bonus_dodge: int = 0                          # 天赋额外闪避率
+    bonus_resist: int = 0                         # 天赋额外精神抗性
+
+    # ── 线性加成公式（简单，可后续调参） ──────────
+    # 力量：每高出基准 2 点 +1 近战伤害（含天赋额外加成）
+    # 敏捷：每高出基准 2 点 +1 闪避率（含天赋额外加成，合计上限 +20）
+    # 精神：每高出基准 2 点 +1 精神抗性（含天赋额外加成，合计上限 +20）
+
+    @property
+    def stats(self) -> dict[str, int]:
+        return {"力量": self.strength, "敏捷": self.agility, "精神": self.spirit}
+
+    def melee_bonus(self) -> int:
+        """力量 → 近战伤害加成。"""
+        return max(0, (self.strength - BASE_STATS["力量"]) // 2) + self.bonus_melee
+
+    def dodge_bonus(self) -> int:
+        """敏捷 → 闪避率加成（百分比点，封顶 +20）。"""
+        return max(0, min(20, (self.agility - BASE_STATS["敏捷"]) // 2 * 2 + self.bonus_dodge))
+
+    def spirit_resist_bonus(self) -> int:
+        """精神 → 精神抗性加成（百分比点，封顶 +20）。"""
+        return max(0, min(20, (self.spirit - BASE_STATS["精神"]) // 2 * 2 + self.bonus_resist))
+
+    def to_dict(self) -> dict:
+        d: dict = {
+            "name": self.name,
+            "max_hp": self.max_hp,
+            "hp": self.hp,
+            "strength": self.strength,
+            "agility": self.agility,
+            "spirit": self.spirit,
+            "ap": self.ap,
+        }
+        if self.talents:
+            d["talents"] = list(self.talents)
+        if self.conditions:
+            d["conditions"] = list(self.conditions)
+        if self.bonus_melee or self.bonus_dodge or self.bonus_resist:
+            d["bonus_melee"] = self.bonus_melee
+            d["bonus_dodge"] = self.bonus_dodge
+            d["bonus_resist"] = self.bonus_resist
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Reincarnator":
+        return cls(
+            name=str(d["name"]),
+            max_hp=int(d.get("max_hp", 12) or 12),
+            hp=int(d.get("hp", d.get("max_hp", 12)) or 12),
+            strength=int(d.get("strength", BASE_STATS["力量"]) or BASE_STATS["力量"]),
+            agility=int(d.get("agility", BASE_STATS["敏捷"]) or BASE_STATS["敏捷"]),
+            spirit=int(d.get("spirit", BASE_STATS["精神"]) or BASE_STATS["精神"]),
+            ap=int(d.get("ap", 0) or 0),
+            talents=list(d.get("talents", []) or []),
+            conditions=list(d.get("conditions", []) or []),
+            bonus_melee=int(d.get("bonus_melee", 0) or 0),
+            bonus_dodge=int(d.get("bonus_dodge", 0) or 0),
+            bonus_resist=int(d.get("bonus_resist", 0) or 0),
+        )
+
+    def take_damage(self, amount: int) -> int:
+        """扣 HP，返回实际伤害值。不低于 0。"""
+        actual = min(self.hp, amount)
+        self.hp = max(0, self.hp - amount)
+        if self.hp == 0 and "重伤" not in self.conditions:
+            self.conditions.append("重伤")
+        return actual
+
+    def heal(self, amount: int) -> int:
+        """回复 HP。"""
+        old = self.hp
+        self.hp = min(self.max_hp, self.hp + amount)
+        if self.hp > 0 and "重伤" in self.conditions:
+            self.conditions.remove("重伤")
+        return self.hp - old
+
+    @property
+    def is_downed(self) -> bool:
+        return self.hp <= 0
+
+
 @dataclass
 class Npc:
     """NPC——简化版。无 WH40k 的 psyker/warp/agenda 系统。"""
@@ -162,6 +272,7 @@ class GameState:
     adventure_meta: dict[str, object] = field(default_factory=dict)  # 运行时模组来源/恢复元数据
     resolved_elements: set[str] = field(default_factory=set)  # 已解决的元素 ID
     investigators: list[Investigator] = field(default_factory=list)
+    reincarnator: Reincarnator | None = None        # 无限流轮回者（world=infinite_flow 时使用）
     npcs: list[Npc] = field(default_factory=list)
     quests: list[Quest] = field(default_factory=list)
     recap: str = ""                             # 前情提要（LLM 生成，代码存储）
@@ -180,6 +291,7 @@ class GameState:
             "adventure_meta": self.adventure_meta,
             "resolved_elements": sorted(self.resolved_elements),
             "investigators": [c.to_dict() for c in self.investigators],
+            "reincarnator": self.reincarnator.to_dict() if self.reincarnator else None,
             "npcs": [n.to_dict() for n in self.npcs],
             "quests": [q.to_dict() for q in self.quests],
             "recap": self.recap,
@@ -198,6 +310,7 @@ class GameState:
             adventure_meta=dict(d.get("adventure_meta", {}) or {}),
             resolved_elements=set(d.get("resolved_elements", []) or []),
             investigators=[Investigator.from_dict(c) for c in d.get("investigators", []) or []],
+            reincarnator=Reincarnator.from_dict(d["reincarnator"]) if d.get("reincarnator") else None,
             npcs=[Npc.from_dict(n) for n in d.get("npcs", []) or []],
             quests=[Quest.from_dict(q) for q in d.get("quests", []) or []],
             recap=str(d.get("recap", "") or ""),
