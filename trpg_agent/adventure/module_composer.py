@@ -216,6 +216,10 @@ class ModuleMeta:
     # 结局标记——true 表示这是叙事终点（胜利/逃脱等），组合引擎不会再往下续接分支
     is_ending: bool = False
 
+    # 可复用标记——true 表示该模块在本局内可被多次进入（无限流主神空间/副本循环用）。
+    # 默认 false，现有模块行为完全不变：一局内每个模块只出现一次。
+    reusable: bool = False
+
     # 模块类型——story（默认，叙事模块）或 combat（战斗遭遇）
     module_type: str = "story"
 
@@ -250,6 +254,7 @@ class ModuleMeta:
             entry_mood=entry.get("mood"),
             exits=exits,
             is_ending=bool(d.get("is_ending", False)),
+            reusable=bool(d.get("reusable", False)),
             module_type=str(d.get("module_type", "") or d.get("type", "") or "story"),
         )
 
@@ -1014,6 +1019,14 @@ class ModuleComposer:
                 candidates = [m for m in candidates if m.meta.module_type != "combat"]
         return rng.choice(candidates)
 
+    def _usable(self, mod: Module, used_ids: set[str]) -> bool:
+        """判断模块是否可作为下游候选。
+
+        普通模块：一局内只出现一次（used_ids 去重）。
+        可复用模块（reusable=True）：豁免去重——主神空间/副本可被多次进入。
+        """
+        return mod.meta.reusable or mod.meta.id not in used_ids
+
     def _find_compatible(
         self,
         ctx: ExitContext,
@@ -1025,7 +1038,7 @@ class ModuleComposer:
         ctx.pool_clues = pool_clues
         candidates = [
             m for m in self._modules.values()
-            if m.meta.id not in used_ids
+            if self._usable(m, used_ids)
             and _compatible(ctx, m.meta)
         ]
         if difficulty_range:
@@ -1034,7 +1047,7 @@ class ModuleComposer:
         # 随机注入 1-2 个已解锁战斗模块作为随机遭遇（不论地点是否匹配）
         combat_pool = [
             m for m in self._modules.values()
-            if m.meta.id not in used_ids
+            if self._usable(m, used_ids)
             and m.meta.module_type == "combat"
             and not m.meta.entry_required_clues
             and m not in candidates
@@ -1051,7 +1064,7 @@ class ModuleComposer:
         if not candidates:
             candidates = [
                 m for m in self._modules.values()
-                if m.meta.id not in used_ids
+                if self._usable(m, used_ids)
             ]
             # 仍尽量满足线索要求（忽略地点类型）
             candidates = [m for m in candidates if all(
@@ -1063,7 +1076,7 @@ class ModuleComposer:
             # 完全放宽：仅按难度和去重过滤
             candidates = [
                 m for m in self._modules.values()
-                if m.meta.id not in used_ids
+                if self._usable(m, used_ids)
             ]
             if difficulty_range:
                 candidates = [m for m in candidates if lo <= m.meta.difficulty <= hi]
