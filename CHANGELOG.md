@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v1.10 — 世界观驱动前端 UI + selectedMode 作用域修复 (2026-08-04)
+
+### Web 前端 (`trpg_agent_web/static/index.html`)
+
+- 修复真实 Bug：`showVoteBar()` 曾引用 `startGame()` 局部 `const selectedMode`，跨函数访问会抛 `ReferenceError`；改为模块级 `let currentMode` / `let currentWorld`
+- 新增 `WORLD_UI_PRESETS` 配置表（`coc`/`harry_potter`/`infinite_flow`）+ `applyWorldPreset(worldValue)`：切换 `#world` 下拉或页面加载时立即刷新舞台世界标签、左侧档案标题（`#roster-title`）、投票默认标题（`.vote-title`）、手机抽屉按钮文案（`#mobile-roster-toggle`）、"继承轮回者"显隐（`#load-profile-label`），作为"预初始化层"；原有 `init` SSE 事件逻辑保留作为"运行时层"权威校正
+- `showVoteBar()` 投票标题优先级：主控提示 > live 弹幕提示 > 世界观默认标题
+- 设计文档：[docs/world-driven-ui-plan.md](docs/world-driven-ui-plan.md)；配置规范：[docs/frontend-world-config-guide.md](docs/frontend-world-config-guide.md)
+
+### 测试
+
+- `tests/test_web_server_regressions.py` 新增/更新 3 个前端字符串级回归断言（`selectedMode` 已清除、`WORLD_UI_PRESETS` 结构存在、`load-profile-label` 显隐受控），全量通过
+
 ## v1.9 — 无限流 v2 T7：咒怨模块分支改造 (2026-08-04)
 
 ### 模块数据 (`data/modules_infinite_flow/dungeon_juon_*`)

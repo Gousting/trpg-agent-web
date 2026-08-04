@@ -1273,10 +1273,10 @@
   <label>轮</label><input id="turns" type="number" value="10" min="3" max="30" style="width:40px">
   <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
   <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option><option value="live">直播</option></select>
-  <label>主控</label><select id="leader-select" title="直播模式下由谁主导行动（其余为AI队友）"><option value="">默认(陈明)</option><option value="陈明">陈明</option><option value="林晓">林晓</option><option value="王刚">王刚</option></select>
+  <label id="leader-select-label">主控</label><select id="leader-select" title="直播模式下由谁主导行动（其余为AI队友）"><option value="">默认(陈明)</option><option value="陈明">陈明</option><option value="林晓">林晓</option><option value="王刚">王刚</option></select>
   <label>世界观</label><select id="world"><option value="coc">克苏鲁 COC</option><option value="harry_potter">哈利波特</option><option value="infinite_flow">无限流</option></select>
   <label><input type="checkbox" id="compose-modules" checked> 模块</label>
-  <label><input type="checkbox" id="load-profile" title="无限流模式：继承上一局存档的轮回者（属性/AP/强化）"> 继承轮回者</label>
+  <label id="load-profile-label"><input type="checkbox" id="load-profile" title="无限流模式：继承上一局存档的轮回者（属性/AP/强化）"> 继承轮回者</label>
   <span id="status">就绪</span>
 </div>
 
@@ -1310,7 +1310,7 @@
 <!-- BGM 指示器 -->
 <div id="bgm-indicator">氛圍音軌</div>
 <div id="live-callout"></div>
-<button id="mobile-roster-toggle" onclick="toggleMobileRoster()">调查员</button>
+<button id="mobile-roster-toggle" onclick="toggleMobileRoster()">调查员</button><!-- 文案由 applyWorldPreset() 按世界观覆盖 -->
 <div id="mobile-roster-scrim" onclick="closeMobileRoster()"></div>
 
 <!-- 音频元素 -->
@@ -1373,7 +1373,7 @@
 <!-- 右侧面板 -->
 <div id="right-panel">
   <div id="characters">
-    <h2>調查員檔案</h2>
+    <h2 id="roster-title">調查員檔案</h2>
     <div class="char-card" id="card-reincarnator" style="display:none">
       <div class="char-info">
         <div class="char-name" style="color:#d4af37">🌀 轮回者</div>
@@ -1430,6 +1430,48 @@
         <div class="conditions" id="cond-王刚"></div>
       </div>
     </div>
+    <div class="char-card" id="card-凯尔">
+      <img class="char-portrait" id="portrait-凯尔" src="" onerror="this.style.display='none'">
+      <div class="char-info">
+        <div class="char-name" style="color:#7f0909">🪄 凯尔</div>
+        <div class="stat-row"><span class="stat-label">HP</span><span id="hp-凯尔">12/12</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-凯尔" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">SAN</span><span id="san-凯尔">60/60</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-凯尔" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">LUCK</span><span id="luck-凯尔">50</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-凯尔" style="width:100%"></div></div>
+        <div class="inv-list" id="inv-凯尔">🎒 魔杖·分院徽章·隐形斗篷残片</div>
+        <div class="conditions" id="cond-凯尔"></div>
+      </div>
+    </div>
+    <div class="char-card" id="card-艾米">
+      <img class="char-portrait" id="portrait-艾米" src="" onerror="this.style.display='none'">
+      <div class="char-info">
+        <div class="char-name" style="color:#0e6ba8">📖 艾米</div>
+        <div class="stat-row"><span class="stat-label">HP</span><span id="hp-艾米">10/10</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-艾米" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">SAN</span><span id="san-艾米">70/70</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-艾米" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">LUCK</span><span id="luck-艾米">45</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-艾米" style="width:100%"></div></div>
+        <div class="inv-list" id="inv-艾米">🎒 羽毛笔·古老魔法书·护身符</div>
+        <div class="conditions" id="cond-艾米"></div>
+      </div>
+    </div>
+    <div class="char-card" id="card-托马斯">
+      <img class="char-portrait" id="portrait-托马斯" src="" onerror="this.style.display='none'">
+      <div class="char-info">
+        <div class="char-name" style="color:#f0c75e">🛡️ 托马斯</div>
+        <div class="stat-row"><span class="stat-label">HP</span><span id="hp-托马斯">15/15</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-托马斯" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">SAN</span><span id="san-托马斯">40/40</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg san-bar" id="sanbar-托马斯" style="width:100%"></div></div>
+        <div class="stat-row"><span class="stat-label">LUCK</span><span id="luck-托马斯">55</span></div>
+        <div class="stat-bar-bg"><div class="stat-bar-fg luck-bar" id="luckbar-托马斯" style="width:100%"></div></div>
+        <div class="inv-list" id="inv-托马斯">🎒 魔药瓶·护身符项链·干粮</div>
+        <div class="conditions" id="cond-托马斯"></div>
+      </div>
+    </div>
   </div>
 
   <div id="action-log">
@@ -1463,17 +1505,107 @@ let kpPendingEndPayload = null;
 let kpRenderTick = 0;
 let stageCueTimer = null;
 let calloutTimer = null;
+// 世界观驱动 UI：模块级状态，避免 showVoteBar() 等跨函数引用局部变量导致 ReferenceError
+let currentMode = 'ai';
+let currentWorld = 'coc';
 
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
 }
 
+// ── 世界观 UI 预设（docs/world-driven-ui-plan.md）──────────
+const WORLD_UI_PRESETS = {
+  coc: {
+    stageWorldLabel: 'COC',
+    rosterTitle: '調查員檔案',
+    voteTitleDefault: '嫌疑人投票',
+    mobileRosterLabel: '调查员',
+    showLoadProfile: false,
+    roster: ['陈明', '林晓', '王刚'],
+    rosterCards: ['陈明', '林晓', '王刚'],
+  },
+  harry_potter: {
+    stageWorldLabel: '哈利波特',
+    rosterTitle: '学生档案',
+    voteTitleDefault: '抉择投票',
+    mobileRosterLabel: '学生',
+    showLoadProfile: false,
+    roster: ['凯尔', '艾米', '托马斯'],
+    rosterCards: ['凯尔', '艾米', '托马斯'],
+  },
+  infinite_flow: {
+    stageWorldLabel: '无限流',
+    rosterTitle: '輪回者檔案',
+    voteTitleDefault: '行动投票',
+    mobileRosterLabel: '轮回者',
+    showLoadProfile: true,
+    roster: [],
+    // 无限流：无可选主控（固定为轮回者），但预览时仍应显示 2 名常驻 AI 队友卡（与后端 INFINITE_FLOW_TEAMMATES 一致），
+    // 轮回者卡本身由 init 事件根据真实 d.reincarnator 数据单独控制，此处不列入。
+    rosterCards: ['林晓', '王刚'],
+  },
+};
+
+function worldPreset(worldValue) {
+  return WORLD_UI_PRESETS[worldValue] || WORLD_UI_PRESETS.coc;
+}
+
+/**
+ * 预初始化层：切换 #world 下拉时立即生效的文案/显隐（不等待开局 init 事件）。
+ * 运行时层（init SSE 事件）之后会用真实后端数据做最终校正，可覆盖这里写的文案。
+ */
+function applyWorldPreset(worldValue) {
+  currentWorld = worldValue || 'coc';
+  const preset = worldPreset(currentWorld);
+
+  document.title = preset.stageWorldLabel + ' TRPG 跑团';
+
+  setText('stage-world', preset.stageWorldLabel);
+
+  const rosterTitle = document.getElementById('roster-title');
+  if (rosterTitle) rosterTitle.textContent = preset.rosterTitle;
+
+  const voteTitle = document.querySelector('#vote-bar .vote-title');
+  if (voteTitle) voteTitle.textContent = preset.voteTitleDefault;
+
+  const mobileToggle = document.getElementById('mobile-roster-toggle');
+  if (mobileToggle) mobileToggle.textContent = preset.mobileRosterLabel;
+
+  const loadProfileLabel = document.getElementById('load-profile-label');
+  if (loadProfileLabel) loadProfileLabel.style.display = preset.showLoadProfile ? '' : 'none';
+
+  // 主控下拉框：按世界观角色名单重建选项（无限流没有可选主控，隐藏该控件）
+  const leaderSelect = document.getElementById('leader-select');
+  const leaderLabel = document.getElementById('leader-select-label');
+  if (leaderSelect) {
+    const names = preset.roster || [];
+    if (names.length) {
+      leaderSelect.innerHTML = '<option value="">默认(' + names[0] + ')</option>' +
+        names.map(n => '<option value="' + n + '">' + n + '</option>').join('');
+      leaderSelect.style.display = '';
+      if (leaderLabel) leaderLabel.style.display = '';
+    } else {
+      leaderSelect.style.display = 'none';
+      if (leaderLabel) leaderLabel.style.display = 'none';
+    }
+  }
+
+  // 角色卡预览（预初始化层）：尚未开局时即按世界观预览应显示的队伍卡片，
+  // 避免切换下拉框后仍同时显示其他世界观的角色卡。真实局内数据以 init 事件为准。
+  const cardNames = preset.rosterCards || [];
+  document.querySelectorAll('.char-card[id^="card-"]').forEach(el => {
+    if (el.id === 'card-reincarnator') return;
+    const name = el.id.slice('card-'.length);
+    el.style.display = cardNames.includes(name) ? '' : 'none';
+  });
+}
+
 function syncStageMeta() {
   const modeValue = document.getElementById('mode')?.value || 'ai';
   const worldValue = document.getElementById('world')?.value || 'coc';
   const modeLabel = modeValue === 'live' ? '直播演出' : modeValue === 'human' ? '人类玩家' : 'AI自动';
-  const worldLabel = worldValue === 'harry_potter' ? '哈利波特' : 'COC';
+  const worldLabel = worldPreset(worldValue).stageWorldLabel;
   const label = document.getElementById('scene-label')?.textContent?.trim() || '待进入';
   const mood = document.getElementById('scene-mood')?.textContent?.trim() || '未揭示';
   setText('stage-scene-name', label === '—' ? '待进入' : label);
@@ -1512,8 +1644,9 @@ window.addEventListener('orientationchange', syncMobileLiveVariant);
 
 function startGame() {
   document.body.classList.add('live');
-  const selectedMode = document.getElementById('mode').value;
-  document.body.classList.toggle('broadcast', selectedMode === 'live');
+  currentMode = document.getElementById('mode').value;
+  applyWorldPreset(document.getElementById('world').value);
+  document.body.classList.toggle('broadcast', currentMode === 'live');
   syncMobileLiveVariant();
   closeMobileRoster(true);
   const btn = document.getElementById('btn-start');
@@ -1526,7 +1659,7 @@ function startGame() {
   voteSessionId = '';
   totalTurns = parseInt(document.getElementById('turns').value) || 10;
   syncStageMeta();
-  setStageVoteState(selectedMode === 'live' ? '等待第一轮' : '非投票模式');
+  setStageVoteState(currentMode === 'live' ? '等待第一轮' : '非投票模式');
 
   const params = new URLSearchParams({
     host: document.getElementById('ollama-host').value,
@@ -1574,18 +1707,24 @@ function startGame() {
   es.addEventListener('init', (e) => {
     const d = JSON.parse(e.data);
     voteSessionId = d.session_id || '';
+    const rosterTitle = document.getElementById('roster-title');
     // 加载头像
     (d.investigators || []).forEach(inv => {
       const img = document.getElementById('portrait-' + inv.name);
       if (img && inv.portrait) img.src = '/images/characters/' + inv.portrait;
     });
-    // 无限流：显示轮回者卡，隐藏 COC 调查员
+    // 通用队伍卡片显隐：按本局 investigators 名单决定哪些角色卡可见——
+    // 适用于任意世界观（COC/哈利波特等 3 人小队，或无限流的 2 名 AI 队友），
+    // 只要角色卡 id 遵循 "card-<角色名>" 约定即可自动适配，无需按世界观特判。
+    const activeNames = (d.investigators || []).map(inv => inv.name);
+    document.querySelectorAll('.char-card[id^="card-"]').forEach(el => {
+      if (el.id === 'card-reincarnator') return;
+      const name = el.id.slice('card-'.length);
+      el.style.display = activeNames.includes(name) ? '' : 'none';
+    });
+    document.getElementById('card-reincarnator').style.display = d.reincarnator ? '' : 'none';
     if (d.reincarnator) {
-      document.getElementById('card-reincarnator').style.display = '';
-      ['card-陈明','card-林晓','card-王刚'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      });
+      if (rosterTitle) rosterTitle.textContent = '輪回者檔案';
       renderReincarnator(d.reincarnator);
     }
     document.getElementById('status').textContent = '遊戲開始';
@@ -1831,14 +1970,22 @@ let voteTimerId = null;
 let voteSessionId = '';
 let leaderName = '';  // T4：直播主控角色名（空=后端默认陈明）
 
-// T4：主控选择——高亮对应角色卡
+// T4：主控选择——高亮对应角色卡（通用：按当前显示的所有角色卡 id 匹配，
+// 不依赖固定的 COC 名字数组，适配任意世界观的角色名单）
 document.getElementById('leader-select').addEventListener('change', (e) => {
   leaderName = e.target.value || '';
-  ['陈明','林晓','王刚'].forEach(n => {
-    const card = document.getElementById('card-' + n);
-    if (card) card.classList.toggle('leader', leaderName === n);
+  document.querySelectorAll('.char-card[id^="card-"]').forEach(card => {
+    if (card.id === 'card-reincarnator') return;
+    const n = card.id.slice('card-'.length);
+    card.classList.toggle('leader', leaderName === n);
   });
 });
+
+// 世界观预初始化：切换下拉时立即生效，页面加载时也执行一次
+document.getElementById('world').addEventListener('change', (e) => {
+  applyWorldPreset(e.target.value);
+});
+applyWorldPreset(document.getElementById('world').value);
 let totalVoteSeconds = 32;  // 默认值，init/vote SSE 事件会覆盖
 let voteLocked = false;
 
@@ -1858,12 +2005,12 @@ function showVoteBar(evt) {
   // 否则多场对局并发时投票会全部落到后端“第一个进行中的场次”（真实串票 bug，见 docs/production-readiness-issues.md #2）
   voteSessionId = evt.session_id || '';
   if (evt.vote_seconds) totalVoteSeconds = evt.vote_seconds;
-  // T4：live 模式投票标题标注主控（"你的行动"）
+  // T4：live 模式投票标题标注主控（"你的行动"）；否则回退到世界观默认投票标题
   const voteTitle = bar.querySelector('.vote-title');
   if (voteTitle) {
-    if (selectedMode === 'live' && leaderName) voteTitle.textContent = `你的行动（${leaderName}）`;
-    else if (selectedMode === 'live') voteTitle.textContent = '弹幕投票 · 主控行动';
-    else voteTitle.textContent = '嫌疑人投票';
+    if (currentMode === 'live' && leaderName) voteTitle.textContent = `你的行动（${leaderName}）`;
+    else if (currentMode === 'live') voteTitle.textContent = '弹幕投票 · 主控行动';
+    else voteTitle.textContent = worldPreset(currentWorld).voteTitleDefault;
   }
   // T5：hub 场景（选项含"进入副本"）渲染为副本选择卡片 + 通关标记
   const isHubSelect = Object.values(opts).some(t => (t || '').includes('进入副本'));

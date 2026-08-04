@@ -79,6 +79,39 @@ INVESTIGATORS: list[dict] = [
      "portrait": "ba60ae0b2c814d1fc7291f97baf0e57a.jpg", "color": "#e07050"},
 ]
 
+# 无限流：AI 队友复用调查员数值模板（docs/infinite-flow-v2-design.md §5——队友不参与
+# AP/强化，HP/技能简化，战斗沿用现有调查员模板数值）。主控固定为轮回者，因此排除默认
+# 主控占位的第一位（陈明），固定用后两位作为无限流场景下的常驻 AI 队友。
+INFINITE_FLOW_TEAMMATES: list[dict] = INVESTIGATORS[1:]
+
+# 哈利波特：独立的 1 主控 + 2 NPC 队友小队（原创同人角色，不使用官方正典人物名，
+# 避免版权问题）。字段形状与 INVESTIGATORS 一致，供 _roster_for_world() 按 world 选用。
+HARRY_POTTER_ROSTER: list[dict] = [
+    {"name": "凯尔", "hp": 12, "max_hp": 12, "san": 60, "max_san": 60, "luck": 50,
+     "skills": {"黑魔法防御": 55, "胆识": 60, "缴械咒": 50, "飞行": 45, "魔咒学": 40},
+     "inventory": ["魔杖", "分院徽章", "隐形斗篷残片"],
+     "portrait": "", "color": "#7f0909"},
+    {"name": "艾米", "hp": 10, "max_hp": 10, "san": 70, "max_san": 70, "luck": 45,
+     "skills": {"魔法史": 60, "草药学": 55, "预言占卜": 30, "魔咒学": 50},
+     "inventory": ["羽毛笔", "古老魔法书", "护身符"],
+     "portrait": "", "color": "#0e6ba8"},
+    {"name": "托马斯", "hp": 15, "max_hp": 15, "san": 40, "max_san": 40, "luck": 55,
+     "skills": {"魔药学": 50, "保护咒": 45, "体能": 55, "忠诚感知": 40},
+     "inventory": ["魔药瓶", "护身符项链", "干粮"],
+     "portrait": "", "color": "#f0c75e"},
+]
+
+# 世界观 → 角色名单映射；未登记的 world 一律回退 COC 默认名单。
+WORLD_ROSTERS: dict[str, list[dict]] = {
+    "harry_potter": HARRY_POTTER_ROSTER,
+}
+
+
+def _roster_for_world(world: str) -> list[dict]:
+    """按世界观返回「1 主控 + 2 NPC 队友」角色名单，未匹配的世界观回退 COC 默认名单。"""
+    return WORLD_ROSTERS.get((world or "").strip().lower(), INVESTIGATORS)
+
+
 OPENING = "1928年深秋，你们收到匿名信，来到阿卡姆郊外的废弃疗养院。推开吱呀作响的大门，你们踏入了这座被诅咒的建筑。"
 
 # ═══════════════════════════════════════════════════════
@@ -195,29 +228,24 @@ def _scene_matcher() -> SceneMatcher:
 
 
 def _state_snapshot(session: Session) -> dict:
-    """调查员状态快照。无限流模式返回轮回者。"""
+    """状态快照：无限流模式同时包含轮回者 + AI 队友（二者并存，不再互斥）。"""
+    snap: dict = {}
     if session.state is not None and session.state.reincarnator is not None:
         rein = session.state.reincarnator
-        return {
-            "reincarnator": {
-                "hp": rein.hp, "max_hp": rein.max_hp,
-                "strength": rein.strength, "agility": rein.agility, "spirit": rein.spirit,
-                "ap": rein.ap, "talents": list(rein.talents),
-                "conditions": list(rein.conditions),
-            }
+        snap["reincarnator"] = {
+            "hp": rein.hp, "max_hp": rein.max_hp,
+            "strength": rein.strength, "agility": rein.agility, "spirit": rein.spirit,
+            "ap": rein.ap, "talents": list(rein.talents),
+            "conditions": list(rein.conditions),
         }
-    import sys
-    snap = {
-        inv.name: {
+    for inv in session.state.investigators:
+        snap[inv.name] = {
             "hp": inv.hp, "max_hp": inv.max_hp,
             "san": inv.san, "max_san": inv.max_san,
             "luck": inv.luck,
             "conditions": list(inv.conditions),
             "inventory": list(inv.inventory),
         }
-        for inv in session.state.investigators
-    }
-    print(f"SNAPSHOT: { {n: s['san'] for n,s in snap.items()} }", file=sys.stderr, flush=True)
     return snap
 
 
@@ -486,21 +514,53 @@ def _dice_consequence(dice_context: str, inv_state) -> dict | None:
 
 
 def _investigators_state_text(session: Session) -> str:
-    """生成调查员状态摘要文本，供 CombatLoop 的战斗 prompt 使用。
+    """生成调查员/轮回者状态摘要文本，供 CombatLoop 的战斗 prompt 使用。
 
-    无限流模式输出轮回者三维属性 + HP + AP；COC 模式走原逻辑。
+    无限流模式输出轮回者三维属性 + HP + AP，并叠加 AI 队友的 HP/SAN（如有）；
+    COC 模式走原逻辑。
     """
+    parts = []
     if session.state is not None and session.state.reincarnator is not None:
         rein = session.state.reincarnator
         cond = f"（{', '.join(rein.conditions)}）" if rein.conditions else ""
-        return (f"轮回者 {rein.name} HP {rein.hp}/{rein.max_hp} "
-                f"力量 {rein.strength} 敏捷 {rein.agility} 精神 {rein.spirit} "
-                f"AP {rein.ap}{cond}")
-    parts = []
+        parts.append(f"轮回者 {rein.name} HP {rein.hp}/{rein.max_hp} "
+                     f"力量 {rein.strength} 敏捷 {rein.agility} 精神 {rein.spirit} "
+                     f"AP {rein.ap}{cond}")
     for inv in session.state.investigators:
         cond = f"（{', '.join(inv.conditions)}）" if inv.conditions else ""
         parts.append(f"{inv.name} HP {inv.hp}/{inv.max_hp} SAN {inv.san}/{inv.max_san}{cond}")
     return "；".join(parts)
+
+
+def _build_teammate_prompt_data(session: Session, teammates: list[dict]) -> list[dict]:
+    """构造队友行动提示所需的实时状态快照。"""
+    prompt_data: list[dict] = []
+    for inv in teammates:
+        st = session.state.find_investigator(inv["name"])
+        if st is None:
+            prompt_data.append(inv)
+            continue
+        prompt_data.append({
+            "name": inv["name"],
+            "hp": st.hp,
+            "max_hp": st.max_hp,
+            "san": st.san,
+            "max_san": st.max_san,
+        })
+    return prompt_data
+
+
+def _resolve_outcome_ap(outcome_id: str, encounter: CombatEncounter | None) -> int:
+    """计算副本结算 AP。
+
+    若结局在 encounter.outcomes 中存在，严格使用模块声明值（含 0）。
+    仅当拿不到结局配置时，回退旧默认：victory=3，其余=1。
+    """
+    if encounter is not None:
+        oc = encounter.outcomes.get(str(outcome_id))
+        if oc is not None:
+            return oc.reward_ap
+    return 3 if outcome_id == "victory" else 1
 
 
 async def _vote_window(sid: str, timeout_seconds: int = VOTE_WINDOW_SECONDS):
@@ -612,12 +672,13 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
     # ── 无限流：创建轮回者 ──────────────────────
     is_infinite_flow = _is_infinite_world(world)
+    roster = _roster_for_world(world)  # 非无限流世界观各自的「1主控+2NPC队友」名单
     if is_infinite_flow:
         from trpg_agent.memory.game_state import Reincarnator, INITIAL_ALLOCATION_POINTS
         loaded = _load_reincarnator() if load_profile else None
         if loaded is not None:
             rein = loaded
-            rein.hp = min(rein.hp, rein.max_hp)  # 开局回满
+            rein.hp = rein.max_hp  # 开局回满
             yield _sse("status", {"text": f"🌀 已继承轮回者 — 三维 {rein.strength}/{rein.agility}/{rein.spirit}，AP {rein.ap}，强化 {len(rein.talents)} 个"})
         else:
             rein = Reincarnator(name="轮回者", max_hp=12, hp=12,
@@ -628,7 +689,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         if session.state is not None:
             session.state.reincarnator = rein
 
-    for inv_data in ([] if is_infinite_flow else INVESTIGATORS):
+    for inv_data in (INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster):
         # 避免重复：characters.json 可能已经加载过
         existing = session.state.find_investigator(inv_data["name"])
         if existing:
@@ -679,7 +740,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         }
     yield _sse("init", {
         "session_id": sid,
-        "investigators": [] if is_infinite_flow else INVESTIGATORS,
+        "investigators": INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster,
         "reincarnator": rein_data,
         "kp_model": kp_model, "player_model": player_model,
         "opening": opening_text, "room": rc, "mode": mode,
@@ -699,26 +760,43 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else _bgm_default
     
     system_prompt = session.build_system_prompt(adventure=adventure)
-    # 注入 COC 恐怖氛围指令
+    # 注入世界观氛围指令（COC 恐怖 / 无限流副本）
     scene_context = start_scene.description if (adventure and (start_scene := adventure.get_scene(adventure.start_scene))) else OPENING
-    coc_directive = (
-        f"当前场景：{scene_context}\n"
-        f"位置：{rc['name']} — {rc['desc']}\n"
-        f"调查员：{', '.join(i['name'] for i in INVESTIGATORS)}\n"
-        f"线索：{rc.get('clues', '暂无')}\n"
-        f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
-        "【重要指令】\n"
-        "1. 你是克苏鲁的呼唤守秘人，营造宇宙恐怖氛围——人类渺小、真相可怖、理智侵蚀。\n"
-        "2. 描述中必须包含感官细节：声音、气味、触感、光线扭曲。\n"
-        "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
-        "4. 如果提到线索，让它显得诡异而非寻常。\n"
-        "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
-    )
+    if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+        rein_roster = [session.state.reincarnator.name] + [t["name"] for t in INFINITE_FLOW_TEAMMATES]
+        coc_directive = (
+            f"当前场景：{scene_context}\n"
+            f"位置：{rc['name']} — {rc['desc']}\n"
+            f"团队：{'、'.join(rein_roster)}（{rein_roster[0]} 为主控轮回者，其余为随行队友）\n"
+            f"线索：{rc.get('clues', '暂无')}\n"
+            f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
+            "【重要指令】\n"
+            "1. 你是无限流副本主持人，营造危险与未知交织的副本氛围。\n"
+            "2. 描述中必须包含感官细节：声音、气味、触感、光线。\n"
+            "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
+            "4. 如果提到线索，让它显得诡异而非寻常。\n"
+            "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
+        )
+        roster_names = rein_roster
+    else:
+        coc_directive = (
+            f"当前场景：{scene_context}\n"
+            f"位置：{rc['name']} — {rc['desc']}\n"
+            f"角色：{', '.join(i['name'] for i in roster)}\n"
+            f"线索：{rc.get('clues', '暂无')}\n"
+            f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
+            "【重要指令】\n"
+            f"1. 你是这个世界观（{world or 'coc'}）的主持人，营造符合设定基调的沉浸式氛围{'——人类渺小、真相可怖、理智侵蚀' if not world or world.lower() in ('coc', 'cthulhu') else ''}。\n"
+            "2. 描述中必须包含感官细节：声音、气味、触感、光线。\n"
+            "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
+            "4. 如果提到线索，让它显得诡异而非寻常。\n"
+            "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
+        )
+        roster_names = [inv["name"] for inv in roster]
     yield _sse("kp_stream_start", {})
     raw_opening = await _chat_generate(kp_client, system_prompt, coc_directive,
                                        temperature=0.8, max_tokens=4000)
     opening_text = _sanitize(raw_opening) if raw_opening else ""
-    roster_names = [inv["name"] for inv in INVESTIGATORS]
     needs_retry, nudge = (
         _check_kp_narration(opening_text, roster_names=roster_names, is_intro=True)
         if opening_text else (False, "")
@@ -747,12 +825,18 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
     # ── 游戏循环 ──────────────────────────────
     last_narration = opening_text
-    player_order = [inv["name"] for inv in INVESTIGATORS]
-    # T3 队友系统：live 模式固定主控（leader）由投票驱动，其余为 AI 队友
-    leader_name = leader or INVESTIGATORS[0]["name"]
-    if leader_name not in player_order:
-        leader_name = INVESTIGATORS[0]["name"]
-    teammates = [inv for inv in INVESTIGATORS if inv["name"] != leader_name]
+    if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+        # 无限流：主控固定为轮回者（无需投票选主控，也不轮转），2 个 AI 队友常驻辅助
+        leader_name = session.state.reincarnator.name
+        player_order = [leader_name]
+        teammates = list(INFINITE_FLOW_TEAMMATES)
+    else:
+        player_order = [inv["name"] for inv in roster]
+        # T3 队友系统：live 模式固定主控（leader）由投票驱动，其余为 AI 队友
+        leader_name = leader or roster[0]["name"]
+        if leader_name not in player_order:
+            leader_name = roster[0]["name"]
+        teammates = [inv for inv in roster if inv["name"] != leader_name]
     current_bgm = bgm_track
     current_scene = scene_info
     # ── 战斗编排器 ──
@@ -772,8 +856,12 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     while _non_combat_turns < turns:
         # live 模式：主控固定（投票驱动），不轮转
         speaker = leader_name if mode == "live" else player_order[_turn % len(player_order)]
-        inv_data = next(inv for inv in INVESTIGATORS if inv["name"] == speaker)
-        inv_state = session.state.find_investigator(speaker)
+        if is_infinite_flow and rein is not None and speaker == rein.name:
+            inv_data = {"name": rein.name, "color": "#8a5fd6"}
+            inv_state = rein
+        else:
+            inv_data = next(inv for inv in roster if inv["name"] == speaker)
+            inv_state = session.state.find_investigator(speaker)
         rc = dmap.room_context()
         teammate_actions: dict[str, str] = {}  # T3：本轮 AI 队友行动（live 模式填充）
         _turn += 1
@@ -840,9 +928,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                     rein = session.state.reincarnator
                     rein.take_damage(mech_result.damage_to_investigators)
                 else:
-                    n = len(INVESTIGATORS)
+                    n = len(roster)
                     base_dmg, remainder = divmod(mech_result.damage_to_investigators, n)
-                    for i, invd in enumerate(INVESTIGATORS):
+                    for i, invd in enumerate(roster):
                         dmg = base_dmg + (1 if i < remainder else 0)
                         if dmg <= 0:
                             continue
@@ -905,11 +993,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 encounter = None
                 if combat_orch.combat_loop is not None and combat_orch.combat_loop._state is not None:
                     encounter = combat_orch.combat_loop._state.encounter
-                oc = encounter.outcomes.get(str(outcome)) if encounter is not None else None
-                if oc is not None and oc.reward_ap:
-                    ap_gained = oc.reward_ap
-                if not ap_gained:
-                    ap_gained = 3 if outcome == "victory" else 1
+                ap_gained = _resolve_outcome_ap(str(outcome), encounter)
                 if ap_gained:
                     rein.ap += ap_gained
                     yield _sse("status", {"text": f"💰 副本结算：获得 {ap_gained} 强化点（AP），当前 {rein.ap} 点"})
@@ -988,7 +1072,8 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                     yield _sse("player_token", {"text": action, "speaker": speaker})
             else:
                 async for token in _ai_player_stream(player_host, player_model, inv_data, inv_state,
-                                                      rc, last_narration, speaker):
+                                                      rc, last_narration, speaker,
+                                                      is_infinite_flow=is_infinite_flow):
                     action += token
                     yield _sse("player_token", {"text": token, "speaker": speaker})
                 if not action.strip():
@@ -1052,8 +1137,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             # T3：投票窗口期间并行生成 AI 队友行动（隐藏延迟，不拖长单轮）
             teammate_task = None
             if is_live:
+                teammate_prompt_data = _build_teammate_prompt_data(session, teammates)
                 teammate_task = asyncio.create_task(
-                    _ai_teammates_action(player_host, player_model, teammates, rc, last_narration, "")
+                    _ai_teammates_action(player_host, player_model, teammate_prompt_data, rc, last_narration, "")
                 )
 
             # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
@@ -1308,7 +1394,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                             bgm_changed = True
                 # 新房间威胁
                 new_rc = dmap.room_context()
-                for inv_data_i in INVESTIGATORS:
+                for inv_data_i in (INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster):
                     inv_s = session.state.find_investigator(inv_data_i["name"])
                     if inv_s:
                         threat_events = _room_threat_events(new_rc, inv_s, inv_data_i["name"])
@@ -1439,21 +1525,42 @@ def _parse_teammates_action(raw: str, names: list[str]) -> dict[str, str]:
 
 async def _ai_player_stream(player_host: str, player_model: str,
                            inv_data: dict, inv_state, rc: dict,
-                           last_narration: str, speaker: str):
-    """流式生成 AI 玩家行动，逐 token yield。"""
-    skills_str = json.dumps(inv_state.skills, ensure_ascii=False)
-    items_str = ", ".join(inv_state.inventory) if inv_state.inventory else "无"
-    player_system = (
-        f"你是 {inv_data['name']}，克苏鲁的呼唤调查员。\n"
-        f"HP:{inv_state.hp}/{inv_state.max_hp} SAN:{inv_state.san}/{inv_state.max_san}\n"
-        f"技能：{skills_str}  已有物品：{items_str}\n\n"
-        f"当前房间：{rc['name']} — {rc['desc']}\n"
-        f"出口：{rc['exits']}\n"
-        f"⚠ 房间里有这些东西可以拿：{rc['items']}\n"
-        f"威胁：{rc['threats']}\n\n"
-        "用第一人称描述行动，1-2句话。优先探索房间里的物品（说出物品名），"
-        "其次是调查环境或应对威胁。不要替其他调查员说话。"
-    )
+                           last_narration: str, speaker: str,
+                           is_infinite_flow: bool = False):
+    """流式生成 AI 玩家行动，逐 token yield。
+
+    inv_state 在无限流模式下是 Reincarnator（无 skills/san/inventory 属性），
+    因此需要按 is_infinite_flow 分别构造 prompt，避免 AttributeError。
+    """
+    if is_infinite_flow:
+        talents_str = "、".join(inv_state.talents) if inv_state.talents else "无"
+        player_system = (
+            f"你是 {inv_data['name']}，无限流副本中的轮回者。\n"
+            f"HP:{inv_state.hp}/{inv_state.max_hp} "
+            f"力量:{inv_state.strength} 敏捷:{inv_state.agility} 精神:{inv_state.spirit} "
+            f"AP:{inv_state.ap}\n"
+            f"天赋：{talents_str}\n\n"
+            f"当前房间：{rc['name']} — {rc['desc']}\n"
+            f"出口：{rc['exits']}\n"
+            f"⚠ 房间里有这些东西可以拿：{rc['items']}\n"
+            f"威胁：{rc['threats']}\n\n"
+            "用第一人称描述行动，1-2句话。优先探索房间里的物品（说出物品名），"
+            "其次是调查环境或应对威胁。不要替队友说话。"
+        )
+    else:
+        skills_str = json.dumps(inv_state.skills, ensure_ascii=False)
+        items_str = ", ".join(inv_state.inventory) if inv_state.inventory else "无"
+        player_system = (
+            f"你是 {inv_data['name']}，正在参与一场跑团游戏中的角色。\n"
+            f"HP:{inv_state.hp}/{inv_state.max_hp} SAN:{inv_state.san}/{inv_state.max_san}\n"
+            f"技能：{skills_str}  已有物品：{items_str}\n\n"
+            f"当前房间：{rc['name']} — {rc['desc']}\n"
+            f"出口：{rc['exits']}\n"
+            f"⚠ 房间里有这些东西可以拿：{rc['items']}\n"
+            f"威胁：{rc['threats']}\n\n"
+            "用第一人称描述行动，1-2句话。优先探索房间里的物品（说出物品名），"
+            "其次是调查环境或应对威胁。不要替其他角色说话。"
+        )
     player_msg = f"主持人叙述：{last_narration[:600]}\n\n{inv_data['name']}的行动："
     player_client = OllamaClient(player_host, player_model, num_ctx=4096, timeout=120)
     try:
@@ -1474,7 +1581,7 @@ async def _ai_pick_option(player_host: str, player_model: str,
     """AI 从投票选项中选一个，返回单字母 'a'/'b'/'c'。"""
     options_text = "\n".join(f"{k}. {v}" for k, v in vote_options.items())
     system = (
-        f"你是 {speaker}，克苏鲁的呼唤调查员。\n"
+        f"你是 {speaker}，正在参与一场跑团游戏。\n"
         "你必须从以下选项中选择一个行动。只回复一个字母(a/b/c)，不要任何解释。"
     )
     msg = f"KP叙述：{last_narration[:500]}\n\n可选行动：\n{options_text}\n\n你的选择(a/b/c)："
@@ -1660,10 +1767,12 @@ async def handle_vote(req: VoteRequest):
     """
     sid = req.session_id
     if not sid:
-        # 无 session_id 时使用最近一个仍在进行中的投票
-        for _sid in list(_vote_tallies.keys()):
-            sid = _sid
-            break
+        # 兼容旧客户端：仅在当前恰好一个活跃会话时回退；
+        # 多会话并发时必须显式传 session_id，防止跨会话串票。
+        if len(_vote_tallies) == 1:
+            sid = next(iter(_vote_tallies.keys()))
+        else:
+            return {"accepted": False, "reason": "missing session_id"}
     if sid and sid in _vote_tallies:
         tally = _vote_tallies[sid]
         tally[req.choice] = tally.get(req.choice, 0) + 1
