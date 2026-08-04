@@ -1,0 +1,83 @@
+{
+  "id": "dungeon_xiuxian_library",
+  "title": "修仙·藏经阁",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "fantasy"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "serene"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "带着功法返回山门",
+      "provides_clues": [
+        "xt_library_done"
+      ],
+      "mood": "serene",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "library",
+      "title": "藏经阁",
+      "part": 0,
+      "scene_type": "机缘",
+      "image_prompt": "ancient Chinese library pavilion with towering wooden shelves of jade scrolls and bamboo books, dust motes floating in shafts of golden light, a stern librarian cultivator at a desk, xianxia atmosphere, serene yet imposing, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "description": "藏经阁是青云宗的重地，三层的木楼里摆满了玉简和竹简。看守藏经阁的老者须发皆白，眼皮都没抬：「外门弟子？一层随意，二层需要贡献点，三层——」他顿了顿，「三层只有掌门和长老能进。」\n\n空气中灵气浓郁得几乎凝成实质。书架上，一些泛着微光的玉简似乎在轻轻颤动，像是感应到了你们的轮回者气息。\n\n老者终于抬眼看了你们一下，浑浊的眼底闪过一丝精光：「……有意思。轮回者？一楼靠窗那排，有一本没人借过的功法。也许适合你们。」",
+      "npcs_here": [
+        "藏经阁老者"
+      ],
+      "opportunities": [
+        {
+          "id": "xl1",
+          "text": "借阅老者指的那本无人借阅的功法"
+        },
+        {
+          "id": "xl2",
+          "text": "在一层自由浏览——寻找有用的典籍"
+        },
+        {
+          "id": "xl3",
+          "text": "尝试与老者交谈——打听青云宗的隐秘"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xls1",
+          "text": "那本无人借阅的功法叫《噬灵诀》——剑意凝练之法，修炼后可强化精神，但封面上有一行小字：「此诀伤天和，慎用」"
+        },
+        {
+          "id": "xls2",
+          "text": "老者低声说：「三十年前，有一位轮回者也在藏经阁借过这本书。后来他进了丹房，就再也没出来过。」"
+        }
+      ],
+      "vote_prompt": "藏经阁的书香中，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_xiuxian_trial": "参悟功法，返回试炼场"
+      },
+      "guidance": "修仙分支·机缘层。获取修炼功法增益，完成后返回试炼场。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "藏经阁老者",
+      "description": "看守藏经阁的白发老者，深藏不露，似乎知道青云宗的许多隐秘",
+      "attitude": "neutral"
+    }
+  ],
+  "variance": null
+}

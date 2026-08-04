@@ -6,7 +6,8 @@
     "resident_evil",
     "survival"
   ],
-  "difficulty": 2,
+  "reusable": true,
+  "difficulty": 3,
   "duration_estimate": "2-3 turns",
   "entry": {
     "location_types": [
@@ -26,6 +27,24 @@
         "rs_lab_accessed"
       ],
       "mood": "panic",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "to_autopsy",
+      "label": "进入解剖室研究实验体样本（削弱BOSS）",
+      "provides_clues": [
+        "rs_autopsy_clue"
+      ],
+      "mood": "horror",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "to_dorm",
+      "label": "前往员工宿舍区休整（休整）",
+      "provides_clues": [
+        "rs_dorm_clue"
+      ],
+      "mood": "anxiety",
       "next_location_type": "dungeon_rs"
     }
   ],
@@ -66,7 +85,11 @@
       ],
       "vote_prompt": "红后的警告在耳畔回响，你们选择深入还是撤退？",
       "leads_to": [],
-      "exit_labels": {},
+      "exit_labels": {
+        "dungeon_rs_boss": "前往主实验室深处，直面暴君",
+        "dungeon_rs_autopsy": "进入解剖室，研究实验体样本",
+        "dungeon_rs_dorm": "退往员工宿舍区，短暂休整"
+      },
       "guidance": "生化副本深层。红后是关键 NPC，BOSS 战前的情报窗口。"
     }
   ],

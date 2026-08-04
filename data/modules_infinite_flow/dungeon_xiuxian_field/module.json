@@ -1,0 +1,83 @@
+{
+  "id": "dungeon_xiuxian_field",
+  "title": "修仙·灵田",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "fantasy"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "serene"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "带着灵药返回山门",
+      "provides_clues": [
+        "xt_field_done"
+      ],
+      "mood": "serene",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "field",
+      "title": "青云宗灵田",
+      "part": 0,
+      "scene_type": "采集",
+      "image_prompt": "terraced spiritual farmland on a mountainside, glowing medicinal herbs arranged in neat rows, a small wooden hut with a scarecrow, misty clouds drifting below the terraces, golden sunlight, a few spirit beasts grazing, xianxia cultivation atmosphere, peaceful yet slightly eerie, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, no human faces",
+      "description": "山腰的灵田层层叠叠，灵药泛着柔和的光晕，在微风中轻轻摇曳。田埂边立着一块木牌：「外门弟子采药，需登记。私摘灵药者，罚。」\n\n灵田中央有一间小木屋，门口坐着个打瞌睡的守田弟子。他怀里抱着一本册子，地上散落着几枚青色的灵果——那是培元果，据说能补充灵气、恢复伤势。\n\n远处田垄尽头，有一片雾气特别浓的区域。守田弟子迷迷糊糊地嘟囔了一句：「……那边别去，那是长老的试验田，种的……不是灵药。」",
+      "npcs_here": [
+        "守田弟子"
+      ],
+      "opportunities": [
+        {
+          "id": "xf1",
+          "text": "采集灵药——但要注意登记规矩"
+        },
+        {
+          "id": "xf2",
+          "text": "捡拾培元果——恢复状态"
+        },
+        {
+          "id": "xf3",
+          "text": "探索雾气浓重的试验田——那里种着什么？"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xfs1",
+          "text": "试验田里种的不是灵药——是一具具被藤蔓缠绕的躯体，根部连接着他们的丹田。他们在被当作炉鼎「种植」"
+        },
+        {
+          "id": "xfs2",
+          "text": "培元果旁边的册子里夹着一页纸：「轮回者气血充足，试验田新苗成活率极高。长老有令，多多益善。」"
+        }
+      ],
+      "vote_prompt": "灵田里灵药芬芳，但雾中的试验田透着诡异，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_xiuxian_trial": "采集完毕，返回试炼场"
+      },
+      "guidance": "修仙分支·采集层。获取恢复补给，同时揭露青云宗炼人为丹的真相。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "守田弟子",
+      "description": "打瞌睡的青云宗外门弟子，负责看守灵田",
+      "attitude": "neutral"
+    }
+  ],
+  "variance": null
+}

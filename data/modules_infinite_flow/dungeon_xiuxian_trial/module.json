@@ -6,7 +6,8 @@
     "xiuxian",
     "fantasy"
   ],
-  "difficulty": 2,
+  "reusable": true,
+  "difficulty": 3,
   "duration_estimate": "2-3 turns",
   "entry": {
     "location_types": [
@@ -21,9 +22,27 @@
   "exits": [
     {
       "id": "to_danfang",
-      "label": "通过试炼，前往丹房",
+      "label": "通过试炼，前往丹房（主线）",
       "provides_clues": [
         "xt_trial_passed"
+      ],
+      "mood": "serene",
+      "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "to_arena",
+      "label": "前往演武场切磋（精英战）",
+      "provides_clues": [
+        "xt_arena_clue"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "to_mentor",
+      "label": "拜访传功长老请教功法（剧情/强化）",
+      "provides_clues": [
+        "xt_mentor_clue"
       ],
       "mood": "serene",
       "next_location_type": "dungeon_xt"
@@ -66,7 +85,11 @@
       ],
       "vote_prompt": "九柄剑静静等待主人的到来，你们选择？",
       "leads_to": [],
-      "exit_labels": {},
+      "exit_labels": {
+        "dungeon_xiuxian_danfang": "通过试炼，前往丹房",
+        "dungeon_xiuxian_arena": "前往演武场，与青云宗弟子切磋",
+        "dungeon_xiuxian_mentor": "拜访传功长老，请教修炼功法"
+      },
       "guidance": "修仙副本中层。选剑定缘，埋下青云宗阴谋的伏笔。"
     }
   ],

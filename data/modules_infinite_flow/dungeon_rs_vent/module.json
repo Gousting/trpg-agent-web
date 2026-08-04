@@ -1,0 +1,86 @@
+{
+  "id": "dungeon_rs_vent",
+  "title": "生化危机·通风管道",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "survival"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "panic"
+  },
+  "exits": [
+    {
+      "id": "to_lab",
+      "label": "钻出管道，直达实验室区（捷径）",
+      "provides_clues": [
+        "rs_corridor_cleared",
+        "rs_vent_used"
+      ],
+      "mood": "panic",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "back",
+      "label": "退回列车残骸，改走正门",
+      "provides_clues": [
+        "rs_vent_back"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "vent",
+      "title": "狭窄的通风管道",
+      "part": 0,
+      "scene_type": "陷阱",
+      "image_prompt": "narrow dark ventilation shaft barely wide enough to crawl through, rusted metal duct walls, faint green glow from vents ahead, dust particles floating in the light, condensation dripping, claustrophobic horror atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, no human figures",
+      "description": "通风管道的入口勉强容一个人钻进去。里面漆黑一片，铁锈和消毒水的气味混杂在一起，让人呼吸困难。\n\n管道壁上有几处锈穿的破洞，从破洞里能看到下方房间的绿色灯光——那是培养槽区。爬过这条管道，你们可以绕开走廊里那些脚步声的来源，直接抵达实验室区。\n\n但管道尽头传来微弱的嘶嘶声，像是气体泄漏。脚下的铁皮在某个位置明显下陷，发出令人牙酸的吱呀声。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "rv1",
+          "text": "继续爬行——忍受狭窄，直奔实验室区"
+        },
+        {
+          "id": "rv2",
+          "text": "检查漏气声的来源——确认是否有毒气"
+        },
+        {
+          "id": "rv3",
+          "text": "原路退回——这条捷径风险太大"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rvs1",
+          "text": "漏气声来自一处被腐蚀的管道接缝——里面渗出的是绿色液体，与培养槽里的液体同源。这气味会吸引感染者"
+        },
+        {
+          "id": "rvs2",
+          "text": "管道分叉口的地图上被人用血画了一个叉——正是通往实验室区的那条分支"
+        }
+      ],
+      "vote_prompt": "狭窄的管道在黑暗中延伸，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_rs_lab": "钻出管道，直达实验室区",
+        "dungeon_rs_corridor": "退回列车残骸，改走正门"
+      },
+      "guidance": "生化分支·捷径层。高风险高回报的跳层路线，成功后直达实验室。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

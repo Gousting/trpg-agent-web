@@ -1,0 +1,83 @@
+{
+  "id": "dungeon_xiuxian_arena",
+  "title": "修仙·演武场",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "combat"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_trial_passed"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "比试结束，前往丹房",
+      "provides_clues": [
+        "xt_arena_done"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "arena",
+      "title": "演武场",
+      "part": 0,
+      "scene_type": "精英战",
+      "image_prompt": "ancient cultivation arena with stone platform surrounded by floating rocks and sword banners, two cultivators facing off, sword qi trails in the air, spectators watching from stone seats, dramatic sky with golden clouds, xianxia battle atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "description": "演武场是一座悬空的石台，周围插着青云宗的剑旗。台上，一个穿着内门弟子服的青年正抱剑而立，目光锐利地扫过你们。\n\n「外门试炼通过了？还算有点本事。」他淡淡地说，「不过——你们身上的灵气，为什么这么驳杂？像是……被什么东西污染过。」\n\n他拔剑指向你们：「让我看看你们的斤两。赢了，我告诉你们一件关于丹房的事。输了——就当是给演武场添个教训。」\n\n石台下，围观的内门弟子们窃窃私语。有人低声说：「别跟他打，他可是玄冥长老的亲传弟子……」",
+      "npcs_here": [
+        "内门弟子·剑修"
+      ],
+      "opportunities": [
+        {
+          "id": "xa1",
+          "text": "接受挑战——与内门剑修切磋"
+        },
+        {
+          "id": "xa2",
+          "text": "婉拒比试——避免无谓的战斗"
+        },
+        {
+          "id": "xa3",
+          "text": "观察他的剑法与气息——寻找破绽"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xas1",
+          "text": "剑修腰间的令牌上刻着「玄冥」二字——他是入魔长老的弟子。他嘴里说的「污染」，其实是指你们体内的轮回者能量"
+        },
+        {
+          "id": "xas2",
+          "text": "他出剑时眼底闪过一丝红光——和丹房里长老眼中的红光一模一样"
+        }
+      ],
+      "vote_prompt": "内门剑修的挑战摆在面前，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_xiuxian_danfang": "比试结束，前往丹房"
+      },
+      "guidance": "修仙分支·精英战层。挑战内门剑修获取情报，完成后前往丹房。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "内门剑修",
+      "description": "玄冥长老的亲传弟子，剑法凌厉，眼底偶尔闪过一丝不正常的红光",
+      "attitude": "hostile"
+    }
+  ],
+  "variance": null
+}

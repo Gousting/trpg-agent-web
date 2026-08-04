@@ -8,6 +8,7 @@
   ],
   "difficulty": 2,
   "duration_estimate": "2-3 turns",
+  "reusable": true,
   "entry": {
     "location_types": [
       "dungeon_jy"
@@ -27,6 +28,24 @@
       ],
       "mood": "panic",
       "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "to_diary",
+      "label": "翻阅阁楼里发现的日记（削弱BOSS）",
+      "provides_clues": [
+        "jy_diary_clue"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -36,7 +55,7 @@
       "part": 0,
       "scene_type": "阁楼",
       "image_prompt": "dusty dark attic filled with old furniture covered in white sheets, a single overturned chair, faded children's drawings on the wall showing a family with a cat, a small door in the floor slightly open, terrifying j-horror atmosphere, cold blue-grey tones, film grain, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment and objects",
-      "description": "阁楼的门没有锁。推开后，扑面而来的是令人窒息的灰尘与……一种说不出的、像是腐烂又像是香料的气味。\n\n阁楼不大，堆满了蒙着白布的家具。墙上贴满褪色的儿童画——画里是一个三口之家，牵着手的爸爸妈妈和小男孩。奇怪的是，每张画的背景里都有一只猫。\n\n画的下方，用蜡笔歪歪扭扭地写着几行字：\n\n「妈妈说要带我去新家」\n「爸爸说俊雄要听话」\n「猫咪不见了」\n「我想和猫咪一起玩」\n\n最后一张画被撕碎了，只留下半个字：「咒……」\n\n阁楼角落的地板上，有一扇小小的、通往楼下的暗门。门缝里渗出的寒意，让你们所有人的汗毛都竖了起来。",
+      "description": "阁楼的门没有锁。推开后，扑面而来的是令人窒息的灰尘与……一种说不出的、像是腐烂又像是香料的气味。\n\n阁楼不大，堆满了蒙着白布的家具。墙上贴满褪色的儿童画——画里是一个三口之家，牵着手的爸爸妈妈和小男孩。奇怪的是，每张画的背景里都有一只猫。\n\n画的下方，用蜡笔歪歪扭扭地写着几行字：\n\n「妈妈说要带我去新家」\n「爸爸说俊雄要听话」\n「猫咪不见了」\n「我想和猫咪一起玩」\n\n最后一张画被撕碎了，只留下半个字：「咒……」\n\n阁楼角落的地板上，有一扇小小的、通往楼下的暗门。门缝里渗出的寒意，让你们所有人的汗毛都竖了起来。\n\n角落里，一个蒙着白布的东西动了一下——那下面似乎埋着什么东西，或许是你们需要的答案。",
       "npcs_here": [],
       "opportunities": [
         {
@@ -64,8 +83,12 @@
       ],
       "vote_prompt": "阁楼的真相渐渐浮现，你们选择？",
       "leads_to": [],
-      "exit_labels": {},
-      "guidance": "咒怨副本深层。背景真相收集完毕，准备面对诅咒本体。"
+      "exit_labels": {
+        "dungeon_juon_boss": "打开地板暗门，直面诅咒之源",
+        "dungeon_juon_diary": "翻开孩子的日记，寻找破解诅咒的方法",
+        "hub_plaza": "咒怨太深了——撤退回主神空间"
+      },
+      "guidance": "咒怨副本深层。背景真相收集完毕，准备面对诅咒本体。可先找日记削弱 BOSS。"
     }
   ],
   "npcs": [],

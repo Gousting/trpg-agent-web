@@ -1,0 +1,75 @@
+{
+  "id": "dungeon_rs_canteen",
+  "title": "生化危机·员工食堂",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "survival"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_corridor_cleared"
+    ],
+    "forbidden_clues": [],
+    "mood": "anxiety"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "带着补给返回走廊",
+      "provides_clues": [
+        "rs_canteen_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "canteen",
+      "title": "员工食堂",
+      "part": 0,
+      "scene_type": "补给",
+      "image_prompt": "abandoned facility cafeteria, long tables with overturned chairs, vending machines with shattered glass, scattered food packets and medical supplies on the floor, a first aid kit hanging on the wall, dim emergency lighting, dust and debris, survival horror atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, no human figures",
+      "description": "食堂里一片狼藉——翻倒的餐桌、碎了一地的餐具、打翻的餐盘。但角落里还有几台完好的自动贩卖机，冷藏柜里残留着密封的罐头和饮用水。\n\n墙上的急救箱半开着，里面的绷带和消毒剂被翻得乱七八糟，但还有一小部分幸存。\n\n就在你们翻找补给时，柜台后面的储物间传来沉重的撞击声——一下、两下、三下。有什么东西在里面，正在撞门。门链已经松动了一半。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "rc1",
+          "text": "迅速搜刮急救箱和冷藏柜——抓紧时间"
+        },
+        {
+          "id": "rc2",
+          "text": "检查储物间——确认里面是什么"
+        },
+        {
+          "id": "rc3",
+          "text": "搬动桌椅堵住储物间的门——封死它"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rcs1",
+          "text": "冷藏柜底部藏着一整盒军用口粮和几瓶密封的葡萄糖液——足够撑过接下来的深入"
+        },
+        {
+          "id": "rcs2",
+          "text": "储物间的门缝里伸出一只灰白的手，指甲缝里嵌着绿色液体——撞击声突然停了"
+        }
+      ],
+      "vote_prompt": "储物间里的撞击声越来越响，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_rs_corridor": "带着补给返回走廊"
+      },
+      "guidance": "生化分支·补给层。获取生存补给，完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

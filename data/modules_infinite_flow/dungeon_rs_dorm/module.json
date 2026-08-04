@@ -1,0 +1,75 @@
+{
+  "id": "dungeon_rs_dorm",
+  "title": "生化危机·宿舍区",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "horror"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_lab_accessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "anxiety"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "休整完毕，返回实验室",
+      "provides_clues": [
+        "rs_dorm_rested"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "dorm",
+      "title": "员工宿舍区",
+      "part": 0,
+      "scene_type": "休整",
+      "image_prompt": "row of small staff dormitory rooms with metal bunk beds, personal belongings scattered on the floor, family photos on bedside tables, a broken radio on a desk, dim warm light from a single lamp, dust motes in the air, eerie quiet, survival horror atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, no human figures",
+      "description": "宿舍区意外的安静。一排排金属双层床铺着发霉的被褥，床头柜上摆着私人物品——一张全家福、一个用旧的手电筒、半包没抽完的烟。\n\n这里曾是员工们生活的地方。墙上的值日表停留在三十天前，日历上用红笔圈着一个日期——正是「限制解除协议」启动的那天。\n\n一张床铺上整齐地叠着一套干净的制服，旁边放着一台还能用的收音机，电池指示灯还亮着。这个安静的角落，似乎是整座蜂巢里唯一能让人喘口气的地方。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "rd1",
+          "text": "搜索宿舍——寻找有用的私人物品"
+        },
+        {
+          "id": "rd2",
+          "text": "打开收音机——尝试接收外部信号"
+        },
+        {
+          "id": "rd3",
+          "text": "检查值日表和日历——拼凑事件真相"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rds1",
+          "text": "收音机突然响起一段广播：「……这里是地面指挥部……蜂巢幸存者请回答……我们无法派遣救援……自毁协议已无法取消……重复，自毁协议已无法取消……」"
+        },
+        {
+          "id": "rds2",
+          "text": "床头柜的抽屉里放着一本日记，最后一页写着：「如果有一天你们看到这本日记，请替我告诉红后——对不起。我们不该把你做成那样。」"
+        }
+      ],
+      "vote_prompt": "安静的宿舍区给你们喘息的机会，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_rs_lab": "休整完毕，返回实验室"
+      },
+      "guidance": "生化分支·休整层。短暂休整与背景补全，完成后返回实验室。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

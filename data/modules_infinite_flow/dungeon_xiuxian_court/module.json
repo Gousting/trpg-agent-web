@@ -1,0 +1,83 @@
+{
+  "id": "dungeon_xiuxian_court",
+  "title": "修仙·执法堂",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "fantasy"
+  ],
+  "difficulty": 4,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_danfang_accessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "带着执法堂的支持返回丹房",
+      "provides_clues": [
+        "xt_court_support"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "court",
+      "title": "执法堂",
+      "part": 0,
+      "scene_type": "社交",
+      "image_prompt": "imposing law enforcement hall of a cultivation sect, high ceiling with hanging plaques reading justice and order, rows of stern cultivators in dark blue robes standing at attention, a middle-aged judge cultivator seated at a long desk, sword racks on the walls, dramatic lighting, xianxia atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "description": "执法堂是青云宗最森严的地方。高悬的匾额上写着「执法如山」四个大字，两侧列着持剑的执法弟子。主位上，一位中年修士正低头翻阅卷宗，听到脚步声才抬起眼。\n\n「轮回者？」他语气平淡，「你们不该来这里。执法堂只管宗门内务，不管外人的事。」\n\n但你们注意到，他翻卷宗的手停顿了一瞬——卷宗封面上写着一个名字，正是传功长老提起的那位三十年前的轮回者。\n\n「……看来你们知道了一些事。」他放下卷宗，目光变得锐利，「说吧。你们在丹房看到了什么？」",
+      "npcs_here": [
+        "执法堂首座"
+      ],
+      "opportunities": [
+        {
+          "id": "xc1",
+          "text": "如实禀报丹房的发现——揭露玄冥长老"
+        },
+        {
+          "id": "xc2",
+          "text": "出示传功长老的信物——请求执法堂介入"
+        },
+        {
+          "id": "xc3",
+          "text": "谨慎试探——先确认执法堂的立场"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xcs1",
+          "text": "执法堂首座摊开卷宗：「三十年前，玄冥以『研究』为名将那位轮回者带走。本座查了三十年，苦无实证。你们若能提供证据——本座亲自带队，拿下玄冥。」"
+        },
+        {
+          "id": "xcs2",
+          "text": "角落里一位执法弟子悄悄竖起拇指——他认出了你们身上传功长老的功法气息"
+        }
+      ],
+      "vote_prompt": "执法堂首座的目光落在你们身上，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_xiuxian_danfang": "获得执法堂支持，返回丹房"
+      },
+      "guidance": "修仙分支·NPC交互层。争取执法堂支持（BOSS战增益），返回丹房决战。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "执法堂首座",
+      "description": "青云宗执法堂首座，刚正不阿，追查玄冥长老三十年",
+      "attitude": "neutral"
+    }
+  ],
+  "variance": null
+}

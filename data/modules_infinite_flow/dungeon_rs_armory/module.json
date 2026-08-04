@@ -1,0 +1,75 @@
+{
+  "id": "dungeon_rs_armory",
+  "title": "生化危机·武器库",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "combat"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "带着装备返回走廊",
+      "provides_clues": [
+        "rs_armory_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "armory",
+      "title": "蜂巢武器库",
+      "part": 0,
+      "scene_type": "战斗",
+      "image_prompt": "underground facility armory with locked weapon racks, shattered glass cases, scattered ammo boxes, a decaying security guard corpse slumped against the wall, green emergency lighting, flickering bulbs, survival horror atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human figures, focus on environment",
+      "description": "武器库的铁门虚掩着。里面比走廊更暗，几排武器架倒在地上，玻璃碎了一地。空气中弥漫着浓重的血腥味。\n\n角落里，一具穿着保安制服的尸体靠在墙上——但它还在动。灰色的手指抽搐着，缓缓撑起身体，喉咙里挤出嘶哑的气音。\n\n「……饿……饿……」\n\n它站了起来。身后昏暗的架子上，还挂着几把完好的战术步枪和防弹背心——但想要拿到，必须先穿过它。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "ra1",
+          "text": "与感染保安战斗——夺取武器架上的装备"
+        },
+        {
+          "id": "ra2",
+          "text": "寻找绕行路线，不惊动感染者"
+        },
+        {
+          "id": "ra3",
+          "text": "观察武器架——确认哪些装备还有弹药"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ras1",
+          "text": "武器架底层压着一本《蜂巢内部手册》，里面标注了一条紧急撤离路线——可以避开大部分实验区直通地面"
+        },
+        {
+          "id": "ras2",
+          "text": "感染保安的腰带上挂着一把带有特殊标识的钥匙卡——上面写着「深层·A-7」"
+        }
+      ],
+      "vote_prompt": "武器库里的感染者缓缓起身，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_rs_corridor": "取得装备，返回走廊继续深入"
+      },
+      "guidance": "生化分支·装备层。可选战斗获取装备线索，完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

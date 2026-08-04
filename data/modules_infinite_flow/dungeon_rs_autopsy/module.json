@@ -1,0 +1,75 @@
+{
+  "id": "dungeon_rs_autopsy",
+  "title": "生化危机·解剖室",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "horror"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_lab_accessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "带着研究结果返回实验室",
+      "provides_clues": [
+        "rs_boss_weakened"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "autopsy",
+      "title": "解剖室",
+      "part": 0,
+      "scene_type": "研究",
+      "image_prompt": "sterile dissection room with steel operating tables, preserved specimen jars lining the walls, surgical instruments on trays, green liquid vials in a rack, a half-dissected humanoid specimen on the table, cold white-blue lighting, clinical horror atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "description": "解剖室里冷得像冰窖。不锈钢台面上躺着一具半解剖的实验体，胸腔被打开，肋骨间嵌着一块暗绿色的结晶——和暴君胸口那块金色结晶同源，只是颜色不同。\n\n台边的电脑屏幕亮着，显示着密密麻麻的解剖记录。最后一行标注着：「结晶核心是能量枢纽，但存在共振频率。以特定频率的声波或低温冲击可使结晶失稳——观察到强度下降 40%。」\n\n旁边的工作台上，有一台还能运转的低温发生器。你们或许能利用这里的设备，制作一件专门针对暴君的武器。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "ra1",
+          "text": "详细研究结晶样本——确定暴君的弱点"
+        },
+        {
+          "id": "ra2",
+          "text": "启动低温发生器——制作冷冻弹"
+        },
+        {
+          "id": "ra3",
+          "text": "记录研究数据——为后续战斗做准备"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "ras1",
+          "text": "解剖记录里有一段被加密的数据，破译后显示：暴君并非无法战胜——它的再生能力依赖胸口结晶，结晶被低温冻结后，再生会停止整整三十秒"
+        },
+        {
+          "id": "ras2",
+          "text": "台面上的实验体手指动了——它的指甲缝里夹着一张揉皱的纸条：「别相信红后。她才是这座设施的最终实验体。」"
+        }
+      ],
+      "vote_prompt": "解剖台上的研究数据近在眼前，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_rs_lab": "获取弱点情报，返回实验室"
+      },
+      "guidance": "生化分支·削弱层。研究样本获取BOSS弱点（rs_boss_weakened），削弱暴君战斗。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

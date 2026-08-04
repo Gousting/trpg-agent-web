@@ -1,0 +1,94 @@
+{
+  "id": "dungeon_juon_neighbor",
+  "title": "咒怨·邻居家",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "to_deed",
+      "label": "追问房契的下落（情报）",
+      "provides_clues": [
+        "jy_deed_clue"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "back",
+      "label": "谢过邻居，返回佐伯家",
+      "provides_clues": [
+        "jy_neighbor_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "living_room",
+      "title": "邻居的客厅",
+      "part": 0,
+      "scene_type": "社交",
+      "image_prompt": "dim old Japanese living room at dusk, an elderly woman sitting stiffly on tatami, tea cups on low table, curtains half drawn, walls covered with old photos, oppressive quiet atmosphere, muted warm-cold contrast, film grain, j-horror aesthetic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "description": "门开了。开门的是一个头发花白的老妇人，她的眼睛在昏暗的灯光下显得浑浊而警觉。看到你们，她先是下意识地后退半步，随后又像是确认了什么，缓缓让开身。\n\n「……又是来找佐伯家的？」她的声音沙哑，像很久没说过话，「那栋房子，你们不该进去的。」\n\n她让你们进了屋。客厅的墙上挂满了泛黄的照片，唯独没有一张是近几年的。角落里供着一尊小小的佛像，香炉里的香已经燃尽，灰烬冷得像冰。\n\n「佐伯家的事，那条街上没人敢提。」她低声说，「但你们既然问了……我就告诉你们。三十年前，那家的太太佐伯伽椰子死在了阁楼里。警察说她是自杀。可第二天，她的丈夫、她的父母、连来办案的警察，全都在一个月内死光了。」\n\n她停顿了一下，目光落在你们身后——门外，天色已经完全暗了。",
+      "npcs_here": [
+        "邻居老妇人"
+      ],
+      "opportunities": [
+        {
+          "id": "jn1",
+          "text": "询问佐伯家孩子的下落——照片里似乎少了一个人"
+        },
+        {
+          "id": "jn2",
+          "text": "打听房子的来历——为什么整条街都避而不谈"
+        },
+        {
+          "id": "jn3",
+          "text": "问她房契的事——这栋房子曾经属于谁"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jns1",
+          "text": "老妇人说话时始终握着一串佛珠，指节发白。当你们提到「阁楼」时，她手里的佛珠突然断了线，珠子滚了一地——她死死盯着滚向门口的那一颗，脸色惨白"
+        },
+        {
+          "id": "jns2",
+          "text": "墙上最高处的相框里，一张泛白的合影被刻意转了过去。照片背面的日期是三十年前——正是佐伯家出事的那一年"
+        }
+      ],
+      "vote_prompt": "邻居老妇人愿意开口，你们想先问什么？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_juon_deed": "追问房契的事——房子的产权证明似乎能解释什么",
+        "dungeon_juon_hallway": "该知道的都知道了，返回佐伯家"
+      },
+      "guidance": "咒怨分支·情报层。提供背景故事与可选房契线索，完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "邻居老妇人",
+      "attitude": "wary",
+      "description": "三十年前佐伯家惨案的唯一知情者，守着秘密过了大半辈子",
+      "secret": "她其实是当年第一个发现佐伯家异样的人，曾亲眼看见伽椰子的影子出现在自家窗外"
+    }
+  ],
+  "variance": null
+}

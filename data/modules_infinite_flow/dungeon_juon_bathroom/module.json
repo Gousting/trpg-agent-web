@@ -1,0 +1,71 @@
+{
+  "id": "dungeon_juon_bathroom",
+  "title": "咒怨·浴室",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "horror"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "逃离浴室，回到走廊",
+      "provides_clues": [
+        "jy_bath_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "bath",
+      "title": "弥漫水汽的浴室",
+      "part": 0,
+      "scene_type": "SAN事件",
+      "image_prompt": "old Japanese bathroom with a deep wooden bathtub, thick steam rising from black water, wet tiles covered in long black hair strands, a handprint on the steamed mirror, dim flickering light, suffocating damp atmosphere, cold blue-grey tones, film grain, j-horror aesthetic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment",
+      "description": "浴室的门没有锁。推开时，一股温热的水汽扑面而来——这里的浴缸，还在冒着热气。\n\n浴缸里盛着满满一缸黑水，水面平静得像一面镜子。水面上漂浮着几缕长长的黑发，缓缓打着旋。\n\n镜子蒙着厚厚的雾气，上面有一道清晰的手印——掌纹纤细，像是女人的手。手印的位置，正好和你们之中最矮的那个人视线齐平。\n\n水声。滴答。滴答。\n\n然后你们意识到，浴室里只有你们在呼吸。可浴缸的水面，突然泛起一圈涟漪——像是有什么东西，正从水下缓缓浮上来。\n\n镜子的雾气开始消退，露出后面的一切。你们看见镜子里倒映着一个模糊的身影，站在你们所有人身后，脸上没有五官，只有一片漆黑。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "jb1",
+          "text": "立刻撤离浴室——直觉告诉你们这里很危险"
+        },
+        {
+          "id": "jb2",
+          "text": "盯着水面看——必须确认水下到底有什么"
+        },
+        {
+          "id": "jb3",
+          "text": "擦开镜子上的雾气——看清身后那个身影"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jbs1",
+          "text": "浴缸底部沉着一条银色的项链，坠子是一枚刻着「俊雄」的平安符——这是母亲给孩子求的护身符，却从未被戴出去过"
+        }
+      ],
+      "vote_prompt": "浴室的异象让你们脊背发凉，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_juon_hallway": "冲出浴室，回到二楼走廊"
+      },
+      "guidance": "咒怨分支·SAN 事件。高精神压力场景，SAN 检定触发。完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

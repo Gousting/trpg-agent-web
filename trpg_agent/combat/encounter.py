@@ -79,6 +79,7 @@ class CombatOutcome:
     next_location_type: str = ""
     consequence: str = ""
     reward: str = ""
+    reward_ap: int = 0  # 无限流：该结局结算的强化点（AP），0 表示无（兼容 COC 模块）
 
     @classmethod
     def from_dict(cls, d: dict) -> "CombatOutcome":
@@ -90,6 +91,7 @@ class CombatOutcome:
             next_location_type=str(d.get("next_location_type", "")),
             consequence=str(d.get("consequence", "")),
             reward=str(d.get("reward", "")),
+            reward_ap=int(d.get("reward_ap", 0) or 0),
         )
 
 

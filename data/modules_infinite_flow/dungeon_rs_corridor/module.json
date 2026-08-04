@@ -6,6 +6,7 @@
     "resident_evil",
     "survival"
   ],
+  "reusable": true,
   "difficulty": 2,
   "duration_estimate": "2-3 turns",
   "entry": {
@@ -21,11 +22,29 @@
   "exits": [
     {
       "id": "to_lab",
-      "label": "穿过通道进入实验室区",
+      "label": "穿过通道进入实验室区（主线）",
       "provides_clues": [
         "rs_corridor_cleared"
       ],
       "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "to_monitor",
+      "label": "进入左侧监控室查看监控录像（情报）",
+      "provides_clues": [
+        "rs_monitor_clue"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "to_canteen",
+      "label": "搜索右侧员工食堂找补给（补给）",
+      "provides_clues": [
+        "rs_canteen_clue"
+      ],
+      "mood": "anxiety",
       "next_location_type": "dungeon_rs"
     }
   ],
@@ -64,7 +83,11 @@
       ],
       "vote_prompt": "走廊深处的脚步声越来越近，你们选择？",
       "leads_to": [],
-      "exit_labels": {},
+      "exit_labels": {
+        "dungeon_rs_lab": "继续深入，前往T病毒实验室",
+        "dungeon_rs_monitor": "进入监控室，查看设施监控录像",
+        "dungeon_rs_canteen": "搜索员工食堂，寻找补给"
+      },
       "guidance": "生化副本中层。收集情报或搜索补给，准备面对第一波感染者。"
     }
   ],

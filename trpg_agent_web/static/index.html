@@ -670,6 +670,20 @@
     padding: 6px 8px 0;
     border-top: 1px solid rgba(78,55,34,0.3);
   }
+  /* T4：主控角色卡高亮 */
+  .char-card.leader { outline: 2px solid #d4af37; outline-offset: 2px; }
+  .char-card.leader .char-name::after { content: ' 👑'; }
+  /* T5：hub 副本选择卡片样式 */
+  #vote-bar.hub-select { flex-direction: column; align-items: stretch; }
+  #vote-bar.hub-select .vote-options { flex-direction: column; gap: 10px; }
+  #vote-bar.hub-select .vote-item {
+    padding: 14px 16px; border: 1px solid rgba(93,63,33,0.45); border-radius: 10px;
+    background: rgba(255,250,235,0.75); font-size: 17px; font-family: var(--font-display);
+    cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  #vote-bar.hub-select .vote-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+  #vote-bar.hub-select .vote-item.cleared { opacity: 0.85; }
+  #vote-bar.hub-select .vote-item .cleared-tag { margin-left: 8px; color: #2e7d32; font-size: 14px; }
   .vote-stamp {
     position: absolute;
     right: 10px;
@@ -1259,8 +1273,10 @@
   <label>轮</label><input id="turns" type="number" value="10" min="3" max="30" style="width:40px">
   <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
   <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option><option value="live">直播</option></select>
+  <label>主控</label><select id="leader-select" title="直播模式下由谁主导行动（其余为AI队友）"><option value="">默认(陈明)</option><option value="陈明">陈明</option><option value="林晓">林晓</option><option value="王刚">王刚</option></select>
   <label>世界观</label><select id="world"><option value="coc">克苏鲁 COC</option><option value="harry_potter">哈利波特</option><option value="infinite_flow">无限流</option></select>
   <label><input type="checkbox" id="compose-modules" checked> 模块</label>
+  <label><input type="checkbox" id="load-profile" title="无限流模式：继承上一局存档的轮回者（属性/AP/强化）"> 继承轮回者</label>
   <span id="status">就绪</span>
 </div>
 
@@ -1523,8 +1539,10 @@ function startGame() {
     kp_api_key: document.getElementById('kp-api-key').value,
     player_host: document.getElementById('player-host').value,
     vote_seconds: document.getElementById('vote-seconds')?.value || '60',
+    leader: leaderName,
   });
   if (document.getElementById('compose-modules').checked) params.append('compose_modules', 'true');
+  if (document.getElementById('load-profile').checked) params.append('load_profile', 'true');
   // 从 URL 获取 force_pickup
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('force_pickup') === 'true') params.append('force_pickup', 'true');
@@ -1811,6 +1829,16 @@ let voteCounts = {a: 0, b: 0, c: 0};
 let voteChosen = null;
 let voteTimerId = null;
 let voteSessionId = '';
+let leaderName = '';  // T4：直播主控角色名（空=后端默认陈明）
+
+// T4：主控选择——高亮对应角色卡
+document.getElementById('leader-select').addEventListener('change', (e) => {
+  leaderName = e.target.value || '';
+  ['陈明','林晓','王刚'].forEach(n => {
+    const card = document.getElementById('card-' + n);
+    if (card) card.classList.toggle('leader', leaderName === n);
+  });
+});
 let totalVoteSeconds = 32;  // 默认值，init/vote SSE 事件会覆盖
 let voteLocked = false;
 
@@ -1830,6 +1858,35 @@ function showVoteBar(evt) {
   // 否则多场对局并发时投票会全部落到后端“第一个进行中的场次”（真实串票 bug，见 docs/production-readiness-issues.md #2）
   voteSessionId = evt.session_id || '';
   if (evt.vote_seconds) totalVoteSeconds = evt.vote_seconds;
+  // T4：live 模式投票标题标注主控（"你的行动"）
+  const voteTitle = bar.querySelector('.vote-title');
+  if (voteTitle) {
+    if (selectedMode === 'live' && leaderName) voteTitle.textContent = `你的行动（${leaderName}）`;
+    else if (selectedMode === 'live') voteTitle.textContent = '弹幕投票 · 主控行动';
+    else voteTitle.textContent = '嫌疑人投票';
+  }
+  // T5：hub 场景（选项含"进入副本"）渲染为副本选择卡片 + 通关标记
+  const isHubSelect = Object.values(opts).some(t => (t || '').includes('进入副本'));
+  bar.classList.toggle('hub-select', isHubSelect);
+  if (isHubSelect) {
+    const cleared = evt.cleared_dungeons || [];
+    bar.querySelectorAll('.vote-item').forEach(item => {
+      const text = item.querySelector('.vote-text').textContent || '';
+      const clearedName = cleared.find(n => text.includes(n));
+      item.classList.toggle('cleared', !!clearedName);
+      let tag = item.querySelector('.cleared-tag');
+      if (clearedName) {
+        if (!tag) {
+          tag = document.createElement('span');
+          tag.className = 'cleared-tag';
+          item.querySelector('.vote-text').appendChild(tag);
+        }
+        tag.textContent = '✓ 已通关';
+      } else if (tag) {
+        tag.remove();
+      }
+    });
+  }
   bar.querySelectorAll('.vote-item').forEach(el => el.classList.remove('chosen', 'voted', 'leading'));
   stamp.classList.remove('show');
   stamp.textContent = '票选锁定';

@@ -1,0 +1,86 @@
+{
+  "id": "dungeon_xiuxian_forbidden",
+  "title": "修仙·后山禁地",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "horror"
+  ],
+  "difficulty": 4,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_danfang_accessed"
+    ],
+    "forbidden_clues": [],
+    "mood": "panic"
+  },
+  "exits": [
+    {
+      "id": "to_boss",
+      "label": "穿过禁地，直逼丹房后门（捷径）",
+      "provides_clues": [
+        "xt_danfang_accessed",
+        "xt_forbidden_used"
+      ],
+      "mood": "panic",
+      "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "back",
+      "label": "退出禁地，返回丹房正门",
+      "provides_clues": [
+        "xt_forbidden_back"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "forbidden",
+      "title": "后山禁地",
+      "part": 0,
+      "scene_type": "危险",
+      "image_prompt": "forbidden mountain grove shrouded in black mist, twisted dead trees shaped like grasping hands, an ancient stone archway covered in talismans and sealing charms, faint red glow from deeper in the mist, ominous xianxia horror atmosphere, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, no human figures",
+      "description": "后山的禁地被黑色雾气笼罩，枯树扭曲成怪异的形状，像是无数只从地下伸出的手。石牌坊上贴满了泛黄的符箓，大部分已经失去光泽。\n\n牌坊上刻着一行字：「青云宗禁地。擅入者，逐出师门。」但字迹旁有人用剑刻了一行小字：「丹房的秘密，从这里走最近。」\n\n雾气深处传来低沉的、像是野兽咀嚼的声音。脚下的小径铺着青石，石缝里渗出暗红色的液体。这条路直通丹房的后门——如果能活着穿过的话。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "xfo1",
+          "text": "深入禁地——直穿到丹房后门"
+        },
+        {
+          "id": "xfo2",
+          "text": "观察雾气中的动静——确认危险来源"
+        },
+        {
+          "id": "xfo3",
+          "text": "沿原路退回——禁地太危险"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xfos1",
+          "text": "雾气深处的「野兽」不是野兽——是一具被藤蔓操控的躯体，胸前嵌着和丹炉里一样的暗红色结晶。它在啃食另一具躯体"
+        },
+        {
+          "id": "xfos2",
+          "text": "石牌坊背面刻着青云宗三百年的历史：每一任「炼丹长老」都死于非命，死前都炼制过「特殊丹药」"
+        }
+      ],
+      "vote_prompt": "禁地的黑雾中传来咀嚼声，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_xiuxian_boss": "穿过禁地，直逼丹房后门",
+        "dungeon_xiuxian_danfang": "退出禁地，返回丹房正门"
+      },
+      "guidance": "修仙分支·危险捷径层。高风险跳层直逼BOSS，或原路返回丹房。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

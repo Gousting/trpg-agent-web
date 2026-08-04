@@ -19,7 +19,7 @@
   "exits": [
     {
       "id": "to_resident_evil",
-      "label": "进入副本【生化危机】——蜂巢实验室",
+      "label": "进入副本【生化危机】·难度2-3 —— 蜂巢实验室",
       "provides_clues": [
         "hub_visited"
       ],
@@ -28,7 +28,7 @@
     },
     {
       "id": "to_juon",
-      "label": "进入副本【咒怨】——佐伯家凶宅",
+      "label": "进入副本【咒怨】·难度1-2 —— 佐伯家凶宅",
       "provides_clues": [
         "hub_visited"
       ],
@@ -37,7 +37,7 @@
     },
     {
       "id": "to_xiuxian",
-      "label": "进入副本【修仙】——青云宗外门",
+      "label": "进入副本【修仙】·难度3-4 —— 青云宗外门",
       "provides_clues": [
         "hub_visited"
       ],

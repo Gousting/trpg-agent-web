@@ -6,7 +6,7 @@
     "xiuxian",
     "fantasy"
   ],
-  "difficulty": 1,
+  "difficulty": 3,
   "duration_estimate": "2-3 turns",
   "entry": {
     "location_types": [
@@ -23,12 +23,30 @@
   },
   "exits": [
     {
-      "id": "deeper",
-      "label": "通过外门试炼，进入青云宗内门",
+      "id": "to_trial",
+      "label": "跟随少年前往试炼场（主线）",
       "provides_clues": [
         "xt_entered"
       ],
       "mood": "mysterious",
+      "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "to_library",
+      "label": "绕道前往藏经阁（修炼增益）",
+      "provides_clues": [
+        "xt_library_clue"
+      ],
+      "mood": "serene",
+      "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "to_field",
+      "label": "先探灵田采集灵药（采集/休整）",
+      "provides_clues": [
+        "xt_field_clue"
+      ],
+      "mood": "serene",
       "next_location_type": "dungeon_xt"
     }
   ],
@@ -69,7 +87,11 @@
       ],
       "vote_prompt": "青云宗的山门前，你们选择如何开始试炼？",
       "leads_to": [],
-      "exit_labels": {},
+      "exit_labels": {
+        "dungeon_xiuxian_trial": "跟随少年前往试炼场",
+        "dungeon_xiuxian_library": "绕道前往藏经阁，寻找修炼功法",
+        "dungeon_xiuxian_field": "先探灵田，采集灵药"
+      },
       "guidance": "修仙副本入口。仙侠氛围，天赋测试与规则了解。"
     }
   ],

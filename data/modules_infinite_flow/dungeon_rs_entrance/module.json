@@ -6,7 +6,7 @@
     "resident_evil",
     "survival"
   ],
-  "difficulty": 1,
+  "difficulty": 2,
   "duration_estimate": "2-3 turns",
   "entry": {
     "location_types": [
@@ -23,12 +23,30 @@
   },
   "exits": [
     {
-      "id": "deeper",
-      "label": "进入蜂巢地下通道",
+      "id": "to_corridor",
+      "label": "深入蜂巢地下通道（主线）",
       "provides_clues": [
         "rs_entered"
       ],
       "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "to_armory",
+      "label": "搜寻列车旁的武器库（装备）",
+      "provides_clues": [
+        "rs_armory_clue"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "to_vent",
+      "label": "钻进通风管道抄近路（捷径）",
+      "provides_clues": [
+        "rs_vent_entered"
+      ],
+      "mood": "panic",
       "next_location_type": "dungeon_rs"
     }
   ],
@@ -67,7 +85,11 @@
       ],
       "vote_prompt": "你们在蜂巢入口的列车残骸中，下一步怎么行动？",
       "leads_to": [],
-      "exit_labels": {},
+      "exit_labels": {
+        "dungeon_rs_corridor": "穿过隧道，深入蜂巢地下通道",
+        "dungeon_rs_armory": "搜寻列车旁的武器库，找武器和补给",
+        "dungeon_rs_vent": "钻进通风管道，抄近路深入"
+      },
       "guidance": "生化副本入口。获取装备和地图信息，决定深入策略。"
     }
   ],

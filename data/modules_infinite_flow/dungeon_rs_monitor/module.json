@@ -1,0 +1,75 @@
+{
+  "id": "dungeon_rs_monitor",
+  "title": "生化危机·监控室",
+  "genre": [
+    "infinite_flow",
+    "resident_evil",
+    "horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_rs"
+    ],
+    "required_clues": [
+      "rs_corridor_cleared"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "看完监控，返回走廊",
+      "provides_clues": [
+        "rs_monitor_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_rs"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "monitor",
+      "title": "监控室",
+      "part": 0,
+      "scene_type": "情报",
+      "image_prompt": "dark surveillance room with rows of CRT monitors showing static and green security footage, control console with blinking lights, shattered coffee cup on the desk, abandoned swivel chair, red glow from one monitor, oppressive atmosphere, survival horror, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, no human figures",
+      "description": "监控室的门没锁。里面密密麻麻排着几十块监视屏，大多数已经黑屏或满是雪花，只有三块还在工作。\n\n其中一块正显示着主实验室的画面——巨大的培养槽、绿色的液体，以及……一个正在缓慢移动的巨大轮廓。那就是红后提到的「实验体」。\n\n另一块屏幕的回放记录显示，三天前曾有全副武装的部队进入蜂巢，他们用特制的冷冻弹对付培养槽里的东西——屏幕上记录着他们的装备序列号，其中标注了「弱点：低温」字样。\n\n控制台旁散落着一份手写笔记，笔迹潦草。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "rm1",
+          "text": "反复回放战斗记录——研究实验体的攻击模式"
+        },
+        {
+          "id": "rm2",
+          "text": "检查控制台笔记——寻找设施的弱点信息"
+        },
+        {
+          "id": "rm3",
+          "text": "尝试恢复更多监控画面——查看其他区域"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "rms1",
+          "text": "笔记上写着：「冷冻弹对暴君有效，但需要近距离命中胸口结晶。冷冻库在B-3区，钥匙卡在武器库保安身上」"
+        },
+        {
+          "id": "rms2",
+          "text": "最后一块屏幕定格在监控室自己的画面——画面里，房间角落的阴影里站着一个人形轮廓，正对着镜头。你们身后空无一人"
+        }
+      ],
+      "vote_prompt": "监控画面记录着实验体的情报，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_rs_corridor": "获取情报，返回走廊"
+      },
+      "guidance": "生化分支·情报层。提供BOSS弱点情报，完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

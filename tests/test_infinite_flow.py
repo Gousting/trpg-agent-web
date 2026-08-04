@@ -18,7 +18,7 @@ class TestInfiniteFlow:
     def test_pool_loads_and_validates(self):
         composer = ModuleComposer(INFINITE_DIR)
         count = composer.load_all()
-        assert count == 13, f"期望 13 个模块，实际 {count}"
+        assert count == 31, f"期望 31 个模块（13 基础 + 6 咒怨分支 + 6 生化分支 + 6 修仙分支），实际 {count}"
         assert "hub_plaza" in composer.module_ids()
         assert composer.validate() == []
 

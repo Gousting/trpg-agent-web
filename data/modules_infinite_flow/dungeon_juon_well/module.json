@@ -1,0 +1,75 @@
+{
+  "id": "dungeon_juon_well",
+  "title": "咒怨·庭院的枯井",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "panic"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "逃离井边，回到房前",
+      "provides_clues": [
+        "jy_well_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "yard",
+      "title": "后院的枯井",
+      "part": 0,
+      "scene_type": "恐怖事件",
+      "image_prompt": "overgrown backyard of abandoned Japanese house at dusk, an old stone well covered with rotten wooden lid, weeds taller than a person, a child's toy lying next to the well, oppressive dread atmosphere, cold blue-grey tones, mist creeping across the ground, film grain, j-horror aesthetic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment",
+      "description": "你们绕到屋后。后院比前院更荒芜，野草齐腰，几棵枯树歪斜地立着，像是被什么力量推挤过。\n\n院子中央，一口石砌的枯井被一块腐烂的木盖压着。木盖上爬满青苔，边缘却有一处新鲜的抓痕——像是有什么东西，最近从里面推开过它。\n\n井口散发出一股陈腐的、带着甜腥的气味。你们能听到，从井底深处传来断断续续的声音。那声音很轻，像是孩子的啜泣，又像是猫在低低地呜咽。\n\n木盖的一角微微翘起，露出一道漆黑的缝隙。有什么东西在缝隙里一闪而过——白的，很小的，像是一截手指。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "jw1",
+          "text": "推开木盖查看井底——那里到底有什么"
+        },
+        {
+          "id": "jw2",
+          "text": "捡起井边的玩具——它似乎是一个关键的信物"
+        },
+        {
+          "id": "jw3",
+          "text": "退后几步，保持距离观察"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jws1",
+          "text": "木盖的内侧刻满了「放我出去」——字迹有两种：一种稚嫩的蜡笔字，一种是用指甲刻出来的，深得几乎穿透木板"
+        },
+        {
+          "id": "jws2",
+          "text": "井边的玩具是一只毛绒猫，缝线处渗出暗色的液体。翻开毛绒猫的肚子，里面塞着一张字条：「俊雄，妈妈不怪你。」"
+        }
+      ],
+      "vote_prompt": "枯井的呼唤越来越清晰，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_juon_hallway": "退回屋内，回到二楼走廊"
+      },
+      "guidance": "咒怨分支·恐怖事件。SAN 检定高发，获得关键信物线索。完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

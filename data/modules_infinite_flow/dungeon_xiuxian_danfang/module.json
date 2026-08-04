@@ -6,7 +6,8 @@
     "xiuxian",
     "fantasy"
   ],
-  "difficulty": 2,
+  "reusable": true,
+  "difficulty": 4,
   "duration_estimate": "2-3 turns",
   "entry": {
     "location_types": [
@@ -21,9 +22,27 @@
   "exits": [
     {
       "id": "to_boss",
-      "label": "直面青云宗的真相",
+      "label": "直面青云宗的真相（主线）",
       "provides_clues": [
         "xt_danfang_accessed"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "to_forbidden",
+      "label": "潜入后山禁地（危险捷径）",
+      "provides_clues": [
+        "xt_forbidden_clue"
+      ],
+      "mood": "panic",
+      "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "to_court",
+      "label": "前往执法堂求助（NPC交互）",
+      "provides_clues": [
+        "xt_court_clue"
       ],
       "mood": "dread",
       "next_location_type": "dungeon_xt"
@@ -66,7 +85,11 @@
       ],
       "vote_prompt": "丹房的真相暴露，青云宗露出了獠牙，你们选择？",
       "leads_to": [],
-      "exit_labels": {},
+      "exit_labels": {
+        "dungeon_xiuxian_boss": "直面入魔长老，了结一切",
+        "dungeon_xiuxian_forbidden": "潜入后山禁地，寻找破局之法",
+        "dungeon_xiuxian_court": "前往执法堂，揭发长老的罪行"
+      },
       "guidance": "修仙副本深层。真相揭露，BOSS 战前的最后抉择。"
     }
   ],

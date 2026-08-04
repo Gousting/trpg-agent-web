@@ -23,12 +23,30 @@
   },
   "exits": [
     {
-      "id": "deeper",
-      "label": "踏入佐伯家大门",
+      "id": "to_main",
+      "label": "踏入佐伯家大门（主线）",
       "provides_clues": [
         "jy_entered"
       ],
       "mood": "horror",
+      "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "to_neighbor",
+      "label": "敲响邻居家的门打听佐伯家（情报）",
+      "provides_clues": [
+        "jy_neighbor_clue"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "to_well",
+      "label": "绕到屋后查看庭院里的枯井（恐怖）",
+      "provides_clues": [
+        "jy_well_visited"
+      ],
+      "mood": "panic",
       "next_location_type": "dungeon_jy"
     }
   ],
@@ -39,7 +57,7 @@
       "part": 0,
       "scene_type": "入口",
       "image_prompt": "abandoned Japanese house at dusk, overgrown garden, broken wooden gate, peeling paint, a single window on second floor showing a pale figure, oppressive haunted atmosphere, muted cold colors, film grain, j-horror aesthetic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment",
-      "description": "红色光门将你们吐出，落在一条荒芜的街道上。天色昏黄，像是永远停在黄昏那一刻。面前的日式老宅破败不堪，木质外墙爬满藤蔓，二楼的一扇窗户黑洞洞地注视着你们。\n\n门牌上写着「佐伯」——字迹像是被什么液体浸过，模糊了半边。\n\n空气冷得不正常。明明没有风，院子里的枯树却轻轻晃动。\n\n你们能感觉到，有什么东西正在宅子里等着。它已经等了很久。",
+      "description": "红色光门将你们吐出，落在一条荒芜的街道上。天色昏黄，像是永远停在黄昏那一刻。面前的日式老宅破败不堪，木质外墙爬满藤蔓，二楼的一扇窗户黑洞洞地注视着你们。\n\n门牌上写着「佐伯」——字迹像是被什么液体浸过，模糊了半边。\n\n空气冷得不正常。明明没有风，院子里的枯树却轻轻晃动。\n\n隔壁的邻居家窗帘拉着，隐约能看到缝隙里有人影一闪而过——这栋房子周围，或许有人知道些什么。\n\n你们能感觉到，有什么东西正在宅子里等着。它已经等了很久。",
       "npcs_here": [],
       "opportunities": [
         {
@@ -65,10 +83,14 @@
           "text": "地面上的影子比你们多了一个。它在你们身后三米处，一动不动"
         }
       ],
-      "vote_prompt": "佐伯家的凶宅矗立在黄昏中，你们选择如何进入？",
+      "vote_prompt": "佐伯家的凶宅矗立在黄昏中，你们选择如何行动？",
       "leads_to": [],
-      "exit_labels": {},
-      "guidance": "咒怨副本入口。经典日式恐怖氛围，进入宅子前的情报收集。"
+      "exit_labels": {
+        "dungeon_juon_hallway": "踏入佐伯家大门，进入二楼走廊",
+        "dungeon_juon_neighbor": "敲响邻居家的门，打听佐伯家的事",
+        "dungeon_juon_well": "绕到屋后，查看庭院里的枯井"
+      },
+      "guidance": "咒怨副本入口。经典日式恐怖氛围，进入宅子前的情报收集与分支选择。"
     }
   ],
   "npcs": [],

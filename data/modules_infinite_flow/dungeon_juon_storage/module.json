@@ -1,0 +1,71 @@
+{
+  "id": "dungeon_juon_storage",
+  "title": "咒怨·储物间",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 2,
+  "duration_estimate": "2-3 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "panic"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "撤出储物间，回到走廊",
+      "provides_clues": [
+        "jy_storage_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "closet",
+      "title": "塞满杂物的储物间",
+      "part": 0,
+      "scene_type": "遭遇",
+      "image_prompt": "cramped dark storage closet in Japanese house, piled old futons and boxes, a thin gap between stacked furniture revealing something pale, dust motes floating in dim light, a rope hanging from ceiling hook, claustrophobic terrifying atmosphere, cold tones, film grain, j-horror aesthetic, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, avoid human faces, focus on environment",
+      "description": "你们推开储物间的门，一股潮湿的霉味扑面而来。狭小的空间里堆满了旧被褥、纸箱和蒙尘的杂物，几乎没有下脚的地方。\n\n就在你们准备搜索时，天花板上的吊钩突然发出「吱嘎」一声——一根麻绳从上方垂下来，绳结还保持着活套的形状，在无风的房间里轻轻晃动。\n\n然后，你们听到身后传来粗重的呼吸声。\n\n一个穿着白衣的身影从纸箱堆的阴影里站起来。它没有脸——五官的位置只有三团漩涡状的黑暗。它歪着头，像在打量你们，随后猛地扑了过来！\n\n这是佐伯家怨念的一部分。它只想伤害活人。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "js1",
+          "text": "反击或躲避——决不能让这个影子碰到你们"
+        },
+        {
+          "id": "js2",
+          "text": "抄起手边的杂物砸向它——看看它是否会被驱散"
+        },
+        {
+          "id": "js3",
+          "text": "后退到门口，寻找撤离的时机"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jss1",
+          "text": "纸箱堆深处压着一本相册，全是俊雄从出生到五岁的照片。最后一张照片里，俊雄被锁在储物间的柜子里，照片背面写着：「不听话的孩子要关起来」"
+        }
+      ],
+      "vote_prompt": "怨灵逼近，你们如何应对？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_juon_hallway": "击退怨灵，撤出储物间回到走廊"
+      },
+      "guidance": "咒怨分支·遭遇战（叙事冲突）。HP/SAN 受损风险，胜利后获得背景线索。完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

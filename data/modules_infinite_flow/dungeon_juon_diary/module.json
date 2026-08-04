@@ -1,0 +1,67 @@
+{
+  "id": "dungeon_juon_diary",
+  "title": "咒怨·俊雄的日记",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "1-2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_hallway_cleared"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "合上日记，面对阁楼的诅咒",
+      "provides_clues": [
+        "jy_diary_used"
+      ],
+      "mood": "dread",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "attic_diary",
+      "title": "摊开的日记",
+      "part": 0,
+      "scene_type": "调查",
+      "image_prompt": "a child's worn diary open on dusty attic floor, crayon drawings on the pages, a dried cat whisker pressed between pages, faint handprint on the cover, dim attic light through boarded window, somber heartbreaking atmosphere, muted sepia and grey tones, film grain, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, focus on objects",
+      "description": "你们翻开俊雄的日记。封面是蜡笔画的猫，线条稚嫩，却画得很认真——每一笔都涂满了颜色。\n\n日记的纸页已经泛黄卷边，字迹从歪歪扭扭逐渐变得工整，又逐渐变得凌乱：\n\n「3月2日 妈妈今天又哭了。爸爸说是因为我。」\n「4月15日 妈妈把我关在柜子里。柜子里好黑。我数到一千才能出来。」\n「5月30日 妈妈买了新衣服。不是给我的。」\n「6月1日 小猫不见了。我找了一整天。」\n「6月2日 我在阁楼听到小猫的声音。在墙里面。」\n「6月15日 妈妈把梯子收走了。她说不听话的孩子要住在阁楼里。」\n「6月20日 明天开始，我要永远和妈妈在一起了。」\n\n最后一页，夹着一根干枯的猫须。页角有一道被泪水浸湿的痕迹，早已干透，却依然能看出形状。\n\n你们终于明白：伽椰子的诅咒里藏着巨大的痛苦。而这个男孩——俊雄——他或许是这场诅咒中唯一想要离开的部分。\n\n在战斗中，如果你们喊出他的名字，或许能动摇那个诅咒。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "jdy1",
+          "text": "记住日记里的内容——尤其是俊雄的名字和他的喜好"
+        },
+        {
+          "id": "jdy2",
+          "text": "收好那根猫须——它也许能安抚什么"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jdys1",
+          "text": "日记最后一页的背面，有一行不属于孩子的、颤抖的字：「俊雄，对不起。妈妈不是故意的。妈妈只是太害怕了。」——这是伽椰子的笔迹"
+        }
+      ],
+      "vote_prompt": "日记揭示了诅咒的真相，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_juon_attic": "带着日记的真相，回到阁楼"
+      },
+      "guidance": "咒怨分支·关键线索。揭示俊雄与伽椰子的真相——战斗中喊出俊雄的名字可削弱伽椰子（呼应 BOSS 模块 rules）。完成后返回阁楼。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

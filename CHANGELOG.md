@@ -1,5 +1,97 @@
 # CHANGELOG
 
+## v1.9 — 无限流 v2 T7：咒怨模块分支改造 (2026-08-04)
+
+### 模块数据 (`data/modules_infinite_flow/dungeon_juon_*`)
+
+- 主线 entrance/hallway/attic 各 3 真实出口（主线 + 分支 + 撤退），hallway/attic 加 reusable 支持分支回边
+- 新增 6 个分支模块（neighbor/deed/well/storage/bathroom/diary），分支入口加前置线索
+- BOSS 难度 3→2
+
+### 组合引擎 (`trpg_agent/adventure/module_composer.py`)
+
+- 修复：authored 目标按声明顺序认领 exit；去重走 `_usable`（支持 reusable 回边）；`authored_only` 声明目标后关闭随机匹配（消灭幽灵分支）
+
+### 测试
+
+- 新增 `tests/test_juon_branches.py`（6 用例），全量 234 passed 零回归
+
+## v1.8 — 无限流 v2 T6：轮回者存档 (2026-08-04)
+
+### Web (`trpg_agent_web/web_server.py`, `static/index.html`)
+
+- 新增 `PROFILE_DIR` + `_save_reincarnator`/`_load_reincarnator`；战斗结束自动存档，`load_profile` 参数开局继承（属性/AP/强化，HP 回满）
+- 前端「继承轮回者」checkbox
+
+### 测试
+
+- 新增 `tests/test_reincarnator_profile.py`（5 用例），全量 228 passed 零回归
+
+## v1.7 — 无限流 v2 T5：hub 选择卡片 (2026-08-04)
+
+### 模块数据 (`data/modules_infinite_flow/hub_plaza/module.json`)
+
+- 三个副本出口 label 加难度区间（生化 2-3 / 咒怨 1-2 / 修仙 3-4）
+
+### Web (`trpg_agent_web/web_server.py`, `static/index.html`)
+
+- hub 场景 vote 事件附加 `cleared_dungeons`（从线索状态判断已通关副本）
+- 前端 hub 场景渲染副本选择卡片，已通关显示「✓ 已通关」
+
+### 测试
+
+- JS 语法检查通过，全量 223 passed 零回归
+
+## v1.6 — 无限流 v2 T4：选主控 UI (2026-08-04)
+
+### Web 前端 (`trpg_agent_web/static/index.html`)
+
+- 控制栏新增「主控」下拉，选中角色卡金色高亮 + 👑 标识
+- `startGame()` 透传 `leader` 参数；live 模式投票标题动态标注「你的行动（主控名）」
+
+### 测试
+
+- JS 语法检查通过，全量 223 passed 零回归
+
+## v1.5 — 无限流 v2 T3：队友系统 (2026-08-04)
+
+### Web (`trpg_agent_web/web_server.py`)
+
+- `/api/stream` 新增 `leader` 参数：live 模式固定主控（投票驱动移动），其余 2 名调查员为 AI 队友
+- 新增 `_ai_teammates_action`（合并 prompt 一次生成全部队友行动）+ `_parse_teammates_action`（容错解析）
+- 队友行动在投票窗口内并行生成（隐藏延迟），逐条推送前端并并入 KP 叙述上下文；失败静默兜底
+
+### 测试
+
+- 新增 `tests/test_teammates.py`（8 用例），全量 223 passed 零回归
+
+## v1.4 — 无限流 v2 T2：收益结构化 (2026-08-04)
+
+### 战斗结算 (`trpg_agent/combat/encounter.py`, `trpg_agent_web/web_server.py`)
+
+- `CombatOutcome` 新增 `reward_ap` 字段，BOSS 结局 AP 收益由模块声明（victory 4 / defeat 1 / flee 0），web_server 结算读字段、缺省回退旧值
+- 三个无限流 BOSS 模块（咒怨/生化/修仙）outcomes 已声明 reward_ap
+
+### 测试
+
+- 新增 `tests/test_reward_ap.py`（4 用例），全量 215 passed 零回归
+
+## v1.3 — 无限流 v2 T1：出口机制 (2026-08-04)
+
+### 模块组合引擎 (`trpg_agent/adventure/module_composer.py`)
+
+- `compose()`/`compile()`/`_build_graph()` 新增 `max_authored_branches`（默认不限）与 `authored_only`（默认 False）参数
+- 模块最后场景 `exit_labels` 手写目标不再被硬编码砍到 2 个；`authored_only=True` 时出口完全由作者控制（无限流），认领过的 exit 跳过随机匹配，消灭"幽灵分支"
+- 默认行为不变：COC/哈利波特仍走"手写 + 随机兜底"并存
+
+### Web (`trpg_agent_web/web_server.py`)
+
+- `world=infinite_flow` 时模块组合启用 `authored_only=True`
+
+### 测试
+
+- 新增 `tests/test_authored_branches.py`（5 用例），全量 211 passed 零回归
+
 ## v1.2 — 直播演出化界面 & 手机直播变体 (2026-08-03)
 
 ### Web 前端演出化升级 (`trpg_agent_web/static/index.html`)
@@ -165,3 +257,36 @@ ModuleMeta 扩展 module_type 字段（story/combat/investigation/exploration/so
 - ModuleComposer.validate()：110 模块池 0 问题
 - Web API `/api/stream` 端点全链路通过
 - 180 tests pass
+
+## v2.0 — 无限流 v2 T8：生化模块分支改造 (2026-08-04)
+
+### 模块数据 (`data/modules_infinite_flow/dungeon_rs_*`)
+
+- 主线 entrance/corridor/lab 各 3 真实出口（主线 + 分支），corridor/lab 加 reusable 支持分支回边
+- 新增 6 个分支模块（armory/vent/monitor/canteen/autopsy/dorm），vent 为跳层捷径直达 lab
+- 难度阶梯 2-3：entrance 1→2、lab 2→3
+- BOSS 三结局回 hub（T2 已加 reward_ap）
+
+### 测试
+
+- 新增 `tests/test_rs_dungeon_graph.py`（8 用例），更新模块数断言 19→25，全量 242 passed 零回归
+
+## v2.1 — 无限流 v2 T9：修仙模块分支改造 (2026-08-04)
+
+### 模块数据 (`data/modules_infinite_flow/dungeon_xiuxian_*`)
+
+- 主线 entrance/trial/danfang 各 3 真实出口（主线 + 分支），trial/danfang 加 reusable
+- 新增 6 个分支模块（library/field/arena/mentor/forbidden/court），forbidden 跳层捷径直达 boss
+- 难度阶梯 3-4：entrance 1→3、trial 2→3、danfang 2→4、boss 3→4（boss 加 reusable 支持双入口）
+
+### 测试
+
+- 新增 `tests/test_xt_dungeon_graph.py`（9 用例，含跳层多 seed 稳定性），更新模块数断言 25→31，全量 251 passed 零回归
+
+## v2.2 — 无限流 v2 T10：全链路验证 (2026-08-04)
+
+- 用 deepseek-v4-flash（远端 KP）+ ornith:9b（本地 AI 玩家）实跑一局无限流
+- 31 模块 → 100 场景组合成功；轮回者创建正常
+- 出口机制全链路验证：青云山门→藏经阁（分支）→试炼场→演武场（分支）→炼丹房，主线/分支 zigzag 完整走通
+- 检定/伤害结算正常，KP 叙事质量达标
+- BOSS/AP/存档有 T2/T6 单测兜底，live 模式需直播实测

@@ -1,0 +1,67 @@
+{
+  "id": "dungeon_juon_deed",
+  "title": "咒怨·房契文件",
+  "genre": [
+    "infinite_flow",
+    "juon",
+    "horror"
+  ],
+  "difficulty": 1,
+  "duration_estimate": "1-2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_jy"
+    ],
+    "required_clues": [
+      "jy_entered"
+    ],
+    "forbidden_clues": [],
+    "mood": "dread"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "收好文件，返回佐伯家",
+      "provides_clues": [
+        "jy_deed_done"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "dungeon_jy"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "deed",
+      "title": "泛黄的房契",
+      "part": 0,
+      "scene_type": "调查",
+      "image_prompt": "close-up of an old yellowed Japanese property deed on a dark wooden table, faded kanji characters, a black wax seal broken, a child's crayon drawing hidden beneath the papers, single candle flame casting long shadows, eerie quiet investigation atmosphere, muted sepia tones, film grain, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame, focus on documents",
+      "description": "老妇人从柜子深处翻出一个锈迹斑斑的铁盒。盒子里没有金银，只有一叠用油纸包好的文件——佐伯家宅的房契，以及一张发黄的地契变更记录。\n\n房契上的产权人姓名，不是佐伯。三十年前，这栋宅子的合法主人是一个姓「小林」的男人。而变更记录的时间，正好是伽椰子死后的第三个月——佐伯俊夫以极低的价格接手了这栋宅子。\n\n文件最下面，压着一张被撕成两半又拼回去的纸片，上面用颤抖的笔迹写着：\n\n「房契在我这里。俊夫，你杀了她——你会付出代价。」\n\n署名处只有半个名字：「小林……」\n\n你们终于明白了一部分真相：这栋宅子的诅咒，或许比佐伯一家更古老。而那些「买下凶宅」的人，也许从一开始就是被选中的人。",
+      "npcs_here": [],
+      "opportunities": [
+        {
+          "id": "jd1",
+          "text": "记下小林的名字——这可能是破解诅咒的关键"
+        },
+        {
+          "id": "jd2",
+          "text": "检查铁盒底部——看看还有没有别的东西"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "jds1",
+          "text": "铁盒底部刻着一行极小的字：「诅咒从不被买走，只会被继承。」"
+        }
+      ],
+      "vote_prompt": "房契揭示了惊人的真相，你们接下来？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_juon_hallway": "带着真相返回佐伯家"
+      },
+      "guidance": "咒怨分支·情报层。揭示宅子产权真相，为结局提供背景。完成后返回主线走廊。"
+    }
+  ],
+  "npcs": [],
+  "variance": null
+}

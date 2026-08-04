@@ -43,6 +43,9 @@ from trpg_agent.adventure import Adventure
 from trpg_agent.combat.orchestrator import CombatOrchestrator
 from trpg_agent.combat.encounter import CombatEncounter
 
+# ── 无限流轮回者存档目录（T6）──────────────────
+PROFILE_DIR = Path("data/infinite_flow/profiles")
+
 log = logging.getLogger(__name__)
 
 # KP 叙述质量守卫（原 orchestrator.py 的输出清洗/防复读/一致性检查，接入 Web 流式循环）：
@@ -535,7 +538,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                        vote_seconds: int = 32,
                        force_combat: bool = False,
                        world: str = "",
-                       sid: str = ""):
+                       sid: str = "",
+                       leader: str = "",
+                       load_profile: bool = False):
     """SSE 事件流 — 完整的游戏循环。"""
     
     # ── 模块组合模式 ──────────────────────────
@@ -548,7 +553,11 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         if not composer._modules:
             yield _sse("error", {"text": f"世界观 [{world or 'coc'}] 模块池为空：{modules_dir}"})
             return
-        bundle = composer.compile(seed=seed, max_depth=_compose_max_depth(world))
+        bundle = composer.compile(
+            seed=seed,
+            max_depth=_compose_max_depth(world),
+            authored_only=((world or "").strip().lower() in ("infinite_flow", "无限流")),
+        )
         adventure = bundle.adventure
         yield _sse("status", {"text": f"已组合 {len(bundle.module_ids)} 个模块, {len(adventure._scenes)} 个场景 (世界观: {world or 'coc'})"})
 
@@ -602,16 +611,22 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     _sessions[sid] = session
 
     # ── 无限流：创建轮回者 ──────────────────────
-    is_infinite_flow = (world or "").strip().lower() in ("infinite_flow", "无限流")
+    is_infinite_flow = _is_infinite_world(world)
     if is_infinite_flow:
         from trpg_agent.memory.game_state import Reincarnator, INITIAL_ALLOCATION_POINTS
-        rein = Reincarnator(name="轮回者", max_hp=12, hp=12,
-                            strength=10, agility=10, spirit=10, ap=0)
-        # 自由分配初始属性点：用户可后续通过强化面板分配
-        rein.ap += INITIAL_ALLOCATION_POINTS
+        loaded = _load_reincarnator() if load_profile else None
+        if loaded is not None:
+            rein = loaded
+            rein.hp = min(rein.hp, rein.max_hp)  # 开局回满
+            yield _sse("status", {"text": f"🌀 已继承轮回者 — 三维 {rein.strength}/{rein.agility}/{rein.spirit}，AP {rein.ap}，强化 {len(rein.talents)} 个"})
+        else:
+            rein = Reincarnator(name="轮回者", max_hp=12, hp=12,
+                                strength=10, agility=10, spirit=10, ap=0)
+            # 自由分配初始属性点：用户可后续通过强化面板分配
+            rein.ap += INITIAL_ALLOCATION_POINTS
+            yield _sse("status", {"text": f"🌀 轮回者已创建 — 三维属性 10/10/10，{INITIAL_ALLOCATION_POINTS} 点可分配"})
         if session.state is not None:
             session.state.reincarnator = rein
-        yield _sse("status", {"text": f"🌀 轮回者已创建 — 三维属性 10/10/10，{INITIAL_ALLOCATION_POINTS} 点可分配"})
 
     for inv_data in ([] if is_infinite_flow else INVESTIGATORS):
         # 避免重复：characters.json 可能已经加载过
@@ -733,6 +748,11 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     # ── 游戏循环 ──────────────────────────────
     last_narration = opening_text
     player_order = [inv["name"] for inv in INVESTIGATORS]
+    # T3 队友系统：live 模式固定主控（leader）由投票驱动，其余为 AI 队友
+    leader_name = leader or INVESTIGATORS[0]["name"]
+    if leader_name not in player_order:
+        leader_name = INVESTIGATORS[0]["name"]
+    teammates = [inv for inv in INVESTIGATORS if inv["name"] != leader_name]
     current_bgm = bgm_track
     current_scene = scene_info
     # ── 战斗编排器 ──
@@ -750,10 +770,12 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     _turn = 0  # 循环迭代计数（含战斗回合）
     _non_combat_turns = 0  # 非战斗回合计数
     while _non_combat_turns < turns:
-        speaker = player_order[_turn % len(player_order)]
+        # live 模式：主控固定（投票驱动），不轮转
+        speaker = leader_name if mode == "live" else player_order[_turn % len(player_order)]
         inv_data = next(inv for inv in INVESTIGATORS if inv["name"] == speaker)
         inv_state = session.state.find_investigator(speaker)
         rc = dmap.room_context()
+        teammate_actions: dict[str, str] = {}  # T3：本轮 AI 队友行动（live 模式填充）
         _turn += 1
 
         # ── 战斗场景检测 ──
@@ -875,16 +897,24 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                     session.record_combat(summary)
 
             # ── 无限流：副本通关结算 AP ──────────
+            # 优先读战斗 encounter 结局声明的 reward_ap（模块作者可配置），
+            # 读不到或为 0 时回退旧硬编码数值（victory 3 / defeat/flee 1）。
             ap_gained = 0
             if is_infinite_flow and outcome is not None and session.state is not None and session.state.reincarnator is not None:
                 rein = session.state.reincarnator
-                if outcome == "victory":
-                    ap_gained = 3
-                elif outcome in ("defeat", "flee"):
-                    ap_gained = 1
+                encounter = None
+                if combat_orch.combat_loop is not None and combat_orch.combat_loop._state is not None:
+                    encounter = combat_orch.combat_loop._state.encounter
+                oc = encounter.outcomes.get(str(outcome)) if encounter is not None else None
+                if oc is not None and oc.reward_ap:
+                    ap_gained = oc.reward_ap
+                if not ap_gained:
+                    ap_gained = 3 if outcome == "victory" else 1
                 if ap_gained:
                     rein.ap += ap_gained
                     yield _sse("status", {"text": f"💰 副本结算：获得 {ap_gained} 强化点（AP），当前 {rein.ap} 点"})
+                # T6：副本结束（任一结局）存档轮回者
+                _save_reincarnator(rein)
 
             audio_url = await _speak(resolution_output[:500])
 
@@ -1000,12 +1030,31 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 elif "病房" in room_name or "医院" in room_name:
                     vote_options = {"a": "查看病床上的约束带痕迹", "b": "翻阅床头柜的病历记录", "c": "检查窗户是否通向外部"}
 
+            # T5：无限流 hub 场景附加已通关副本标记（供前端卡片显示 ✓）
+            cleared_dungeons: list[str] = []
+            if is_infinite_flow and adventure is not None and session.state is not None:
+                hub_scene = adventure.get_scene(session.state.scene_id)
+                if hub_scene is not None and "主神空间" in (hub_scene.title or ""):
+                    for clue, label in (("dungeon_clear_jy", "咒怨"),
+                                        ("dungeon_clear_rs", "生化"),
+                                        ("dungeon_clear_xt", "修仙")):
+                        if clue in session.state.resolved_elements:
+                            cleared_dungeons.append(label)
+
             yield _sse("vote", {
                 "options": vote_options,
                 "session_id": sid,
                 "speaker": speaker,
                 "vote_seconds": vote_timeout,
+                "cleared_dungeons": cleared_dungeons,
             })
+
+            # T3：投票窗口期间并行生成 AI 队友行动（隐藏延迟，不拖长单轮）
+            teammate_task = None
+            if is_live:
+                teammate_task = asyncio.create_task(
+                    _ai_teammates_action(player_host, player_model, teammates, rc, last_narration, "")
+                )
 
             # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
             tally: dict[str, int] = {}
@@ -1023,6 +1072,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             else:
                 choice = "a"
 
+            # 投票结束：取回队友行动（投票窗口内已完成，失败则空 dict 兜底）
+            if teammate_task is not None:
+                teammate_actions = await teammate_task
+
             # 投票结果驱动模块场景切换——只有选中真实出口时才会真正移动
             target_scene_id = vote_targets.get(choice)
             if adventure is not None and target_scene_id:
@@ -1033,6 +1086,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             yield _sse("player_token", {"text": action, "speaker": speaker})
+            if teammate_actions:
+                for _tname, _tact in teammate_actions.items():
+                    yield _sse("player_token", {"text": f"（{_tname}：{_tact}）", "speaker": _tname})
             yield _sse("player_stream_end", {"speaker": speaker})
             await asyncio.sleep(0.2)
 
@@ -1147,6 +1203,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                     " <<EXIT 序号>>（如 <<EXIT 1>>）；如果队伍仍留在当前场景，不要添加这个标记。"
                 )
         context_parts.append(f"[{speaker}] {action}")
+        # T3：队友行动并入 KP 叙述上下文（live 模式）
+        if teammate_actions:
+            team_text = "；".join(f"{name} {act}" for name, act in teammate_actions.items())
+            context_parts.append(f"[队友行动] {team_text}")
         kp_user = "\n\n".join(context_parts) + "\n\n请叙述结果："
 
         yield _sse("kp_stream_start", {})
@@ -1274,6 +1334,107 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         await asyncio.sleep(0.3)
 
     yield _sse("done", {"summary": session.state.scene_summary()})
+
+
+def _save_reincarnator(rein) -> None:
+    """T6：轮回者存档——副本结束（任一结局）时写入 profiles/。"""
+    try:
+        PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+        path = PROFILE_DIR / f"{rein.name}.json"
+        path.write_text(json.dumps(rein.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+        log.info("轮回者已存档: %s (AP=%s)", path, rein.ap)
+    except Exception:
+        log.exception("轮回者存档失败")
+
+
+def _load_reincarnator(name: str = "轮回者"):
+    """T6：读轮回者存档，无存档返回 None。"""
+    from trpg_agent.memory.game_state import Reincarnator
+    try:
+        path = PROFILE_DIR / f"{name}.json"
+        if not path.is_file():
+            return None
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return Reincarnator.from_dict(data)
+    except Exception:
+        log.exception("轮回者读档失败")
+        return None
+
+
+def _is_infinite_world(world: str) -> bool:
+    return (world or "").strip().lower() in ("infinite_flow", "无限流")
+
+
+async def _ai_teammates_action(player_host: str, player_model: str,
+                               teammates: list[dict], rc: dict,
+                               last_narration: str, leader_action: str) -> dict[str, str]:
+    """生成 AI 队友行动（合并为一次请求），返回 {名字: 行动}。
+
+    设计（docs/infinite-flow-v2-design.md §5.2/5.3）：
+    - 一次 prompt 生成全部队友行动，控制延迟与成本
+    - 队友只贡献叙事/检定，不触发场景移动
+    - 失败兜底：任何异常返回空 dict，调用方走默认"谨慎观察"
+    """
+    if not teammates:
+        return {}
+    names = [inv["name"] for inv in teammates]
+    team_line = "\n".join(f"- {inv['name']}（HP {inv['hp']}/{inv['max_hp']} SAN {inv['san']}/{inv['max_san']}）" for inv in teammates)
+    system = (
+        "你是跑团中的 AI 队友（非玩家主控角色）。你的作用是让队伍看起来像活人——"
+        "对当前场景和主控角色的行动做出自然反应，每轮每人只说 1-2 句话。\n"
+        "规则：不要替主控角色做决定、不要主动移动场景、不要长篇大论。\n"
+        f"当前队伍队友：\n{team_line}\n"
+        "输出格式：每个队友单独一行，以「名字：」开头。例如：\n"
+        "林晓：我蹲下来查看地上的血迹。\n"
+        "王刚：我挡在门口，警惕地盯着走廊尽头。"
+    )
+    msg = (
+        f"主持人叙述：{last_narration[:400]}\n"
+        f"主控角色行动：{leader_action[:200]}\n\n"
+        f"当前房间：{rc.get('name', '')} — {rc.get('desc', '')}\n"
+        f"威胁：{rc.get('threats', '')}\n\n"
+        "请生成两个队友各自的行动："
+    )
+    try:
+        client = OllamaClient(player_host, player_model, num_ctx=4096, timeout=120)
+        try:
+            raw = await client.chat(
+                system, [{"role": "user", "content": msg}],
+                options={"temperature": 0.9},
+            )
+        finally:
+            await client.aclose()
+    except Exception:
+        log.warning("AI 队友行动生成失败，回退为静默", exc_info=True)
+        return {}
+
+    return _parse_teammates_action(raw or "", names)
+
+
+def _parse_teammates_action(raw: str, names: list[str]) -> dict[str, str]:
+    """解析 LLM 返回的队友行动文本为 {名字: 行动}。
+
+    容错规则：
+    - 只保留名字前缀完全匹配的行（防止模型输出无关内容）
+    - 一行内名字后跟「：」或「:」，取冒号后内容
+    - 名字没出现 / 内容为空 → 跳过（调用方兜底）
+    """
+    result: dict[str, str] = {}
+    for line in (raw or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        for name in names:
+            for sep in ("：", ":"):
+                if line.startswith(name + sep):
+                    action = line[len(name) + len(sep):].strip()
+                    if action:
+                        result[name] = action
+                    break
+            else:
+                continue
+            break
+    return result
 
 
 async def _ai_player_stream(player_host: str, player_model: str,
@@ -1450,6 +1611,8 @@ async def stream(
     vote_seconds: int = Query(default=60, ge=5, le=600),
     force_combat: bool = False,
     world: str = Query(default="", max_length=32),
+    leader: str = Query(default="", max_length=32),
+    load_profile: bool = False,
 ):
     try:
         seed_val = int(seed) if seed else None
@@ -1465,7 +1628,7 @@ async def stream(
                 host, kp, player, turns, seed_val, mode, compose_modules,
                 kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup,
                 vote_seconds=vote_seconds, force_combat=force_combat, world=world,
-                sid=sid,
+                sid=sid, leader=leader, load_profile=load_profile,
             ):
                 yield chunk
         finally:

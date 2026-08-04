@@ -589,12 +589,16 @@ class ModuleComposer:
         max_depth: int = 3,
         start_module: str | None = None,
         difficulty_range: tuple[int, int] | None = None,
+        max_authored_branches: int | None = None,
+        authored_only: bool = False,
     ) -> tuple[Adventure, RunSeed]:
         bundle = self.compile(
             seed=seed,
             max_depth=max_depth,
             start_module=start_module,
             difficulty_range=difficulty_range,
+            max_authored_branches=max_authored_branches,
+            authored_only=authored_only,
         )
         return bundle.adventure, bundle.run_seed
 
@@ -605,6 +609,8 @@ class ModuleComposer:
         max_depth: int = 3,
         start_module: str | None = None,
         difficulty_range: tuple[int, int] | None = None,
+        max_authored_branches: int | None = None,
+        authored_only: bool = False,
     ) -> CompiledAdventure:
         """从模块池组合生成完整冒险（支持分支图）。
 
@@ -628,7 +634,9 @@ class ModuleComposer:
         run_seed.rng = rng
 
         # 1. BFS 构建分支图
-        root = self._build_graph(start_module, rng, difficulty_range, max_depth)
+        root = self._build_graph(start_module, rng, difficulty_range, max_depth,
+                                 max_authored_branches=max_authored_branches,
+                                 authored_only=authored_only)
 
         # 2. 收集所有节点（BFS 遍历）
         all_nodes = self._collect_nodes(root)
@@ -664,6 +672,8 @@ class ModuleComposer:
         rng: random.Random,
         difficulty_range: tuple[int, int] | None,
         max_depth: int,
+        max_authored_branches: int | None = None,
+        authored_only: bool = False,
     ) -> ModuleNode:
         """BFS 构建模块分支图——按深度分阶段加权选择模块类型。"""
         # 选起始模块（序幕阶段：排除 combat）
@@ -712,32 +722,32 @@ class ModuleComposer:
             node_targets: set[str] = set()
             claimed_exits: set[int] = set()
 
+            authored_mods: list[tuple[str, Module]] = []  # 在 if 外初始化，随机匹配处可安全引用
             if authored_targets:
-                # 收集有效的手写目标，按阶段加权限制最多 2 个
-                authored_mods: list[tuple[str, Module]] = []
+                # 收集有效的手写目标，按阶段加权限制最多 max_authored_branches 个
+                # （None = 不限制，由模块作者用 exit_labels 声明的出口数决定）
+                # 去重用 _usable（reusable 模块豁免）——支持分支模块"返回主线"的回边。
                 for target_id in authored_targets:
                     child_mod = self._resolve_explicit_target(target_id, difficulty_range)
-                    if child_mod is not None and child_mod.meta.id not in used_ids and child_mod.meta.id not in node_targets:
+                    if child_mod is not None and self._usable(child_mod, used_ids) and child_mod.meta.id not in node_targets:
                         authored_mods.append((target_id, child_mod))
-                if len(authored_mods) > 2:
+                if max_authored_branches is not None and len(authored_mods) > max_authored_branches:
                     # 用加权采样缩减
                     sampled = self._weighted_sample(
-                        [m for _, m in authored_mods], depth, 2, rng,
+                        [m for _, m in authored_mods], depth, max_authored_branches, rng,
                         parent_type=parent_type,
                     )
                     # 重建 (target_id, mod) 映射（用 module id 做 key）
                     mod_to_tid = {m.meta.id: tid for tid, m in authored_mods}
                     authored_mods = [(mod_to_tid.get(m.meta.id, ""), m) for m in sampled if m.meta.id in mod_to_tid]
 
-                for target_id, child_mod in authored_mods:
-
+                # 手写目标按声明顺序认领 exit（第 i 个目标 → 第 i 个 exit）。
+                # 不用 _pick_exit_for_target：多个同 location_type 的 exit 候选集相同，
+                # 它无法区分、会全部 fallback 到第 0 个 exit，导致未认领 exit 走随机匹配产生幽灵分支。
+                for i, (target_id, child_mod) in enumerate(authored_mods):
                     if exit_contexts:
-                        exit_idx, exit_state, full_clues = self._pick_exit_for_target(
-                            mod,
-                            target_id,
-                            exit_contexts,
-                            claimed_exits,
-                        )
+                        exit_idx = min(i, len(exit_contexts) - 1)
+                        exit_state, full_clues = exit_contexts[exit_idx][1], exit_contexts[exit_idx][2]
                     else:
                         # 模块没有声明 meta.exits，完全依赖场景手写的 exit_labels/exit_requires
                         exit_idx, exit_state, full_clues = 0, ExitState(id="default"), pool_clues
@@ -764,30 +774,37 @@ class ModuleComposer:
                     ))
 
             # 随机兼容匹配——按深度分阶段加权选择（每出口最多 2 个候选）
-            for exit_idx, exit_state, full_clues, candidates in exit_contexts:
-                weighted = self._weighted_sample(
-                    candidates, depth, min(len(candidates), 2),
-                    rng, parent_type=parent_type,
-                )
-                exit_claimed = set() if is_combat else node_targets
-                for candidate_mod in weighted:
-                    if candidate_mod.meta.id in exit_claimed:
+            # authored_only：模块声明了手写目标（exit_labels）后出口完全由作者控制，
+            # 整个随机匹配关闭——防止"声明了去 B 却随机连了 X"的幽灵分支，
+            # 也避免多个同类型 exit 认领错位后未认领 exit 乱连。
+            # 默认 False：保留原有"手写 + 随机兜底"并存行为（COC 模块依赖随机补足分支）。
+            if not (authored_only and authored_mods):
+                for exit_idx, exit_state, full_clues, candidates in exit_contexts:
+                    if authored_only and exit_idx in claimed_exits:
                         continue
-                    exit_claimed.add(candidate_mod.meta.id)
+                    weighted = self._weighted_sample(
+                        candidates, depth, min(len(candidates), 2),
+                        rng, parent_type=parent_type,
+                    )
+                    exit_claimed = set() if is_combat else node_targets
+                    for candidate_mod in weighted:
+                        if candidate_mod.meta.id in exit_claimed:
+                            continue
+                        exit_claimed.add(candidate_mod.meta.id)
 
-                    if candidate_mod.meta.id in node_map:
-                        child = node_map[candidate_mod.meta.id]
-                    else:
-                        child = ModuleNode(module=candidate_mod)
-                        node_map[candidate_mod.meta.id] = child
-                        # 子节点继承当前出口的线索池（不混入子模块其他出口的线索）
-                        queue.append((child, depth + 1, full_clues))
+                        if candidate_mod.meta.id in node_map:
+                            child = node_map[candidate_mod.meta.id]
+                        else:
+                            child = ModuleNode(module=candidate_mod)
+                            node_map[candidate_mod.meta.id] = child
+                            # 子节点继承当前出口的线索池（不混入子模块其他出口的线索）
+                            queue.append((child, depth + 1, full_clues))
 
-                    trans_scene_id = f"__trans__{mod.meta.id}_{exit_idx}_to_{candidate_mod.meta.id}"
-                    node.edges.setdefault(exit_idx, []).append(ModuleEdge(
-                        next_node=child,
-                        transition_scene_id=trans_scene_id,
-                    ))
+                        trans_scene_id = f"__trans__{mod.meta.id}_{exit_idx}_to_{candidate_mod.meta.id}"
+                        node.edges.setdefault(exit_idx, []).append(ModuleEdge(
+                            next_node=child,
+                            transition_scene_id=trans_scene_id,
+                        ))
 
         return root
 

@@ -1,0 +1,83 @@
+{
+  "id": "dungeon_xiuxian_mentor",
+  "title": "修仙·传功长老",
+  "genre": [
+    "infinite_flow",
+    "xiuxian",
+    "fantasy"
+  ],
+  "difficulty": 3,
+  "duration_estimate": "2 turns",
+  "entry": {
+    "location_types": [
+      "dungeon_xt"
+    ],
+    "required_clues": [
+      "xt_trial_passed"
+    ],
+    "forbidden_clues": [],
+    "mood": "serene"
+  },
+  "exits": [
+    {
+      "id": "back",
+      "label": "受教完毕，前往丹房",
+      "provides_clues": [
+        "xt_mentor_done"
+      ],
+      "mood": "serene",
+      "next_location_type": "dungeon_xt"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "mentor_hall",
+      "title": "传功堂",
+      "part": 0,
+      "scene_type": "机缘",
+      "image_prompt": "quiet cultivation hall with a kind elderly cultivator seated on a meditation mat, walls lined with scrolls of sword techniques, incense smoke rising, a glowing formation circle on the floor, warm golden light, xianxia atmosphere, wise and gentle mood, balanced 16:9 widescreen composition, focal center, no empty areas, fully filled frame",
+      "description": "传功堂内檀香袅袅。一位鹤发童颜的长老盘坐在蒲团上，面前摆着一壶茶。他看到你们，微微一笑。\n\n「试炼通过了？不错。」他的声音温和，「老夫传功长老，执掌青云宗功法传承。你们既然通过了试炼，按规矩，可以传授一套基础功法。」\n\n他打量了你们片刻，笑容渐渐收敛：「……奇怪。你们的气息，和老夫记忆里的某个客人很像。三十年前，也有一位像你们一样的人来到青云宗。他天赋极高，老夫传了他《噬灵诀》。后来——」\n\n他沉默了一会儿：「后来他被丹房的玄冥长老看中，说要「研究」他身上的功法。再后来，就没有后来了。老夫想查，却被掌门压了下来。」",
+      "npcs_here": [
+        "传功长老"
+      ],
+      "opportunities": [
+        {
+          "id": "xm1",
+          "text": "接受传功——学习一套基础功法"
+        },
+        {
+          "id": "xm2",
+          "text": "追问三十年前那位轮回者的下落"
+        },
+        {
+          "id": "xm3",
+          "text": "询问丹房与玄冥长老的事——传功长老似乎知情"
+        }
+      ],
+      "secrets": [
+        {
+          "id": "xms1",
+          "text": "传功长老压低声音：「玄冥在丹房里炼的『丹』，从来没有人见过成品。老夫怀疑……他在炼人。你若信得过老夫，老夫可修书一封，你带去执法堂。」"
+        },
+        {
+          "id": "xms2",
+          "text": "传功长老递来的功法玉简背面，刻着一个小小的标记——那是执法堂的暗记。他在暗示你们：执法堂可信"
+        }
+      ],
+      "vote_prompt": "传功长老的善意摆在面前，你们选择？",
+      "leads_to": [],
+      "exit_labels": {
+        "dungeon_xiuxian_danfang": "受教完毕，前往丹房"
+      },
+      "guidance": "修仙分支·剧情层。获取功法增益与关键剧情线索（执法堂暗记），前往丹房。"
+    }
+  ],
+  "npcs": [
+    {
+      "name": "传功长老",
+      "description": "青云宗传功长老，温和正直，对三十年前轮回者的失踪耿耿于怀",
+      "attitude": "friendly"
+    }
+  ],
+  "variance": null
+}
