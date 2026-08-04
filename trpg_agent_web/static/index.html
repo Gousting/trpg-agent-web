@@ -1507,6 +1507,7 @@ function startGame() {
   document.getElementById('progress-bar').style.width = '0%';
   hideDice();
   currentTurn = 0;
+  voteSessionId = '';
   totalTurns = parseInt(document.getElementById('turns').value) || 10;
   syncStageMeta();
   setStageVoteState(selectedMode === 'live' ? '等待第一轮' : '非投票模式');
@@ -1554,6 +1555,7 @@ function startGame() {
 
   es.addEventListener('init', (e) => {
     const d = JSON.parse(e.data);
+    voteSessionId = d.session_id || '';
     // 加载头像
     (d.investigators || []).forEach(inv => {
       const img = document.getElementById('portrait-' + inv.name);
@@ -1799,6 +1801,7 @@ function resetBtn() {
     calloutTimer = null;
   }
   hideVoteBar();
+  voteSessionId = '';
   syncStageMeta();
   setStageVoteState('等待互动');
 }
@@ -2164,7 +2167,10 @@ function renderReincarnator(rein) {
 }
 
 function openTalentPanel() {
-  if (!voteSessionId) return;
+  if (!voteSessionId) {
+    alert('会话尚未就绪，请稍后再试');
+    return;
+  }
   document.getElementById('talent-modal').style.display = 'flex';
   fetch('/api/talents?session_id=' + encodeURIComponent(voteSessionId))
     .then(r => r.json())

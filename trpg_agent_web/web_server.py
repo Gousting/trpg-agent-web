@@ -20,6 +20,7 @@ from collections import deque
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
+from uuid import uuid4
 
 import edge_tts
 import httpx
@@ -533,7 +534,8 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                        force_pickup: bool = False,
                        vote_seconds: int = 32,
                        force_combat: bool = False,
-                       world: str = ""):
+                       world: str = "",
+                       sid: str = ""):
     """SSE 事件流 — 完整的游戏循环。"""
     
     # ── 模块组合模式 ──────────────────────────
@@ -592,7 +594,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     kp_client = _make_client(host, kp_model, kp_api_key, timeout=300)
 
     # ── Session ───────────────────────────────
-    sid = f"web_{datetime.now().strftime('%m%d_%H%M%S')}"
+    sid = sid or f"web_{datetime.now().strftime('%m%d_%H%M%S')}_{uuid4().hex[:8]}"
     old_dir = Path("data/sessions") / sid
     if old_dir.exists():
         shutil.rmtree(old_dir)
@@ -661,6 +663,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             ),
         }
     yield _sse("init", {
+        "session_id": sid,
         "investigators": [] if is_infinite_flow else INVESTIGATORS,
         "reincarnator": rein_data,
         "kp_model": kp_model, "player_model": player_model,
@@ -1452,10 +1455,26 @@ async def stream(
         seed_val = int(seed) if seed else None
     except ValueError:
         seed_val = None
+
+    # 使用秒级时间戳 + UUID 后缀，避免同秒并发启动时 sid 冲突。
+    sid = f"web_{datetime.now().strftime('%m%d_%H%M%S')}_{uuid4().hex[:8]}"
+
+    async def _stream_with_cleanup():
+        try:
+            async for chunk in event_stream(
+                host, kp, player, turns, seed_val, mode, compose_modules,
+                kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup,
+                vote_seconds=vote_seconds, force_combat=force_combat, world=world,
+                sid=sid,
+            ):
+                yield chunk
+        finally:
+            _sessions.pop(sid, None)
+            _vote_tallies.pop(sid, None)
+            _vote_queues.pop(sid, None)
+
     return StreamingResponse(
-        event_stream(host, kp, player, turns, seed_val, mode, compose_modules,
-                     kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup,
-                     vote_seconds=vote_seconds, force_combat=force_combat, world=world),
+        _stream_with_cleanup(),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
