@@ -1086,8 +1086,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                     yield _sse("player_token", {"text": action, "speaker": speaker})
             else:
                 async for token in _ai_player_stream(player_host, player_model, inv_data, inv_state,
-                                                      rc, last_narration, speaker,
-                                                      is_infinite_flow=is_infinite_flow):
+                                                     rc, last_narration, speaker,
+                                                     is_infinite_flow=is_infinite_flow,
+                                                     api_key=kp_api_key):
                     action += token
                     yield _sse("player_token", {"text": token, "speaker": speaker})
                 if not action.strip():
@@ -1158,7 +1159,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             if is_live:
                 teammate_prompt_data = _build_teammate_prompt_data(session, teammates)
                 teammate_task = asyncio.create_task(
-                    _ai_teammates_action(player_host, player_model, teammate_prompt_data, rc, last_narration, "")
+                    _ai_teammates_action(player_host, player_model, teammate_prompt_data, rc, last_narration, "", kp_api_key)
                 )
 
             # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
@@ -1172,7 +1173,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
             elif is_live:
                 # 直播模式无人投票 → AI 接手选择
-                choice = await _ai_pick_option(player_host, player_model, vote_options, last_narration, speaker)
+                choice = await _ai_pick_option(player_host, player_model, vote_options, last_narration, speaker, kp_api_key)
                 yield _sse("ai_pick", {"choice": choice, "label": vote_options.get(choice, "")})
             else:
                 choice = "a"
@@ -1481,7 +1482,8 @@ def _is_infinite_world(world: str) -> bool:
 
 async def _ai_teammates_action(player_host: str, player_model: str,
                                teammates: list[dict], rc: dict,
-                               last_narration: str, leader_action: str) -> dict[str, str]:
+                               last_narration: str, leader_action: str,
+                               api_key: str = "") -> dict[str, str]:
     """生成 AI 队友行动（合并为一次请求），返回 {名字: 行动}。
 
     设计（docs/infinite-flow-v2-design.md §5.2/5.3）：
@@ -1510,7 +1512,7 @@ async def _ai_teammates_action(player_host: str, player_model: str,
         "请生成两个队友各自的行动："
     )
     try:
-        client = OllamaClient(player_host, player_model, num_ctx=4096, timeout=120)
+        client = _make_client(player_host, player_model, api_key, num_ctx=4096, timeout=120)
         try:
             raw = await client.chat(
                 system, [{"role": "user", "content": msg}],
@@ -1554,7 +1556,7 @@ def _parse_teammates_action(raw: str, names: list[str]) -> dict[str, str]:
 async def _ai_player_stream(player_host: str, player_model: str,
                            inv_data: dict, inv_state, rc: dict,
                            last_narration: str, speaker: str,
-                           is_infinite_flow: bool = False):
+                           is_infinite_flow: bool = False, api_key: str = ""):
     """流式生成 AI 玩家行动，逐 token yield。
 
     inv_state 在无限流模式下是 Reincarnator（无 skills/san/inventory 属性），
@@ -1590,7 +1592,7 @@ async def _ai_player_stream(player_host: str, player_model: str,
             "其次是调查环境或应对威胁。不要替其他角色说话。"
         )
     player_msg = f"主持人叙述：{last_narration[:600]}\n\n{inv_data['name']}的行动："
-    player_client = OllamaClient(player_host, player_model, num_ctx=4096, timeout=120)
+    player_client = _make_client(player_host, player_model, api_key, num_ctx=4096, timeout=120)
     try:
         async for token in player_client.chat_stream(
             player_system, [{"role": "user", "content": player_msg}],
@@ -1605,7 +1607,8 @@ async def _ai_player_stream(player_host: str, player_model: str,
 
 async def _ai_pick_option(player_host: str, player_model: str,
                           vote_options: dict[str, str],
-                          last_narration: str, speaker: str) -> str:
+                          last_narration: str, speaker: str,
+                          api_key: str = "") -> str:
     """AI 从投票选项中选一个，返回单字母 'a'/'b'/'c'。"""
     options_text = "\n".join(f"{k}. {v}" for k, v in vote_options.items())
     system = (
@@ -1614,7 +1617,7 @@ async def _ai_pick_option(player_host: str, player_model: str,
     )
     msg = f"KP叙述：{last_narration[:500]}\n\n可选行动：\n{options_text}\n\n你的选择(a/b/c)："
     try:
-        client = OllamaClient(player_host, player_model, num_ctx=2048, timeout=30)
+        client = _make_client(player_host, player_model, api_key, num_ctx=2048, timeout=30)
         response = await client.chat(
             system, [{"role": "user", "content": msg}],
             options={"temperature": 0.5, "num_predict": 5},
