@@ -442,3 +442,42 @@ data/modules_harry_potter/     ← 哈利波特（4 模块，独立）
 - 出口图测试更新：storage::closet → storage::combat_encounter 等
 
 状态：✅ 完成
+
+## 2026-08-05 — 无限流模块机制差异化（阶段二：puzzle/social/choice/interaction + BOSS 阶段）
+
+### 变更内容
+
+阶段一（combat/rest/trap）后用户反馈"模块类型太少、玩起来单调"。阶段二新增三种交互型模块类型 + BOSS 阶段机制 + story 轻量互动，全部数据驱动，不动架构：
+
+- **puzzle 解谜**（juon_deed 地契 / rs_monitor 监控室 / xiuxian_library 藏经阁）：进入给 3 个选项，`correct` 标记正确答案——选对得 `clue` 线索、选错扣 `penalty` HP。比 trap 温和：有尝试空间，失败不致命
+- **social 社交**（juon_neighbor 邻居 / rs_autopsy 解剖室 / xiuxian_mentor 执法堂）：NPC 话术博弈，`responses` 数组每个带 `effect_type`（clue/none）+ `success_clue` + `fail_text`。对路话术拿关键情报（如邻居老妇人 `jy_neighbor_trust`），说错话 NPC 敌对无收益
+- **choice 抉择**（juon_bathroom 浴室 / rs_lab 实验室 / xiuxian_court 执法堂）：无正确选项的道德/风险选择，`options` 每个带 `hp_cost`/`san_cost`/`reward_text`——收益与代价并存，无免费午餐
+- **interaction 轻量互动**：任意类型模块的增强字段（juon_diary 日记 / rs_dorm 宿舍 / xiuxian_danfang 丹房），进场景给 2-3 个有实际后果的行动选项（`clue`/`hp_cost`/`result_text`）。rest 类型可共存：先进场回血再给互动选项
+- **BOSS 阶段机制**：`CombatEncounter.phase_thresholds`（如 `[{threshold: 0.6, name: "怨念爆发", attack_bonus: 2, behavior: "..."}]`，threshold 为 HP 比例阈值），`resolve_option` 伤害后 `check_phase_triggers` 检查触发（取敌人组平均 HP 比例，每阶段只触发一次），提升敌人 `attack_bonus`（狂暴化），返回 `phase_events` 推送前端。目前 3 个 BOSS（juon_boss 伽椰子 / rs_boss 暴君 / xiuxian_boss 心魔）各带 2 个阶段（60% + 30% 阈值）
+
+### 运行时注入
+
+- `_module_interaction_options(composer, adventure, scene_id, session)`：按 scene_id 定位模块（`split("::")[0]`），生成交互选项；`{module_id}_interacted` 标记防重复结算
+- `_module_interaction_resolve(opt, session, is_infinite_flow)`：结算选中选项——social/puzzle 成功加 `resolved_elements` 线索、失败扣 HP，choice/interaction 直接应用代价与收益
+- **AI 模式**：进交互场景自动走交互分支（`_ai_pick_option` 选一个 → 结算 → `continue`），交互回合不消耗移动/检定流程
+- **human/live 模式**：交互选项注入 `vote_options` 投票，选中立即结算、不移动场景
+
+### 涉及文件
+
+| 文件 | 改动 |
+|---|---|
+| `data/modules_infinite_flow/dungeon_{juon,rs,xiuxian}_*/module.json` | 15 个模块类型 + 机制数据（3 puzzle + 3 social + 3 choice + 3 BOSS 阶段 + 3 interaction） |
+| `trpg_agent/adventure/module_composer.py` | ModuleMeta.puzzle/social/choice/interaction 字段 |
+| `trpg_agent/combat/encounter.py` | CombatEncounter.phase_thresholds |
+| `trpg_agent/combat/resolver.py` | resolve_option 阶段检查 + CombatMechanicResult.phase_events |
+| `trpg_agent_web/web_server.py` | _module_interaction_options/_resolve + AI/投票两处注入 |
+| `tests/test_module_types.py` | 新增 27 用例 |
+| `scripts/upgrade_module_types.py` | 批量模块升级脚本（可重跑） |
+
+### 验证
+
+- 全量 300 passed（+27 新用例），零回归
+- 双 deepseek-v4-flash 实跑 13 轮 done 零错误：social 交互真实触发（邻居老妇人话术拿情报 jy_neighbor_trust）、战斗检定 5 次、拾取 1 次、11 次房间切换
+- puzzle/choice/interaction 该局未随机经过（组合 140 场景，路径概率问题），代码路径由单测覆盖
+
+状态：✅ 完成

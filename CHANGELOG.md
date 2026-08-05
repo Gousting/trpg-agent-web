@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## v2.3 — 无限流模块类型扩展：puzzle/social/choice/interaction + BOSS 阶段 (2026-08-05)
+
+### 新模块类型（数据驱动，`_module_interaction_options`/`_resolve` 运行时结算）
+
+- **puzzle 解谜**（juon_deed 地契 / rs_monitor 监控室 / xiuxian_library 藏经阁）：进入给 3 个选项，选对得线索、选错扣 HP，`{options:[{text, correct, clue, penalty}]}`
+- **social 社交**（juon_neighbor 邻居 / rs_autopsy 解剖室 / xiuxian_mentor 执法堂）：NPC 话术博弈，`{responses:[{text, effect_type, success_clue, fail_text}]}`，对路话术拿关键情报、说错 NPC 敌对
+- **choice 抉择**（juon_bathroom 浴室 / rs_lab 实验室 / xiuxian_court 执法堂）：道德/风险二选一，`{options:[{text, clue, hp_cost, san_cost, reward_text}]}`，无正确选项、收益代价并存
+- **interaction 轻量互动**：任意类型模块的增强（juon_diary 日记 / rs_dorm 宿舍 / xiuxian_danfang 丹房），进场景给 2-3 个有实际后果的行动选项
+- **BOSS 阶段机制**：`CombatEncounter.phase_thresholds`（HP 阈值触发狂暴：`{threshold: 0.6, name, attack_bonus, behavior}`，threshold 为 HP 比例），`resolve_option` 伤害后 `check_phase_triggers` 检查、提升 `attack_bonus`、返回 `phase_events`
+
+### 交互注入
+
+- AI 模式：进交互场景自动生成选项 → `_ai_pick_option` 选择 → `_module_interaction_resolve` 结算（`continue` 不消耗移动/检定流程，标记 `{module_id}_interacted` 防重复）
+- human/live 模式：交互选项注入投票（`vote_options`），选中立即结算、不移动场景
+
+### 验证
+
+- 15 个模块改造（3 puzzle + 3 social + 3 choice + 3 BOSS 阶段 + 3 interaction），story 占比 19→10
+- 新增 `tests/test_module_types.py` 27 用例，全量 300 passed 零回归
+- 双 deepseek-v4-flash 实跑：13 轮 done 零错误，social 交互真实触发（邻居老妇人话术拿情报 jy_neighbor_trust）
+
 ## v1.14 — 无限流全量测试修复：轮回者崩溃 + 远程玩家支持 (2026-08-05)
 
 ### Bug 修复（无限流模式实测发现）
