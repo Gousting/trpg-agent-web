@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COC TRPG 跑团 · 快捷入口</title>
+<style>
+  :root {
+    --bg: #1a1a20; --panel: #26262e; --border: #3a3a46; --gold: #c9a86a;
+    --text: #e8e4d8; --muted: #9a958a; --accent: #8b6f47;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(ellipse at 50% -20%, #2e2a38 0%, var(--bg) 60%);
+    color: var(--text); font-family: "Noto Serif SC", "Microsoft YaHei", serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+  }
+  .card {
+    width: 480px; max-width: 92vw; background: var(--panel);
+    border:1px solid var(--border); border-radius:12px; padding:36px 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5); position:relative;
+  }
+  .card::before {
+    content:""; position:absolute; inset:0; border-radius:12px; pointer-events:none;
+    background: linear-gradient(160deg, rgba(201,168,106,.08), transparent 40%);
+  }
+  h1 { font-size:22px; letter-spacing:2px; color:var(--gold); text-align:center; margin-bottom:4px; }
+  .sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:28px; }
+  .field { margin-bottom:18px; }
+  .field label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; letter-spacing:1px; }
+  .field input, .field select {
+    width:100%; padding:10px 12px; background:#1e1e25; color:var(--text);
+    border:1px solid var(--border); border-radius:6px; font-size:14px; outline:none;
+  }
+  .field input:focus, .field select:focus { border-color:var(--gold); }
+  .fixed-row {
+    display:flex; align-items:center; gap:10px; background:#1e1e25;
+    border:1px dashed var(--border); border-radius:6px; padding:10px 12px; font-size:12px;
+    color:var(--muted);
+  }
+  .fixed-row code { color:var(--gold); font-size:12px; }
+  .checks { display:flex; gap:20px; margin-top:4px; }
+  .checks label { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); cursor:pointer; }
+  .checks input { accent-color:var(--gold); width:15px; height:15px; }
+  #btn-start {
+    width:100%; margin-top:8px; padding:14px; background:linear-gradient(135deg, var(--accent), #a8854f);
+    color:#14141a; font-size:17px; font-weight:700; letter-spacing:4px; border:none; border-radius:8px;
+    cursor:pointer; transition:filter .2s, transform .1s;
+  }
+  #btn-start:hover { filter:brightness(1.15); }
+  #btn-start:active { transform:scale(.98); }
+  #btn-start:disabled { opacity:.5; cursor:not-allowed; }
+  #status { margin-top:16px; text-align:center; font-size:13px; color:var(--muted); min-height:18px; }
+  .err { color:#e07a6a !important; }
+  .hint { margin-top:14px; font-size:11px; color:var(--muted); text-align:center; line-height:1.7; }
+  .hint a { color:var(--gold); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>✦ 开始游戏 ✦</h1>
+  <div class="sub">快捷入口 · KP 与 NPC 均由 deepseek-v4-flash 扮演</div>
+
+  <div class="field">
+    <label>API Key（必填，仅本次使用，不落盘）</label>
+    <input id="api-key" type="password" placeholder="sk-..." autocomplete="off">
+  </div>
+
+  <div class="fixed-row">
+    <span>KP / NPC 模型</span>
+    <code>deepseek-v4-flash @ opencode.ai/zen/go/v1</code>
+  </div>
+
+  <div class="field" style="margin-top:18px">
+    <label>世界观</label>
+    <select id="world">
+      <option value="infinite_flow">无限流（咒怨 / 生化 / 修仙）</option>
+      <option value="coc">克苏鲁 COC</option>
+      <option value="harry_potter">哈利波特</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>模式</label>
+    <select id="mode">
+      <option value="ai">AI 自动</option>
+      <option value="live">Live 直播投票</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>回合数</label>
+    <input id="turns" type="number" value="12" min="1" max="200">
+  </div>
+
+  <div class="checks">
+    <label><input id="compose-modules" type="checkbox" checked> 组合模块剧情</label>
+    <label><input id="load-profile" type="checkbox"> 继承轮回者</label>
+  </div>
+
+  <button id="btn-start" onclick="startEntry()">开始游戏</button>
+  <div id="status"></div>
+  <div class="hint">配置由入口页固定，仅需填入 API Key。<br>开始后在新标签页打开游戏界面。</div>
+</div>
+
+<script>
+const FIXED_HOST = 'https://opencode.ai/zen/go/v1';
+const FIXED_MODEL = 'deepseek-v4-flash';
+
+function startEntry() {
+  const key = document.getElementById('api-key').value.trim();
+  const status = document.getElementById('status');
+  const btn = document.getElementById('btn-start');
+  if (!key) { status.textContent = '请先填入 API Key'; status.classList.add('err'); return; }
+  status.classList.remove('err');
+  btn.disabled = true;
+  status.textContent = '正在启动...';
+
+  const cfg = {
+    host: FIXED_HOST,
+    kp: FIXED_MODEL,
+    player: FIXED_MODEL,
+    player_host: FIXED_HOST,
+    kp_api_key: key,
+    world: document.getElementById('world').value,
+    mode: document.getElementById('mode').value,
+    turns: parseInt(document.getElementById('turns').value) || 12,
+    compose_modules: document.getElementById('compose-modules').checked,
+    load_profile: document.getElementById('load-profile').checked,
+  };
+  sessionStorage.setItem('entry_cfg', JSON.stringify(cfg));
+  window.open('/index.html?entry=1', '_blank');
+  setTimeout(() => { status.textContent = '已打开游戏界面，可关闭本页'; btn.disabled = false; }, 800);
+}
+</script>
+</body>
+</html>

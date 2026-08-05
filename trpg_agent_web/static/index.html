@@ -1263,7 +1263,7 @@
 
 <!-- 顶部控制 -->
 <div id="controls">
-  <button id="btn-start" onclick="startGame()">▶ 开始跑团</button>
+  <button id="btn-start" onclick="startGame()">▶ 开始游戏</button>
   <label>Host</label><input id="ollama-host" value="https://openrouter.ai/api/v1" style="width:200px">
   <label>KP Key</label><input id="kp-api-key" type="password" placeholder="远程API必填" style="width:160px">
   <label>KP</label><input id="kp-model" list="kp-models" value="nvidia/nemotron-3-ultra-550b-a55b:free" style="width:220px">
@@ -1643,6 +1643,25 @@ window.addEventListener('resize', syncMobileLiveVariant);
 window.addEventListener('orientationchange', syncMobileLiveVariant);
 
 function startGame() {
+  // 快捷入口注入：?entry=1 时从 sessionStorage 读取入口页配置并填充控件
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('entry') === '1') {
+    try {
+      const ecfg = JSON.parse(sessionStorage.getItem('entry_cfg') || 'null');
+      if (ecfg) {
+        if (ecfg.host) document.getElementById('ollama-host').value = ecfg.host;
+        if (ecfg.kp_api_key) document.getElementById('kp-api-key').value = ecfg.kp_api_key;
+        if (ecfg.kp) document.getElementById('kp-model').value = ecfg.kp;
+        if (ecfg.player) document.getElementById('player-model').value = ecfg.player;
+        if (ecfg.player_host) document.getElementById('player-host').value = ecfg.player_host;
+        if (ecfg.world) document.getElementById('world').value = ecfg.world;
+        if (ecfg.mode) document.getElementById('mode').value = ecfg.mode;
+        if (ecfg.turns) document.getElementById('turns').value = ecfg.turns;
+        if (ecfg.compose_modules) document.getElementById('compose-modules').checked = true;
+        if (ecfg.load_profile) document.getElementById('load-profile').checked = true;
+      }
+    } catch (e) { /* 配置缺失则走手动填写 */ }
+  }
   document.body.classList.add('live');
   currentMode = document.getElementById('mode').value;
   applyWorldPreset(document.getElementById('world').value);
@@ -1676,8 +1695,7 @@ function startGame() {
   });
   if (document.getElementById('compose-modules').checked) params.append('compose_modules', 'true');
   if (document.getElementById('load-profile').checked) params.append('load_profile', 'true');
-  // 从 URL 获取 force_pickup
-  const urlParams = new URLSearchParams(window.location.search);
+  // 从 URL 获取 force_pickup（urlParams 已在函数开头声明）
   if (urlParams.get('force_pickup') === 'true') params.append('force_pickup', 'true');
 
   es = new EventSource('/api/stream?' + params);
