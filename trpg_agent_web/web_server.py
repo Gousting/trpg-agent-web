@@ -497,6 +497,14 @@ def _dice_consequence(dice_context: str, inv_state) -> dict | None:
     if "失败" not in dice_context:
         return None
     import random
+    # 无限流轮回者无 SAN——失败后果直接走 HP 伤害（50% 概率）
+    if not hasattr(inv_state, "san"):
+        if random.random() < 0.5:
+            dmg = random.randint(1, 2)
+            inv_state.take_damage(dmg)
+            log.info("DICE_CONS: %s HP -%d (无限流无SAN)", inv_state.name, dmg)
+            return {"type": "damage", "amount": dmg, "text": f"HP -{dmg}"}
+        return None
     # 50% SAN损失，30% HP损失，20% 无损失
     r = random.random()
     if r < 0.5:

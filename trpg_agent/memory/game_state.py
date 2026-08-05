@@ -133,6 +133,7 @@ class Reincarnator:
     ap: int = 0                                  # 强化点（副本通关结算获得）
     talents: list[str] = field(default_factory=list)   # 已购强化 ID
     conditions: list[str] = field(default_factory=list)
+    inventory: list[str] = field(default_factory=list)  # 物品栏（房间拾取）
     bonus_melee: int = 0                          # 天赋额外近战伤害
     bonus_dodge: int = 0                          # 天赋额外闪避率
     bonus_resist: int = 0                         # 天赋额外精神抗性
@@ -172,6 +173,8 @@ class Reincarnator:
             d["talents"] = list(self.talents)
         if self.conditions:
             d["conditions"] = list(self.conditions)
+        if self.inventory:
+            d["inventory"] = list(self.inventory)
         if self.bonus_melee or self.bonus_dodge or self.bonus_resist:
             d["bonus_melee"] = self.bonus_melee
             d["bonus_dodge"] = self.bonus_dodge
@@ -190,6 +193,7 @@ class Reincarnator:
             ap=int(d.get("ap", 0) or 0),
             talents=list(d.get("talents", []) or []),
             conditions=list(d.get("conditions", []) or []),
+            inventory=list(d.get("inventory", []) or []),
             bonus_melee=int(d.get("bonus_melee", 0) or 0),
             bonus_dodge=int(d.get("bonus_dodge", 0) or 0),
             bonus_resist=int(d.get("bonus_resist", 0) or 0),
