@@ -111,5 +111,32 @@
       "attitude": "neutral"
     }
   ],
-  "variance": null
+  "variance": null,
+  "module_type": "choice",
+  "choice": {
+    "description": "实验室中央的培养槽里，一个实验体正在逐渐苏醒。旁边的紧急按钮标注着「销毁样本」。你们发现实验体身上有一份完整的研究日志——记录着病毒的全部真相。",
+    "options": [
+      {
+        "text": "按下销毁按钮——彻底消灭实验体",
+        "clue": "rs_lab_destroy",
+        "hp_cost": 0,
+        "san_cost": 2,
+        "reward_text": "培养槽瞬间被高温灼烧，实验体在惨叫中消失。日志被火焰吞没了一半——但你们记住了关键部分。"
+      },
+      {
+        "text": "救出实验体——它也许还保留着人性",
+        "clue": "rs_lab_save",
+        "hp_cost": 3,
+        "san_cost": 1,
+        "reward_text": "你们砸开培养槽，实验体踉跄着站起来，用浑浊的眼睛看了你们一眼，然后逃进了黑暗。它会不会回来？"
+      },
+      {
+        "text": "研究日志带走，不管实验体",
+        "clue": "rs_lab_log",
+        "hp_cost": 0,
+        "san_cost": 0,
+        "reward_text": "你们带着完整的研究日志撤离——这是解开真相的钥匙。"
+      }
+    ]
+  }
 }

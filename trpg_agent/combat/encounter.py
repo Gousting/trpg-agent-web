@@ -109,6 +109,9 @@ class CombatEncounter:
     escalation: list[str] = field(default_factory=list)  # 逐轮升级叙事（[第2轮, 第3轮, ...]）
     outcomes: dict[str, CombatOutcome] = field(default_factory=dict)
     scaling: dict[str, Any] = field(default_factory=dict)
+    # BOSS 阶段机制——[{threshold, name, attack_bonus, behavior}]，
+    # 敌人 HP 比例首次低于 threshold（如 0.5）时触发：攻击加值提升 + 阶段叙事
+    phase_thresholds: list[dict[str, Any]] = field(default_factory=list)
     image: str = ""
     image_prompt: str = ""
 
@@ -116,6 +119,8 @@ class CombatEncounter:
     round_number: int = 0
     active: bool = False
     resolved_outcome: str = ""
+    # 已触发的阶段（避免重复触发）
+    _triggered_phases: set[str] = field(default_factory=set, repr=False)
 
     @classmethod
     def from_dict(cls, d: dict) -> "CombatEncounter":
@@ -138,6 +143,7 @@ class CombatEncounter:
             escalation=[str(e) for e in d.get("escalation", []) or []],
             outcomes=outcomes,
             scaling=dict(d.get("scaling", {}) or {}),
+            phase_thresholds=list(d.get("phase_thresholds") or []),
             image=str(d.get("image", "")),
             image_prompt=str(d.get("image_prompt", "")),
         )
@@ -147,6 +153,34 @@ class CombatEncounter:
 
     def living_enemies(self) -> list[Enemy]:
         return [e for e in self.enemies if e.is_alive()]
+
+    def check_phase_triggers(self) -> list[dict[str, Any]]:
+        """检查是否跨过 BOSS 阶段阈值，返回新触发的阶段事件列表。
+
+        每个阶段只触发一次（_triggered_phases 去重）。阈值按 HP 比例（0.0-1.0）判定，
+        取敌人组平均 HP 比例。触发阶段提升敌人 attack_bonus（狂暴化）。
+        """
+        if not self.phase_thresholds or not self.enemies:
+            return []
+        total_ratio = sum(max(0.0, e.hp / e.hp_max) for e in self.enemies if e.hp_max > 0)
+        avg_ratio = total_ratio / len(self.enemies)
+        triggered: list[dict[str, Any]] = []
+        for phase in self.phase_thresholds:
+            name = str(phase.get("name", "") or "")
+            if not name or name in self._triggered_phases:
+                continue
+            threshold = float(phase.get("threshold", 0.5) or 0.5)
+            if avg_ratio <= threshold:
+                self._triggered_phases.add(name)
+                bonus = int(phase.get("attack_bonus", 0) or 0)
+                for enemy in self.enemies:
+                    enemy.attack_bonus += bonus
+                triggered.append(phase)
+        return triggered
+
+    def reset_phases(self) -> None:
+        """重置阶段触发状态（遭遇复用前调用）。"""
+        self._triggered_phases.clear()
 
     @staticmethod
     def combat_scene_id(module_id: str) -> str:

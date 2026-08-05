@@ -82,5 +82,32 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "social",
+  "social": {
+    "npc": "幸存研究员",
+    "npc_desc": "解剖室里唯一幸存的 T 病毒研究员，精神濒临崩溃，手里攥着一支针剂。",
+    "responses": [
+      {
+        "text": "「你还好吗？我们不是来伤害你的。」",
+        "effect_type": "clue",
+        "success_clue": "rs_autopsy_trust",
+        "effect_value": 0,
+        "fail_text": "研究员缩在角落，没有回应。"
+      },
+      {
+        "text": "「把针剂交出来！」",
+        "effect_type": "none",
+        "effect_value": 0,
+        "fail_text": "研究员猛地站起来，针剂对准了自己。"
+      },
+      {
+        "text": "「疫苗——你的研究资料在哪里？」",
+        "effect_type": "clue",
+        "success_clue": "rs_autopsy_data",
+        "effect_value": 0,
+        "fail_text": "研究员眼神闪烁：「疫苗……早就没了……」"
+      }
+    ]
+  }
 }

@@ -1,0 +1,15 @@
+{
+  "name": "轮回者",
+  "max_hp": 12,
+  "hp": 0,
+  "strength": 10,
+  "agility": 10,
+  "spirit": 10,
+  "ap": 16,
+  "conditions": [
+    "重伤"
+  ],
+  "inventory": [
+    "手电筒电池"
+  ]
+}

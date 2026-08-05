@@ -111,5 +111,19 @@
       "reward": "副本撤退：无奖励，无惩罚",
       "reward_ap": 0
     }
-  }
+  },
+  "phase_thresholds": [
+    {
+      "threshold": 0.6,
+      "name": "怨念爆发",
+      "attack_bonus": 2,
+      "behavior": "伽椰子的头发无风自动，整栋宅子的怨念在向她汇聚，她的攻击变得疯狂而凌厉。"
+    },
+    {
+      "threshold": 0.3,
+      "name": "临死反扑",
+      "attack_bonus": 3,
+      "behavior": "伽椰子发出凄厉的尖叫，楼梯间的阴影中爬出无数半透明的人影——它们全都扑向你们。"
+    }
+  ]
 }

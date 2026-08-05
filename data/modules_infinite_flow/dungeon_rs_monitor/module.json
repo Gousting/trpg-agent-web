@@ -82,5 +82,30 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "puzzle",
+  "puzzle": {
+    "description": "监控室的控制台需要输入四位数密码。墙上贴着的便签写着「B.O.W. 泄漏日 + 疫苗批号后四位」，桌上一本翻开的日志记录了 3 月 14 日的泄漏事故和疫苗批号 0027。",
+    "options": [
+      {
+        "text": "输入 03140027",
+        "correct": true,
+        "clue": "rs_monitor_puzzle",
+        "penalty": 0,
+        "result_text": "屏幕亮起，监控录像自动回放——你们看到了实验体逃脱的完整过程。"
+      },
+      {
+        "text": "输入 14030027",
+        "correct": false,
+        "penalty": 2,
+        "result_text": "警报响起，走廊传来脚步声——你们被迫躲进柜子。"
+      },
+      {
+        "text": "输入 00271403",
+        "correct": false,
+        "penalty": 1,
+        "result_text": "密码错误，控制台发出刺耳的提示音。"
+      }
+    ]
+  }
 }

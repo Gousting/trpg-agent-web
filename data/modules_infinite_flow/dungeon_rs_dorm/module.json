@@ -87,5 +87,30 @@
   "rest": {
     "hp_recover": 3,
     "san_recover": 3
+  },
+  "interaction": {
+    "options": [
+      {
+        "text": "搜索床铺和储物柜",
+        "clue": "rs_dorm_search",
+        "hp_cost": 0,
+        "san_cost": 0,
+        "result_text": "在储物柜深处找到了一本私人日记和几张照片——是员工的日常生活。"
+      },
+      {
+        "text": "打开那扇传来音乐的门",
+        "clue": "rs_dorm_music",
+        "hp_cost": 1,
+        "san_cost": 1,
+        "result_text": "门后是一台还在播放的留声机，旁边的床上躺着一具白骨化的尸体——他死前还戴着耳机。"
+      },
+      {
+        "text": "检查墙上的员工值日表",
+        "clue": "rs_dorm_roster",
+        "hp_cost": 0,
+        "san_cost": 0,
+        "result_text": "值日表上，大部分名字都被红笔划掉了——只有「理查德」的名字前画着一个问号。"
+      }
+    ]
   }
 }

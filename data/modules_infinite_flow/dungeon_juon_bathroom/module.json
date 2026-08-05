@@ -78,5 +78,32 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "choice",
+  "choice": {
+    "description": "浴室的门半开着，里面传来断断续续的呜咽声。浴帘后似乎有一个人影——是活人，还是……",
+    "options": [
+      {
+        "text": "掀开浴帘救人——不管是什么都要看一眼",
+        "clue": "jy_bathroom_rescue",
+        "hp_cost": 1,
+        "san_cost": 2,
+        "reward_text": "浴帘后是伽椰子的幻影——你们看清了她临死前的样子，但也付出了代价。"
+      },
+      {
+        "text": "关上门离开——这不是你们该管的",
+        "clue": "jy_bathroom_ignore",
+        "hp_cost": 0,
+        "san_cost": 1,
+        "reward_text": "门在身后缓缓合上，呜咽声消失了——但你们知道，有些东西看不见不代表不在。"
+      },
+      {
+        "text": "用相机拍下浴帘后的景象",
+        "clue": "jy_bathroom_photo",
+        "hp_cost": 0,
+        "san_cost": 3,
+        "reward_text": "照片里没有浴帘——只有一个模糊的白衣身影，站在你们身后。"
+      }
+    ]
+  }
 }

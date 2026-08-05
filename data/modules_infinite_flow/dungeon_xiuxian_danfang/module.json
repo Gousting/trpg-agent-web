@@ -111,5 +111,30 @@
       "attitude": "hostile"
     }
   ],
-  "variance": null
+  "variance": null,
+  "interaction": {
+    "options": [
+      {
+        "text": "检查丹炉底部——看看有没有暗格",
+        "clue": "xt_danfang_secret",
+        "hp_cost": 0,
+        "san_cost": 0,
+        "result_text": "丹炉底部刻着一行小字：「丹药三分毒，人心七分险。」"
+      },
+      {
+        "text": "拿走一瓶现成的丹药",
+        "clue": "xt_danfang_pill",
+        "hp_cost": 1,
+        "san_cost": 0,
+        "result_text": "丹药入手温热，散发着异香——但你们不知道它的效果，贸然服用恐怕不妥。"
+      },
+      {
+        "text": "翻看墙上的炼丹记录",
+        "clue": "xt_danfang_records",
+        "hp_cost": 0,
+        "san_cost": 1,
+        "result_text": "记录显示，长老每月都在偷偷炼制一种没有名字的丹药——服用者都是外门弟子。"
+      }
+    ]
+  }
 }

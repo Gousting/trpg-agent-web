@@ -960,6 +960,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 "san_loss": mech_result.san_loss,
             })
             await asyncio.sleep(0.2)
+            # BOSS 阶段事件推送（狂暴/召唤等，独立 status 让前端醒目展示）
+            for ph in (getattr(mech_result, "phase_events", None) or []):
+                yield _sse("status", {"text": f"⚠️ {ph.get('name', '阶段变化')}——{ph.get('behavior', '')}"})
+                await asyncio.sleep(0.4)
 
             res_sys, res_usr = combat_orch.prepare_resolve()
             yield _sse("kp_stream_start", {})
@@ -1073,6 +1077,24 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         trans_meta = None   # 过渡元数据链（供 KP 过渡指令构建）
         if mode == "ai":
             # ── AI 模式：本地 LLM 扮演调查员 ────
+            # 模块交互优先：puzzle/social/choice/interaction 场景，AI 自动选一个并结算
+            ai_interactions = _module_interaction_options(
+                composer, adventure, session.state.scene_id, session)
+            if ai_interactions:
+                ai_choice = await _ai_pick_option(
+                    player_host, player_model, {l: v["text"] for l, v in ai_interactions.items()},
+                    last_narration, speaker, kp_api_key)
+                if ai_choice not in ai_interactions:
+                    ai_choice = next(iter(ai_interactions))
+                sel = ai_interactions[ai_choice]
+                yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
+                yield _sse("player_token", {"text": f"（{speaker} 选择：{sel['text']}）", "speaker": speaker})
+                yield _sse("player_stream_end", {"speaker": speaker})
+                await asyncio.sleep(0.2)
+                for _ef in _module_interaction_resolve(sel, session, is_infinite_flow):
+                    yield _sse("status", {"text": _ef})
+                    await asyncio.sleep(0.3)
+                continue  # 交互回合不消耗移动/检定流程
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             action = ""
             # force_pickup: 首轮强制拾取房间物品
@@ -1102,24 +1124,32 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             vote_timeout = vote_seconds if is_live else VOTE_WINDOW_SECONDS
             vote_targets: dict[str, str] = {}
             opp_actions: dict[str, str] = {}  # 机会选项（无 target，选中走检定）
+            module_interactions: dict[str, dict] | None = None  # 模块交互选项（puzzle/social/choice/interaction）
             if adventure is not None:
-                # 模块模式：投票选项 = 当前场景的真实出口，投票结果将驱动场景切换
-                exits = adventure.scene_exits(
-                    session.state.scene_id, resolved_ids=session.state.resolved_elements,
-                )
-                letters = ["a", "b", "c"]
-                vote_options = {}
-                for letter, exit_view in zip(letters, exits):
-                    vote_options[letter] = exit_view.label
-                    vote_targets[letter] = exit_view.target_id
-                # 出口不足 3 个时，用场景 opportunities（作者写的剧情贴合互动）补齐，
-                # 而非泛用填充词；选中机会选项会作为玩家行动进入检定流程
-                if len(vote_options) < 3:
-                    scene_obj = adventure.get_scene(session.state.scene_id)
-                    opps = [o.text for o in (scene_obj.opportunities if scene_obj else []) or [] if o.text]
-                    for letter, opp in zip(letters[len(vote_options):], opps):
-                        vote_options[letter] = opp
-                        opp_actions[letter] = opp
+                # 模块交互优先：puzzle/social/choice/interaction 场景先用作者定义的交互选项
+                module_interactions = _module_interaction_options(
+                    composer, adventure, session.state.scene_id, session)
+                if module_interactions:
+                    vote_options = {l: v["text"] for l, v in module_interactions.items()}
+                    opp_actions = {l: l for l in module_interactions}  # 占位：选中后单独结算
+                else:
+                    # 模块模式：投票选项 = 当前场景的真实出口，投票结果将驱动场景切换
+                    exits = adventure.scene_exits(
+                        session.state.scene_id, resolved_ids=session.state.resolved_elements,
+                    )
+                    letters = ["a", "b", "c"]
+                    vote_options = {}
+                    for letter, exit_view in zip(letters, exits):
+                        vote_options[letter] = exit_view.label
+                        vote_targets[letter] = exit_view.target_id
+                    # 出口不足 3 个时，用场景 opportunities（作者写的剧情贴合互动）补齐，
+                    # 而非泛用填充词；选中机会选项会作为玩家行动进入检定流程
+                    if len(vote_options) < 3:
+                        scene_obj = adventure.get_scene(session.state.scene_id)
+                        opps = [o.text for o in (scene_obj.opportunities if scene_obj else []) or [] if o.text]
+                        for letter, opp in zip(letters[len(vote_options):], opps):
+                            vote_options[letter] = opp
+                            opp_actions[letter] = opp
             else:
                 vote_options = {
                     "a": "深入调查当前的线索",
@@ -1184,6 +1214,12 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
             # 投票结果驱动模块场景切换——只有选中真实出口时才会真正移动
             target_scene_id = vote_targets.get(choice)
+            # 模块交互结算：选中 puzzle/social/choice/interaction 选项时立即结算，不移动场景
+            if module_interactions and choice in module_interactions:
+                for _ef in _module_interaction_resolve(module_interactions[choice], session, is_infinite_flow):
+                    yield _sse("status", {"text": _ef})
+                    await asyncio.sleep(0.3)
+
             if adventure is not None and target_scene_id:
                 moved_scene = session.move_to_scene(target_scene_id, adventure)
                 if moved_scene is not None:
@@ -1194,7 +1230,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                         yield _sse("status", {"text": _ef})
                         await asyncio.sleep(0.3)
 
-            if choice in opp_actions:
+            if module_interactions and choice in module_interactions:
+                # 模块交互选项：用选项文字作为玩家行动（不进场景移动）
+                action = module_interactions[choice].get("text", "")
+            elif choice in opp_actions:
                 # 机会选项：直接作为玩家行动，进入检定/拾取流程（有实际后果）
                 action = opp_actions[choice]
             else:
@@ -1682,6 +1721,202 @@ def _module_scene_effects(composer, adventure, scene_id, session, is_infinite_fl
                     inv = session.state.investigators[0]
                     inv.hp = max(1, inv.hp - total)
                 texts.append(f"💥 「{meta.title}」检定失败（d20={roll}>{diff}），损失 {total} 点生命")
+    return texts
+
+
+def _module_interaction_options(composer, adventure, scene_id, session) -> dict[str, dict] | None:
+    """生成当前场景所属模块的交互选项（puzzle/social/choice/interaction）。
+
+    返回 {letter: {kind, text, ...payload}}——若模块无交互或已结算返回 None。
+    已结算标记：resolved_elements 含 f"{module_id}_interacted"。
+    """
+    if composer is None or session is None or session.state is None:
+        return None
+    module_id = (scene_id or "").split("::")[0]
+    mod = composer._modules.get(module_id)
+    if mod is None:
+        return None
+    meta = mod.meta
+    mark = f"{module_id}_interacted"
+    if mark in session.state.resolved_elements:
+        return None
+    letters = ["a", "b", "c"]
+    if meta.module_type == "puzzle" and meta.puzzle:
+        opts = meta.puzzle.get("options") or []
+        out = {}
+        for i, o in enumerate(opts[:3]):
+            if not isinstance(o, dict) or not o.get("text"):
+                continue
+            out[letters[i]] = {
+                "kind": "puzzle",
+                "text": str(o["text"]),
+                "correct": bool(o.get("correct", False)),
+                "clue": str(o.get("clue", "") or ""),
+                "penalty": int(o.get("penalty", 0) or 0),
+                "module_id": module_id,
+            }
+        return out or None
+    if meta.module_type == "social" and meta.social:
+        opts = meta.social.get("responses") or []
+        out = {}
+        for i, o in enumerate(opts[:3]):
+            if not isinstance(o, dict) or not o.get("text"):
+                continue
+            out[letters[i]] = {
+                "kind": "social",
+                "text": str(o["text"]),
+                "effect_type": str(o.get("effect_type", "") or ""),
+                "effect_value": int(o.get("effect_value", 0) or 0),
+                "clue": str(o.get("success_clue", "") or ""),
+                "fail_text": str(o.get("fail_text", "") or ""),
+                "module_id": module_id,
+            }
+        return out or None
+    if meta.module_type == "choice" and meta.choice:
+        opts = meta.choice.get("options") or []
+        out = {}
+        for i, o in enumerate(opts[:3]):
+            if not isinstance(o, dict) or not o.get("text"):
+                continue
+            out[letters[i]] = {
+                "kind": "choice",
+                "text": str(o["text"]),
+                "clue": str(o.get("clue", "") or ""),
+                "hp_cost": int(o.get("hp_cost", 0) or 0),
+                "san_cost": int(o.get("san_cost", 0) or 0),
+                "reward_text": str(o.get("reward_text", "") or ""),
+                "module_id": module_id,
+            }
+        return out or None
+    if meta.interaction:
+        # interaction 是任意类型模块的轻量互动增强（story/rest 等）——
+        # 进场景先结算自动效果（如 rest 回血），再给互动选项
+        opts = meta.interaction.get("options") or []
+        out = {}
+        for i, o in enumerate(opts[:3]):
+            if not isinstance(o, dict) or not o.get("text"):
+                continue
+            out[letters[i]] = {
+                "kind": "interaction",
+                "text": str(o["text"]),
+                "clue": str(o.get("clue", "") or ""),
+                "hp_cost": int(o.get("hp_cost", 0) or 0),
+                "san_cost": int(o.get("san_cost", 0) or 0),
+                "result_text": str(o.get("result_text", "") or ""),
+                "module_id": module_id,
+            }
+        return out or None
+    return None
+
+
+def _module_interaction_resolve(opt: dict, session, is_infinite_flow: bool) -> list[str]:
+    """结算一次模块交互选项（puzzle/social/choice/interaction）。返回播报文本。"""
+    if session is None or session.state is None:
+        return []
+    texts: list[str] = []
+    kind = opt.get("kind", "")
+    module_id = opt.get("module_id", "")
+    rein = session.state.reincarnator
+    mark = f"{module_id}_interacted"
+
+    if kind == "puzzle":
+        if opt.get("correct"):
+            clue = opt.get("clue", "")
+            if clue:
+                session.state.resolved_elements.add(clue)
+            texts.append(f"🧩 谜题破解！你们解开了谜底" + (f"，获得线索：{clue}" if clue else ""))
+        else:
+            penalty = opt.get("penalty", 0) or 0
+            if penalty:
+                if is_infinite_flow and rein is not None:
+                    rein.hp = max(1, rein.hp - penalty)
+                    texts.append(f"💥 解谜失败，{rein.name} 损失 {penalty} 点生命（{rein.hp}/{rein.max_hp}）")
+                else:
+                    if session.state.investigators:
+                        inv = session.state.investigators[0]
+                        inv.hp = max(1, inv.hp - penalty)
+                    texts.append(f"💥 解谜失败，损失 {penalty} 点生命")
+            else:
+                texts.append(f"🧩 谜底不对——看来需要再想想。")
+        session.state.resolved_elements.add(mark)
+        return texts
+
+    if kind == "social":
+        eff = opt.get("effect_type", "")
+        val = opt.get("effect_value", 0) or 0
+        clue = opt.get("clue", "")
+        if eff == "clue" and clue:
+            session.state.resolved_elements.add(clue)
+            texts.append(f"🗣️ 对方被打动，说出了关键情报：{clue}")
+        elif eff == "hp" and val:
+            if is_infinite_flow and rein is not None:
+                rein.heal(val)
+                texts.append(f"🗣️ 对方提供了帮助，{rein.name} 恢复 {val} 点生命（{rein.hp}/{rein.max_hp}）")
+            else:
+                for inv in session.state.investigators:
+                    inv.hp = min(getattr(inv, "max_hp", inv.hp), inv.hp + val)
+                texts.append(f"🗣️ 对方提供了帮助，全员恢复 {val} 点生命")
+        elif eff == "san" and val:
+            for inv in session.state.investigators:
+                inv.san = min(getattr(inv, "max_san", inv.san), inv.san + val)
+            texts.append(f"🗣️ 一番交谈让人心安，全员恢复 {val} 点理智")
+        else:
+            texts.append(f"🗣️ 对方沉默了片刻，似乎有所保留。")
+        session.state.resolved_elements.add(mark)
+        return texts
+
+    if kind == "choice":
+        clue = opt.get("clue", "")
+        hp_cost = opt.get("hp_cost", 0) or 0
+        san_cost = opt.get("san_cost", 0) or 0
+        reward = opt.get("reward_text", "") or ""
+        if clue:
+            session.state.resolved_elements.add(clue)
+        if hp_cost:
+            if is_infinite_flow and rein is not None:
+                rein.hp = max(1, rein.hp - hp_cost)
+                texts.append(f"⚖️ 选择带来了代价：{rein.name} 损失 {hp_cost} 点生命（{rein.hp}/{rein.max_hp}）")
+            else:
+                if session.state.investigators:
+                    session.state.investigators[0].hp = max(1, session.state.investigators[0].hp - hp_cost)
+                texts.append(f"⚖️ 选择带来了代价：损失 {hp_cost} 点生命")
+        if san_cost:
+            for inv in session.state.investigators:
+                inv.san = max(0, inv.san - san_cost)
+            texts.append(f"⚖️ 这个决定让人不安：全员 SAN -{san_cost}")
+        if clue:
+            texts.append(f"⚖️ 你们的决定改变了局面，解锁了新线索：{clue}")
+        elif reward:
+            texts.append(f"⚖️ {reward}")
+        session.state.resolved_elements.add(mark)
+        return texts
+
+    if kind == "interaction":
+        clue = opt.get("clue", "")
+        hp_cost = opt.get("hp_cost", 0) or 0
+        san_cost = opt.get("san_cost", 0) or 0
+        result = opt.get("result_text", "") or ""
+        if clue:
+            session.state.resolved_elements.add(clue)
+        if hp_cost:
+            if is_infinite_flow and rein is not None:
+                rein.hp = max(1, rein.hp - hp_cost)
+                texts.append(f"💥 {rein.name} 损失 {hp_cost} 点生命（{rein.hp}/{rein.max_hp}）")
+            else:
+                if session.state.investigators:
+                    session.state.investigators[0].hp = max(1, session.state.investigators[0].hp - hp_cost)
+                texts.append(f"💥 损失 {hp_cost} 点生命")
+        if san_cost:
+            for inv in session.state.investigators:
+                inv.san = max(0, inv.san - san_cost)
+            texts.append(f"😱 理智受损：全员 SAN -{san_cost}")
+        if result:
+            texts.append(f"📜 {result}")
+        elif clue:
+            texts.append(f"📜 有了新发现：{clue}")
+        session.state.resolved_elements.add(mark)
+        return texts
+
     return texts
 
 

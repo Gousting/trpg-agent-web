@@ -98,5 +98,19 @@
       "reward": "副本撤退：无奖励，无惩罚",
       "reward_ap": 0
     }
-  }
+  },
+  "phase_thresholds": [
+    {
+      "threshold": 0.6,
+      "name": "暴君觉醒",
+      "attack_bonus": 2,
+      "behavior": "暴君融合体的皮肤裂开，露出下面蠕动的血肉——它的速度骤然加快。"
+    },
+    {
+      "threshold": 0.3,
+      "name": "病毒狂暴",
+      "attack_bonus": 3,
+      "behavior": "融合体仰天咆哮，全身的触手疯狂舞动，每一次挥击都带着致命的腐蚀液。"
+    }
+  ]
 }

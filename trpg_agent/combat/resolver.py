@@ -124,6 +124,9 @@ class CombatMechanicResult:
     outcome: CombatOutcome | None = None
     summary: str = ""                 # 结算摘要文本
 
+    # BOSS 阶段事件（狂暴/召唤等）——[{name, behavior, ...}]
+    phase_events: list[dict] = field(default_factory=list)
+
 
 class CombatMechanics:
     """战斗行动代码解析器。
@@ -222,6 +225,11 @@ class CombatMechanics:
         )
         outcome = self._encounter.outcomes.get(outcome_id) if outcome_id else None
 
+        # ── BOSS 阶段触发检查（敌人 HP 跨过阈值 → 狂暴/召唤）──
+        phase_events: list[dict] = []
+        if outcome is None and damage_to_enemies:
+            phase_events = self._encounter.check_phase_triggers()
+
         # ── 构建摘要 ──
         parts = []
         if skill:
@@ -235,6 +243,8 @@ class CombatMechanics:
             parts.append(f"调查员受{damage_to_investigators}点伤害")
         if san_loss:
             parts.append(f"SAN-{san_loss}")
+        for ph in phase_events:
+            parts.append(f"⚠ {ph.get('name', '阶段变化')}")
 
         return CombatMechanicResult(
             success=success,
@@ -248,4 +258,5 @@ class CombatMechanics:
             san_loss=san_loss,
             outcome=outcome,
             summary="；".join(parts) if parts else "结果混沌不清",
+            phase_events=phase_events,
         )

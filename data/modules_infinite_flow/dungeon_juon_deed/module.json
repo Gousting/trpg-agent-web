@@ -74,5 +74,30 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "puzzle",
+  "puzzle": {
+    "description": "房契背面有一组被涂掉的数字，旁边是伽椰子生前留下的旧照片。你们需要从线索中推出正确的顺序才能打开铁盒里的暗格。",
+    "options": [
+      {
+        "text": "按照片拍摄日期排序——老照片在先",
+        "correct": true,
+        "clue": "jy_deed_puzzle",
+        "penalty": 0,
+        "result_text": "暗格弹开，里面是伽椰子的结婚戒指——上面刻着另一个名字。"
+      },
+      {
+        "text": "按房契上的金额从大到小排序",
+        "correct": false,
+        "penalty": 2,
+        "result_text": "机关发出咔哒声，一道暗针弹出——好在闪避及时。"
+      },
+      {
+        "text": "把纸片撕成的小林名字拼回去",
+        "correct": false,
+        "penalty": 1,
+        "result_text": "拼图缺了一块，铁盒纹丝不动。"
+      }
+    ]
+  }
 }

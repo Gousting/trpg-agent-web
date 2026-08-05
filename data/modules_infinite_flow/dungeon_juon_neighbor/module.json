@@ -101,5 +101,32 @@
       "secret": "她其实是当年第一个发现佐伯家异样的人，曾亲眼看见伽椰子的影子出现在自家窗外"
     }
   ],
-  "variance": null
+  "variance": null,
+  "module_type": "social",
+  "social": {
+    "npc": "邻居老妇人",
+    "npc_desc": "三十年前佐伯家惨案的唯一知情者，守着秘密过了大半辈子。警惕、疲惫、恐惧。",
+    "responses": [
+      {
+        "text": "「我们只是想知道真相。您一个人守着这些秘密，很累吧？」",
+        "effect_type": "clue",
+        "success_clue": "jy_neighbor_trust",
+        "effect_value": 0,
+        "fail_text": "老妇人沉默了。"
+      },
+      {
+        "text": "「这房子现在归我们管了，你最好把知道的全说出来。」",
+        "effect_type": "none",
+        "effect_value": 0,
+        "fail_text": "老妇人脸色一沉，关上了门。"
+      },
+      {
+        "text": "拿出房契：「这个人——小林——您认识吗？」",
+        "effect_type": "clue",
+        "success_clue": "jy_neighbor_kobayashi",
+        "effect_value": 0,
+        "fail_text": "她盯着房契，手在发抖。"
+      }
+    ]
+  }
 }

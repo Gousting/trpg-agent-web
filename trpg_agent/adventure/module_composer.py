@@ -229,6 +229,26 @@ class ModuleMeta:
     # trap（陷阱/恐怖事件）数据——{check, difficulty, hp_loss, san_loss, success_clue}
     trap: dict[str, object] = field(default_factory=dict)
 
+    # puzzle（解谜）数据——{description, clue, attempts, penalty, penalty_type}
+    # 进场景触发：玩家在 attempts 次内选对得 clue，选错扣 penalty HP
+    puzzle: dict[str, object] = field(default_factory=dict)
+
+    # social（社交博弈）数据——{npc, npc_desc, stance, responses:[{text, effect_type, effect_value, success_clue, fail_text}]}
+    # 进场景触发：按玩家选择的话术结算（effect_type: clue/hp/san/buff）
+    social: dict[str, object] = field(default_factory=dict)
+
+    # choice（抉择）数据——{description, options:[{text, clue, hp_cost, san_cost, reward_text}]}
+    # 进场景触发：无正确选项，每条路收益不同，选择永久改变后续剧情（resolved_elements）
+    choice: dict[str, object] = field(default_factory=dict)
+
+    # interaction（互动叙事）数据——story 模块的轻量交互：{options:[{text, clue, hp_cost, san_cost, result_text}]}
+    # 进场景触发：给玩家 2-3 个有实际后果的行动选项，比纯叙事更有参与感
+    interaction: dict[str, object] = field(default_factory=dict)
+
+    # boss 阶段机制——{phase_thresholds:[{threshold, name, attack_bonus, behavior}]}
+    # 敌人 HP 低于阈值时触发狂暴/召唤等阶段事件
+    phase_thresholds: list[dict[str, object]] = field(default_factory=list)
+
     @classmethod
     def from_dict(cls, d: dict) -> "ModuleMeta":
         entry = d.get("entry", {}) or {}
@@ -264,6 +284,11 @@ class ModuleMeta:
             module_type=str(d.get("module_type", "") or d.get("type", "") or "story"),
             rest={str(k): int(v) for k, v in (d.get("rest") or {}).items()},
             trap=dict(d.get("trap") or {}),
+            puzzle=dict(d.get("puzzle") or {}),
+            social=dict(d.get("social") or {}),
+            choice=dict(d.get("choice") or {}),
+            interaction=dict(d.get("interaction") or {}),
+            phase_thresholds=list(d.get("phase_thresholds") or []),
         )
 
 

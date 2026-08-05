@@ -90,5 +90,30 @@
       "attitude": "neutral"
     }
   ],
-  "variance": null
+  "variance": null,
+  "module_type": "puzzle",
+  "puzzle": {
+    "description": "藏经阁三楼的禁书区，一本无字天书悬浮在光幕中。旁边的石刻提示：「以灵田之青，试炼之白，丹房之火，禁地之墨，按五行相生排列。」",
+    "options": [
+      {
+        "text": "青→火→白→墨（木生火，火克金？不对）",
+        "correct": false,
+        "penalty": 2,
+        "result_text": "光幕闪烁，一道剑气擦过——你们狼狈避开。"
+      },
+      {
+        "text": "墨→白→青→火（水生木，木生火）",
+        "correct": true,
+        "clue": "xt_library_puzzle",
+        "penalty": 0,
+        "result_text": "光幕消散，天书缓缓展开——上面记载着「入魔」的真相。"
+      },
+      {
+        "text": "白→墨→火→青",
+        "correct": false,
+        "penalty": 1,
+        "result_text": "光幕剧烈震动，书架开始摇晃。"
+      }
+    ]
+  }
 }

@@ -90,5 +90,32 @@
       "attitude": "neutral"
     }
   ],
-  "variance": null
+  "variance": null,
+  "module_type": "choice",
+  "choice": {
+    "description": "执法堂首座盯着你们：「三十年前轮回者的失踪，本座追查至今。你们——是来作证的，还是来遮掩的？」堂下跪着瑟瑟发抖的丹房小厮。",
+    "options": [
+      {
+        "text": "为小厮作证——你们亲眼看到长老在丹房动过手脚",
+        "clue": "xt_court_testify",
+        "hp_cost": 0,
+        "san_cost": 1,
+        "reward_text": "首座眼神锐利：「好，本座记下了。」小厮感激地看了你们一眼。"
+      },
+      {
+        "text": "保持沉默——宗门内部的事，外人少管",
+        "clue": "xt_court_silence",
+        "hp_cost": 0,
+        "san_cost": 0,
+        "reward_text": "首座失望地摇头：「也罢。」但你们能感觉到，他记住了你们的怯懦。"
+      },
+      {
+        "text": "反咬一口——说小厮才是内鬼",
+        "clue": "xt_court_accuse",
+        "hp_cost": 2,
+        "san_cost": 3,
+        "reward_text": "小厮被拖了下去。首座深深看了你们一眼——那眼神让人后背发凉。"
+      }
+    ]
+  }
 }

@@ -74,5 +74,30 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "interaction": {
+    "options": [
+      {
+        "text": "合上日记，把它放回原处",
+        "clue": "jy_diary_putback",
+        "hp_cost": 0,
+        "san_cost": 0,
+        "result_text": "日记合上的瞬间，二楼似乎安静了一些。"
+      },
+      {
+        "text": "撕下其中一页带走",
+        "clue": "jy_diary_page",
+        "hp_cost": 0,
+        "san_cost": 1,
+        "result_text": "那一页记载着伽椰子最后的心理活动——但撕下的瞬间，你们感觉有什么东西注意到了你们。"
+      },
+      {
+        "text": "对着日记说出「佐伯伽椰子」的名字",
+        "clue": "jy_diary_name",
+        "hp_cost": 1,
+        "san_cost": 2,
+        "result_text": "日记无风自动，翻到了最后一页——上面用鲜血写着「你们也会死」。"
+      }
+    ]
+  }
 }

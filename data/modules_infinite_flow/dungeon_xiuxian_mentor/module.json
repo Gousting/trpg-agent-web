@@ -90,5 +90,32 @@
       "attitude": "friendly"
     }
   ],
-  "variance": null
+  "variance": null,
+  "module_type": "social",
+  "social": {
+    "npc": "传功长老",
+    "npc_desc": "青云宗传功长老，温和正直，对三十年前轮回者的失踪耿耿于怀。",
+    "responses": [
+      {
+        "text": "「长老，三十年前那位轮回者——他到底怎么了？」",
+        "effect_type": "clue",
+        "success_clue": "xt_mentor_truth",
+        "effect_value": 0,
+        "fail_text": "长老叹了口气：「那是个不该提起的名字。」"
+      },
+      {
+        "text": "「弟子愿拜入长老门下，求长老指点。」",
+        "effect_type": "hp",
+        "effect_value": 4,
+        "fail_text": "长老微微颔首，但没有立即答应。"
+      },
+      {
+        "text": "「长老可知后山禁地藏着什么？」",
+        "effect_type": "clue",
+        "success_clue": "xt_mentor_forbidden",
+        "effect_value": 0,
+        "fail_text": "长老脸色一变：「那不是你们该去的地方。」"
+      }
+    ]
+  }
 }

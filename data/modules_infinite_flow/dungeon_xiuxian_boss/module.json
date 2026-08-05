@@ -113,5 +113,19 @@
       "reward": "副本撤退：无奖励，无惩罚",
       "reward_ap": 0
     }
-  }
+  },
+  "phase_thresholds": [
+    {
+      "threshold": 0.6,
+      "name": "入魔加深",
+      "attack_bonus": 2,
+      "behavior": "入魔长老的双眼赤红如血，周围的灵气被疯狂吞噬，他的剑招不再留有余地。"
+    },
+    {
+      "threshold": 0.3,
+      "name": "魔化爆发",
+      "attack_bonus": 3,
+      "behavior": "长老周身黑气冲天，眉心的魔纹彻底绽放——他正在燃烧自己的生命来换取力量。"
+    }
+  ]
 }
