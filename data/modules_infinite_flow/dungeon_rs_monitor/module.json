@@ -77,7 +77,8 @@
         "dungeon_rs_corridor": "获取情报，返回走廊",
         "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
-      "guidance": "生化分支·情报层。提供BOSS弱点情报，完成后返回主线走廊。"
+      "guidance": "生化分支·情报层。提供BOSS弱点情报，完成后返回主线走廊。",
+      "image": "/images/scenes/inf_dungeon_rs_monitor_00001_.png"
     }
   ],
   "npcs": [],

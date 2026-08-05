@@ -88,7 +88,8 @@
         "dungeon_xiuxian_danfang": "退出禁地，返回丹房正门",
         "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
-      "guidance": "修仙分支·危险捷径层。高风险跳层直逼BOSS，或原路返回丹房。"
+      "guidance": "修仙分支·危险捷径层。高风险跳层直逼BOSS，或原路返回丹房。",
+      "image": "/images/scenes/inf_dungeon_xiuxian_forbidden_00001_.png"
     }
   ],
   "npcs": [],

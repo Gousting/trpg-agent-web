@@ -98,7 +98,8 @@
         "dungeon_juon_bathroom": "推开浴室的门——水声不知何时停了",
         "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
-      "guidance": "咒怨副本中层。经典的日式恐怖桥段，SAN 检定高发区。可探索分支后返回本场景。"
+      "guidance": "咒怨副本中层。经典的日式恐怖桥段，SAN 检定高发区。可探索分支后返回本场景。",
+      "image": "/images/scenes/inf_dungeon_juon_hallway_00001_.png"
     }
   ],
   "npcs": [],

@@ -378,3 +378,32 @@ data/modules_harry_potter/     ← 哈利波特（4 模块，独立）
 - 全量测试：`266 passed`（原 254 + 同步断言），零回归
 
 状态：✅ 完成
+
+---
+
+## 2026-08-05 — 无限流场景图批量生成（粗犷美漫插画风）+ image 字段
+
+### 变更内容
+
+补齐无限流 28 个场景的视觉资产（此前只有 image_prompt 无实际图片）：
+
+- **风格选定**：用户对比 5 种风格样图（写实/粗犷美漫/暗黑油画/浮世绘/电影剧照）后确认**粗犷美漫插画风**，与 COC 场景图 art_style 一致
+- **批量生成**：`scripts/batch_generate_scene_images.py` 读全部模块 image_prompt + 风格后缀，ComfyUI Z-Image Turbo（KSampler 回退方案，1344×768）排队生成 28 张
+- **审查**：qwen3.8-max 远程 VLM 逐张检查。deed（房契特写）2 次 FAIL——Z-Image 中文渲染乱码 + 风格词放末尾被忽略；修复：风格前置 + 文字弱化（illegible blurry marks + no readable text）后 9/10 通过。mentor 匾额乱码同理修复
+- **挂载**：28 个场景加 `image` 字段 `/images/scenes/inf_<module>_00001_.png`，web_server 静态挂载已存在，前端 scene.image 直连生效
+
+### 涉及文件
+
+| 文件 | 改动 |
+|---|---|
+| `data/scenes/Sceneimage/inf_*.png` ×28 | 新增场景图（1344×768） |
+| `data/modules_infinite_flow/*/module.json` ×28 | scenes 加 image 字段 |
+| `scripts/batch_generate_scene_images.py` / `recover_download_scene_images.py` / `vlm_review_scenes.py` | 新增批量出图/恢复下载/VLM 审查脚本 |
+
+### 验证
+
+- 全量测试：266 passed 零回归
+- 服务启动后图片 URL 全部 200（抽查 4 张）
+- VLM 审查 28/28 PASS
+
+状态：✅ 完成

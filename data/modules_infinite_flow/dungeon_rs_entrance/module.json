@@ -100,7 +100,8 @@
         "dungeon_rs_vent": "钻进通风管道，抄近路深入",
         "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
-      "guidance": "生化副本入口。获取装备和地图信息，决定深入策略。"
+      "guidance": "生化副本入口。获取装备和地图信息，决定深入策略。",
+      "image": "/images/scenes/inf_dungeon_rs_entrance_00001_.png"
     }
   ],
   "npcs": [],

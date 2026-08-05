@@ -88,7 +88,8 @@
         "dungeon_rs_corridor": "退回列车残骸，改走正门",
         "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
-      "guidance": "生化分支·捷径层。高风险高回报的跳层路线，成功后直达实验室。"
+      "guidance": "生化分支·捷径层。高风险高回报的跳层路线，成功后直达实验室。",
+      "image": "/images/scenes/inf_dungeon_rs_vent_00001_.png"
     }
   ],
   "npcs": [],

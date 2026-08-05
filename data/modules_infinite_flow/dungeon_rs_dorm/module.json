@@ -77,7 +77,8 @@
         "dungeon_rs_lab": "休整完毕，返回实验室",
         "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
-      "guidance": "生化分支·休整层。短暂休整与背景补全，完成后返回实验室。"
+      "guidance": "生化分支·休整层。短暂休整与背景补全，完成后返回实验室。",
+      "image": "/images/scenes/inf_dungeon_rs_dorm_00001_.png"
     }
   ],
   "npcs": [],

@@ -100,7 +100,8 @@
         "dungeon_rs_dorm": "退往员工宿舍区，短暂休整",
         "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
-      "guidance": "生化副本深层。红后是关键 NPC，BOSS 战前的情报窗口。"
+      "guidance": "生化副本深层。红后是关键 NPC，BOSS 战前的情报窗口。",
+      "image": "/images/scenes/inf_dungeon_rs_lab_00001_.png"
     }
   ],
   "npcs": [

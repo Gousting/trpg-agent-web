@@ -88,7 +88,8 @@
         "dungeon_juon_diary": "翻开孩子的日记，寻找破解诅咒的方法",
         "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
-      "guidance": "咒怨副本深层。背景真相收集完毕，准备面对诅咒本体。可先找日记削弱 BOSS。"
+      "guidance": "咒怨副本深层。背景真相收集完毕，准备面对诅咒本体。可先找日记削弱 BOSS。",
+      "image": "/images/scenes/inf_dungeon_juon_attic_00001_.png"
     }
   ],
   "npcs": [],

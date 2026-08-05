@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v1.12 — 无限流场景图生成 + image 字段挂载 (2026-08-05)
+
+### 场景图 (`data/scenes/Sceneimage/inf_*.png` ×28)
+
+- 28 张场景图按模块 `image_prompt` + 粗犷美漫插画风后缀批量生成（ComfyUI Z-Image Turbo，1344×768，KSampler 回退方案）
+- qwen3.8-max 逐张 VLM 审查：26 张首轮通过，deed/mentor 因中文文字乱码重抽（prompt 弱化文字元素+风格前置），storage/dorm 首轮 API 500 重审——最终 28/28 通过
+- 28 个场景挂 `image` 字段（`/images/scenes/inf_<module>_00001_.png`），前端 `scene.image` 直连生效
+
+### 脚本
+
+- `scripts/batch_generate_scene_images.py` — 批量出图（读模块 image_prompt → 提交 ComfyUI → 轮询下载）
+- `scripts/recover_download_scene_images.py` — 轮询崩溃后的 history 恢复下载兜底
+- `scripts/vlm_review_scenes.py` — qwen3.8-max 批量审查（PASS/FAIL + 评分）
+
 ## v1.11 — 无限流撤退口补齐 + entrance reusable (2026-08-05)
 
 ### 模块数据 (`data/modules_infinite_flow/*`)

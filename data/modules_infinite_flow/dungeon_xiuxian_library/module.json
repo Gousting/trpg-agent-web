@@ -79,7 +79,8 @@
         "dungeon_xiuxian_trial": "参悟功法，返回试炼场",
         "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
-      "guidance": "修仙分支·机缘层。获取修炼功法增益，完成后返回试炼场。"
+      "guidance": "修仙分支·机缘层。获取修炼功法增益，完成后返回试炼场。",
+      "image": "/images/scenes/inf_dungeon_xiuxian_library_00001_.png"
     }
   ],
   "npcs": [

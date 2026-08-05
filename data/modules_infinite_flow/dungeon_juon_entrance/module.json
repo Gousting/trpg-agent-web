@@ -100,7 +100,8 @@
         "dungeon_juon_well": "绕到屋后，查看庭院里的枯井",
         "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
-      "guidance": "咒怨副本入口。经典日式恐怖氛围，进入宅子前的情报收集与分支选择。"
+      "guidance": "咒怨副本入口。经典日式恐怖氛围，进入宅子前的情报收集与分支选择。",
+      "image": "/images/scenes/inf_dungeon_juon_entrance_00001_.png"
     }
   ],
   "npcs": [],

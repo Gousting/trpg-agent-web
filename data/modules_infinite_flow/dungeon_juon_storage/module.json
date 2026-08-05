@@ -73,7 +73,8 @@
         "dungeon_juon_hallway": "击退怨灵，撤出储物间回到走廊",
         "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
-      "guidance": "咒怨分支·遭遇战（叙事冲突）。HP/SAN 受损风险，胜利后获得背景线索。完成后返回主线走廊。"
+      "guidance": "咒怨分支·遭遇战（叙事冲突）。HP/SAN 受损风险，胜利后获得背景线索。完成后返回主线走廊。",
+      "image": "/images/scenes/inf_dungeon_juon_storage_00001_.png"
     }
   ],
   "npcs": [],

@@ -77,7 +77,8 @@
         "dungeon_rs_corridor": "带着补给返回走廊",
         "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
-      "guidance": "生化分支·补给层。获取生存补给，完成后返回主线走廊。"
+      "guidance": "生化分支·补给层。获取生存补给，完成后返回主线走廊。",
+      "image": "/images/scenes/inf_dungeon_rs_canteen_00001_.png"
     }
   ],
   "npcs": [],

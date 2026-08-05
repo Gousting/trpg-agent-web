@@ -69,7 +69,8 @@
         "dungeon_juon_hallway": "带着真相返回佐伯家",
         "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
-      "guidance": "咒怨分支·情报层。揭示宅子产权真相，为结局提供背景。完成后返回主线走廊。"
+      "guidance": "咒怨分支·情报层。揭示宅子产权真相，为结局提供背景。完成后返回主线走廊。",
+      "image": "/images/scenes/inf_dungeon_juon_deed_00001_.png"
     }
   ],
   "npcs": [],

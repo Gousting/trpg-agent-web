@@ -69,7 +69,8 @@
         "dungeon_juon_attic": "带着日记的真相，回到阁楼",
         "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
-      "guidance": "咒怨分支·关键线索。揭示俊雄与伽椰子的真相——战斗中喊出俊雄的名字可削弱伽椰子（呼应 BOSS 模块 rules）。完成后返回阁楼。"
+      "guidance": "咒怨分支·关键线索。揭示俊雄与伽椰子的真相——战斗中喊出俊雄的名字可削弱伽椰子（呼应 BOSS 模块 rules）。完成后返回阁楼。",
+      "image": "/images/scenes/inf_dungeon_juon_diary_00001_.png"
     }
   ],
   "npcs": [],

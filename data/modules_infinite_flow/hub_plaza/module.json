@@ -81,7 +81,8 @@
       "vote_prompt": "三扇光门在你面前，选择进入哪个副本？",
       "leads_to": [],
       "exit_labels": {},
-      "guidance": "主神空间是无限流的枢纽。选择副本后进入对应剧情链，通关后返回此场景可再次选择。"
+      "guidance": "主神空间是无限流的枢纽。选择副本后进入对应剧情链，通关后返回此场景可再次选择。",
+      "image": "/images/scenes/inf_hub_plaza_00001_.png"
     }
   ],
   "npcs": [],

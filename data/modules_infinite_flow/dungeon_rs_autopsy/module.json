@@ -77,7 +77,8 @@
         "dungeon_rs_lab": "获取弱点情报，返回实验室",
         "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
-      "guidance": "生化分支·削弱层。研究样本获取BOSS弱点（rs_boss_weakened），削弱暴君战斗。"
+      "guidance": "生化分支·削弱层。研究样本获取BOSS弱点（rs_boss_weakened），削弱暴君战斗。",
+      "image": "/images/scenes/inf_dungeon_rs_autopsy_00001_.png"
     }
   ],
   "npcs": [],

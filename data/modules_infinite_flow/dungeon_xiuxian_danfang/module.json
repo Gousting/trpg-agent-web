@@ -100,7 +100,8 @@
         "dungeon_xiuxian_court": "前往执法堂，揭发长老的罪行",
         "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
-      "guidance": "修仙副本深层。真相揭露，BOSS 战前的最后抉择。"
+      "guidance": "修仙副本深层。真相揭露，BOSS 战前的最后抉择。",
+      "image": "/images/scenes/inf_dungeon_xiuxian_danfang_00001_.png"
     }
   ],
   "npcs": [

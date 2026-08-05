@@ -79,7 +79,8 @@
         "dungeon_xiuxian_trial": "采集完毕，返回试炼场",
         "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
-      "guidance": "修仙分支·采集层。获取恢复补给，同时揭露青云宗炼人为丹的真相。"
+      "guidance": "修仙分支·采集层。获取恢复补给，同时揭露青云宗炼人为丹的真相。",
+      "image": "/images/scenes/inf_dungeon_xiuxian_field_00001_.png"
     }
   ],
   "npcs": [

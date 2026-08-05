@@ -100,7 +100,8 @@
         "dungeon_xiuxian_mentor": "拜访传功长老，请教修炼功法",
         "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
-      "guidance": "修仙副本中层。选剑定缘，埋下青云宗阴谋的伏笔。"
+      "guidance": "修仙副本中层。选剑定缘，埋下青云宗阴谋的伏笔。",
+      "image": "/images/scenes/inf_dungeon_xiuxian_trial_00001_.png"
     }
   ],
   "npcs": [
