@@ -71,9 +71,18 @@
     <code>deepseek-v4-flash @ opencode.ai/zen/go/v1</code>
   </div>
 
-  <div class="fixed-row" style="margin-top:10px">
-    <span>世界观 / 模式</span>
-    <code>无限流 · AI 自动 · 12 轮</code>
+  <div class="field" style="margin-top:18px">
+    <label>世界观</label>
+    <select id="world">
+      <option value="infinite_flow">无限流（咒怨 / 生化 / 修仙）</option>
+      <option value="coc">克苏鲁 COC</option>
+      <option value="harry_potter">哈利波特</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>回合数</label>
+    <input id="turns" type="number" value="12" min="1" max="200">
   </div>
 
   <button id="btn-start" onclick="startEntry()">开始游戏</button>
@@ -100,9 +109,9 @@ function startEntry() {
     player: FIXED_MODEL,
     player_host: FIXED_HOST,
     kp_api_key: key,
-    world: 'infinite_flow',
+    world: document.getElementById('world').value,
     mode: 'ai',
-    turns: 12,
+    turns: parseInt(document.getElementById('turns').value) || 12,
     compose_modules: true,
     load_profile: false,
   };

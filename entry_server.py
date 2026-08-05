@@ -23,13 +23,14 @@ app = FastAPI(title="TRPG 快捷入口")
 
 @app.get("/", include_in_schema=False)
 async def entry_page():
-    return FileResponse(ENTRY_HTML)
+    # no-store：禁止浏览器/Cloudflare 缓存入口页，确保每次拿到最新版本
+    return FileResponse(ENTRY_HTML, headers={"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"})
 
 
 @app.get("/index.html", include_in_schema=False)
 async def index_page():
     # 快捷入口打开的游戏界面（主应用只有 "/" 路由，8767 的 "/" 被入口页占用）
-    return FileResponse(STATIC_DIR / "index.html")
+    return FileResponse(STATIC_DIR / "index.html", headers={"Cache-Control": "no-store, no-cache, must-revalidate", "Pragma": "no-cache"})
 
 
 # 其余路径（API / 静态资源 / SSE 流）全部交给主应用

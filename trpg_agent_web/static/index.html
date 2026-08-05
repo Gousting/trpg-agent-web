@@ -571,10 +571,20 @@
 
   /* 进度条 */
   #progress {
-    position: fixed; bottom: 0; left: 0; right: 0; height: 2px;
+    position: fixed; bottom: 0; left: 0; right: 0; height: 4px;
     background: #1a1a1a; z-index: 20;
   }
-  #progress-bar { height: 100%; background: var(--blood); width: 0%; transition: width 0.3s; }
+  #progress-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--blood), #e8a33d);
+    transition: width 0.3s;
+    box-shadow: 0 0 8px rgba(232,163,61,0.5);
+  }
+  #progress.active #progress-bar { animation: progress-pulse 1.2s ease-in-out infinite; }
+  @keyframes progress-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
 
   /* ═══ 投票条 ═══ */
   #vote-bar {
@@ -1689,6 +1699,7 @@ function startGame() {
   document.getElementById('status').textContent = '生成地圖...';
   document.getElementById('action-log').innerHTML = '<h2>行動記錄</h2>';
   document.getElementById('progress-bar').style.width = '0%';
+  document.getElementById('progress').classList.add('active');
   hideDice();
   currentTurn = 0;
   voteSessionId = '';
@@ -1714,11 +1725,44 @@ function startGame() {
   // 从 URL 获取 force_pickup（urlParams 已在函数开头声明）
   if (urlParams.get('force_pickup') === 'true') params.append('force_pickup', 'true');
 
-  es = new EventSource('/api/stream?' + params);
+  // 公网实时传输：CF quick tunnel 缓冲 SSE，改用 WebSocket（事件接口保持 addEventListener 不变）
+  es = (function () {
+    const wsProto = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/api/ws?' + params;
+    const ws = new WebSocket(wsProto);
+    const handlers = {};
+    const api = {
+      addEventListener(type, fn) {
+        (handlers[type] = handlers[type] || []).push(fn);
+      },
+      close() { try { ws.close(); } catch (e) {} },
+    };
+    ws.onmessage = (ev) => {
+      let m;
+      try { m = JSON.parse(ev.data); } catch (e) { return; }
+      (handlers[m.event] || []).forEach(fn => fn({ data: JSON.stringify(m.data) }));
+    };
+    ws.onerror = () => {
+      (handlers['error'] || []).forEach(fn => fn({ data: JSON.stringify({ text: '连接中断' }) }));
+    };
+    ws.onclose = () => {
+      (handlers['error'] || []).forEach(fn => fn({ data: JSON.stringify({ text: '连接已关闭' }) }));
+    };
+    return api;
+  })();
 
   es.addEventListener('status', (e) => {
     const d = JSON.parse(e.data);
     document.getElementById('status').textContent = d.text;
+    // 生成阶段进度映射：组合模块→地图→角色→开场
+    const t = d.text || '';
+    let p = 0;
+    if (t.includes('组合')) p = 15;
+    else if (t.includes('模块')) p = 25;
+    else if (t.includes('地图') || t.includes('地圖')) p = 40;
+    else if (t.includes('轮回者') || t.includes('调查员') || t.includes('角色')) p = 55;
+    else if (t.includes('开场') || t.includes('进入') || t.includes('开始')) p = 65;
+    const bar = document.getElementById('progress-bar');
+    if (p > 0 && p > parseFloat(bar.style.width || '0')) bar.style.width = p + '%';
   });
 
   es.addEventListener('error', (e) => {
@@ -1813,7 +1857,8 @@ function startGame() {
     // 房间物品
     if (d.room) updateRoomItems(d.room);
     currentTurn++;
-    document.getElementById('progress-bar').style.width = (currentTurn/totalTurns*100)+'%';
+    document.getElementById('progress-bar').style.width = (70 + (currentTurn/totalTurns*30))+'%';
+    document.getElementById('progress').classList.remove('active');
     syncStageMeta();
     if (document.body.classList.contains('broadcast')) {
       showLiveCallout('第 ' + currentTurn + ' / ' + totalTurns + ' 轮叙事完成');
@@ -1967,10 +2012,10 @@ function startGame() {
     }
   });
 
-  es.onerror = () => {
+  es.addEventListener('error', () => {
     document.getElementById('status').textContent = '連接斷開';
     resetBtn();
-  };
+  });
 }
 
 function resetBtn() {

@@ -25,7 +25,7 @@ from uuid import uuid4
 
 import edge_tts
 import httpx
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -2065,8 +2065,79 @@ async def stream(
     return StreamingResponse(
         _stream_with_cleanup(),
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
     )
+
+
+# ── WebSocket 端点（公网用：CF quick tunnel 缓冲 SSE，WS 实时转发不缓冲）──
+
+
+def _parse_sse_chunk(chunk: str) -> tuple[str, dict]:
+    """解析 _sse() 生成的 "event: xxx\ndata: {...}\n\n" 字符串为 (event, data)。"""
+    event = "message"
+    data_str = ""
+    for line in chunk.split("\n"):
+        if line.startswith("event: "):
+            event = line[7:].strip()
+        elif line.startswith("data: "):
+            data_str = line[6:]
+    try:
+        data = json.loads(data_str) if data_str else {}
+    except Exception:
+        data = {"text": data_str}
+    return event, data
+
+
+@app.websocket("/api/ws")
+async def ws_stream(
+    websocket: WebSocket,
+    host: str = "http://localhost:11434",
+    kp: str = "gemma4:12b",
+    player: str = "ornith:9b",
+    turns: int = Query(default=12, ge=1, le=200),
+    seed: str = Query(default="", max_length=32),
+    mode: Literal["ai", "human", "live"] = "ai",
+    compose_modules: bool = True,
+    kp_api_key: str = Query(default="", max_length=256),
+    player_host: str = "http://localhost:11434",
+    force_pickup: bool = False,
+    vote_seconds: int = Query(default=60, ge=5, le=600),
+    force_combat: bool = False,
+    world: str = Query(default="", max_length=32),
+    leader: str = Query(default="", max_length=32),
+    load_profile: bool = False,
+):
+    """WebSocket 版事件流：与 /api/stream 同一套 event_stream，事件以 JSON 逐条推送。
+
+    解决 Cloudflare quick tunnel 缓冲 SSE 导致公网事件不实时的问题。
+    """
+    await websocket.accept()
+    try:
+        seed_val = int(seed) if seed else None
+    except ValueError:
+        seed_val = None
+
+    sid = f"web_{datetime.now().strftime('%m%d_%H%M%S')}_{uuid4().hex[:8]}"
+
+    try:
+        async for chunk in event_stream(
+            host, kp, player, turns, seed_val, mode, compose_modules,
+            kp_api_key=kp_api_key, player_host=player_host, force_pickup=force_pickup,
+            vote_seconds=vote_seconds, force_combat=force_combat, world=world,
+            sid=sid, leader=leader, load_profile=load_profile,
+        ):
+            event, data = _parse_sse_chunk(chunk)
+            await websocket.send_json({"event": event, "data": data})
+    except WebSocketDisconnect:
+        pass
+    finally:
+        _sessions.pop(sid, None)
+        _vote_tallies.pop(sid, None)
+        _vote_queues.pop(sid, None)
 
 
 # ── 投票端点 ───────────────────────────────
