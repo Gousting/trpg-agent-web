@@ -1677,6 +1677,10 @@ function applyEntryCfg(ecfg) {
     if (ecfg) {
       applyEntryCfg(ecfg);
       startGame();
+    } else {
+      // 直接访问 /index.html?entry=1（绕过入口页）→ 无配置 → 弹回入口页，
+      // 防止露出完整表单（终结点/key 输入框），保证快捷入口只有一条进入路径
+      location.replace('/');
     }
   } catch (e) { /* 配置缺失则走手动填写 */ }
 })();
