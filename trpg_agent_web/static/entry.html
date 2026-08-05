@@ -116,7 +116,8 @@ function startEntry() {
     load_profile: false,
   };
   sessionStorage.setItem('entry_cfg', JSON.stringify(cfg));
-  location.href = '/index.html?entry=1';
+  // v=时间戳：强制绕过浏览器/CF 对 index.html 的缓存（旧版 EventSource 会卡死）
+  location.href = '/index.html?entry=1&v=' + Date.now();
 }
 </script>
 </body>

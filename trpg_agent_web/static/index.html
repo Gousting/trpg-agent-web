@@ -1279,7 +1279,7 @@
   <label>KP</label><input id="kp-model" list="kp-models" value="nvidia/nemotron-3-ultra-550b-a55b:free" style="width:220px">
   <datalist id="kp-models"><option value="nvidia/nemotron-3-ultra-550b-a55b:free"><option value="gemma4:12b"><option value="qwen3.6:27b"><option value="deepseek-v4-flash-free"><option value="ornith:9b"></datalist>
   <label>玩家Host</label><input id="player-host" value="http://localhost:11434" style="width:180px">
-  <label>玩家</label><select id="player-model"><option>ornith:9b</option><option>gemma4:12b</option></select>
+  <label>玩家</label><select id="player-model"><option>ornith:9b</option><option>gemma4:12b</option><option>deepseek-v4-flash</option></select>
   <label>轮</label><input id="turns" type="number" value="10" min="3" max="30" style="width:40px">
   <label>种子</label><input id="seed" placeholder="随机" style="width:45px">
   <label>模式</label><select id="mode"><option value="ai">AI自动</option><option value="human">人类玩家</option><option value="live">直播</option></select>
@@ -1508,6 +1508,8 @@
 
 <script>
 let es = null, totalTurns = 10, currentTurn = 0, gmap = null, tileGrid = null;
+let voteSessionId = '';
+let leaderName = '';  // T4：直播主控角色名（空=后端默认陈明）
 let streamTarget = null;
 let kpCharQueue = [];
 let kpTypingTimer = null;
@@ -2046,8 +2048,6 @@ function resetBtn() {
 let voteCounts = {a: 0, b: 0, c: 0};
 let voteChosen = null;
 let voteTimerId = null;
-let voteSessionId = '';
-let leaderName = '';  // T4：直播主控角色名（空=后端默认陈明）
 
 // T4：主控选择——高亮对应角色卡（通用：按当前显示的所有角色卡 id 匹配，
 // 不依赖固定的 COC 名字数组，适配任意世界观的角色名单）
