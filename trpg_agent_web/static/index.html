@@ -1924,8 +1924,9 @@ function startGame() {
 
   es.addEventListener('item_pickup', (e) => {
     const d = JSON.parse(e.data);
-    addLog('item', '', '📦 ' + d.speaker + ' 獲得: ' + d.items.join(', '));
-    showItemPopup(d.items.join('、'));
+    const itemsStr = Array.isArray(d.items) ? d.items.join(', ') : String(d.items || '');
+    addLog('item', '', '📦 ' + d.speaker + ' 獲得: ' + itemsStr);
+    showItemPopup(itemsStr);
     // 更新角色物品栏
     if (d.inventory) {
       const invEl = document.getElementById('inv-' + d.speaker);
@@ -2379,8 +2380,10 @@ function showItemPopup(text) {
 /* ── 房间物品 ── */
 function updateRoomItems(room) {
   const el = document.getElementById('room-items');
-  if (room.items && room.items.length > 0) {
-    el.textContent = ' ' + room.items.join(' · ');
+  // 后端 room_context 的 items 是字符串（prompt 注入用），前端需兼容数组/字符串
+  const items = room.items ? (Array.isArray(room.items) ? room.items.join(' · ') : String(room.items)) : '';
+  if (items && items !== '无') {
+    el.textContent = ' ' + items;
     el.classList.add('show');
   } else {
     el.classList.remove('show');
