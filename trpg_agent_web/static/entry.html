@@ -71,36 +71,14 @@
     <code>deepseek-v4-flash @ opencode.ai/zen/go/v1</code>
   </div>
 
-  <div class="field" style="margin-top:18px">
-    <label>世界观</label>
-    <select id="world">
-      <option value="infinite_flow">无限流（咒怨 / 生化 / 修仙）</option>
-      <option value="coc">克苏鲁 COC</option>
-      <option value="harry_potter">哈利波特</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>模式</label>
-    <select id="mode">
-      <option value="ai">AI 自动</option>
-      <option value="live">Live 直播投票</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>回合数</label>
-    <input id="turns" type="number" value="12" min="1" max="200">
-  </div>
-
-  <div class="checks">
-    <label><input id="compose-modules" type="checkbox" checked> 组合模块剧情</label>
-    <label><input id="load-profile" type="checkbox"> 继承轮回者</label>
+  <div class="fixed-row" style="margin-top:10px">
+    <span>世界观 / 模式</span>
+    <code>无限流 · AI 自动 · 12 轮</code>
   </div>
 
   <button id="btn-start" onclick="startEntry()">开始游戏</button>
   <div id="status"></div>
-  <div class="hint">配置由入口页固定，仅需填入 API Key。<br>开始后在新标签页打开游戏界面。</div>
+  <div class="hint">配置由入口页固定，仅需填入 API Key。<br>点击开始后直接进入游戏。</div>
 </div>
 
 <script>
@@ -122,15 +100,14 @@ function startEntry() {
     player: FIXED_MODEL,
     player_host: FIXED_HOST,
     kp_api_key: key,
-    world: document.getElementById('world').value,
-    mode: document.getElementById('mode').value,
-    turns: parseInt(document.getElementById('turns').value) || 12,
-    compose_modules: document.getElementById('compose-modules').checked,
-    load_profile: document.getElementById('load-profile').checked,
+    world: 'infinite_flow',
+    mode: 'ai',
+    turns: 12,
+    compose_modules: true,
+    load_profile: false,
   };
   sessionStorage.setItem('entry_cfg', JSON.stringify(cfg));
-  window.open('/index.html?entry=1', '_blank');
-  setTimeout(() => { status.textContent = '已打开游戏界面，可关闭本页'; btn.disabled = false; }, 800);
+  location.href = '/index.html?entry=1';
 }
 </script>
 </body>

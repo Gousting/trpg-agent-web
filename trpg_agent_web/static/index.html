@@ -1642,24 +1642,40 @@ function closeMobileRoster(force) {
 window.addEventListener('resize', syncMobileLiveVariant);
 window.addEventListener('orientationchange', syncMobileLiveVariant);
 
+function applyEntryCfg(ecfg) {
+  if (!ecfg) return;
+  if (ecfg.host) document.getElementById('ollama-host').value = ecfg.host;
+  if (ecfg.kp_api_key) document.getElementById('kp-api-key').value = ecfg.kp_api_key;
+  if (ecfg.kp) document.getElementById('kp-model').value = ecfg.kp;
+  if (ecfg.player) document.getElementById('player-model').value = ecfg.player;
+  if (ecfg.player_host) document.getElementById('player-host').value = ecfg.player_host;
+  if (ecfg.world) document.getElementById('world').value = ecfg.world;
+  if (ecfg.mode) document.getElementById('mode').value = ecfg.mode;
+  if (ecfg.turns) document.getElementById('turns').value = ecfg.turns;
+  if (ecfg.compose_modules) document.getElementById('compose-modules').checked = true;
+  if (ecfg.load_profile) document.getElementById('load-profile').checked = true;
+}
+
+// 快捷入口自动启动：?entry=1 + sessionStorage 有配置 → 加载即开始，不显示表单
+(function autoStartFromEntry() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('entry') !== '1') return;
+  try {
+    const ecfg = JSON.parse(sessionStorage.getItem('entry_cfg') || 'null');
+    if (ecfg) {
+      applyEntryCfg(ecfg);
+      startGame();
+    }
+  } catch (e) { /* 配置缺失则走手动填写 */ }
+})();
+
 function startGame() {
   // 快捷入口注入：?entry=1 时从 sessionStorage 读取入口页配置并填充控件
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('entry') === '1') {
     try {
       const ecfg = JSON.parse(sessionStorage.getItem('entry_cfg') || 'null');
-      if (ecfg) {
-        if (ecfg.host) document.getElementById('ollama-host').value = ecfg.host;
-        if (ecfg.kp_api_key) document.getElementById('kp-api-key').value = ecfg.kp_api_key;
-        if (ecfg.kp) document.getElementById('kp-model').value = ecfg.kp;
-        if (ecfg.player) document.getElementById('player-model').value = ecfg.player;
-        if (ecfg.player_host) document.getElementById('player-host').value = ecfg.player_host;
-        if (ecfg.world) document.getElementById('world').value = ecfg.world;
-        if (ecfg.mode) document.getElementById('mode').value = ecfg.mode;
-        if (ecfg.turns) document.getElementById('turns').value = ecfg.turns;
-        if (ecfg.compose_modules) document.getElementById('compose-modules').checked = true;
-        if (ecfg.load_profile) document.getElementById('load-profile').checked = true;
-      }
+      applyEntryCfg(ecfg);
     } catch (e) { /* 配置缺失则走手动填写 */ }
   }
   document.body.classList.add('live');
