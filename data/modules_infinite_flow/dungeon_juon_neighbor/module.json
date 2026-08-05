@@ -36,6 +36,15 @@
       ],
       "mood": "anxiety",
       "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -77,7 +86,8 @@
       "leads_to": [],
       "exit_labels": {
         "dungeon_juon_deed": "追问房契的事——房子的产权证明似乎能解释什么",
-        "dungeon_juon_hallway": "该知道的都知道了，返回佐伯家"
+        "dungeon_juon_hallway": "该知道的都知道了，返回佐伯家",
+        "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
       "guidance": "咒怨分支·情报层。提供背景故事与可选房契线索，完成后返回主线走廊。"
     }

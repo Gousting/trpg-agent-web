@@ -27,6 +27,15 @@
       ],
       "mood": "dread",
       "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -65,7 +74,8 @@
       "vote_prompt": "安静的宿舍区给你们喘息的机会，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_rs_lab": "休整完毕，返回实验室"
+        "dungeon_rs_lab": "休整完毕，返回实验室",
+        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
       "guidance": "生化分支·休整层。短暂休整与背景补全，完成后返回实验室。"
     }

@@ -48,6 +48,15 @@
       ],
       "mood": "serene",
       "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "xt_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -90,7 +99,8 @@
       "exit_labels": {
         "dungeon_xiuxian_trial": "跟随少年前往试炼场",
         "dungeon_xiuxian_library": "绕道前往藏经阁，寻找修炼功法",
-        "dungeon_xiuxian_field": "先探灵田，采集灵药"
+        "dungeon_xiuxian_field": "先探灵田，采集灵药",
+        "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
       "guidance": "修仙副本入口。仙侠氛围，天赋测试与规则了解。"
     }
@@ -102,5 +112,6 @@
       "attitude": "friendly"
     }
   ],
-  "variance": null
+  "variance": null,
+  "reusable": true
 }

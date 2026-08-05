@@ -50,27 +50,27 @@ class TestRsDungeonGraph:
     def test_entrance_three_exits(self):
         rs = _compile_rs(self.composer)
         targets = _scene_targets(rs, "dungeon_rs_entrance::tram")
-        assert targets == ["dungeon_rs_armory", "dungeon_rs_corridor", "dungeon_rs_vent"], targets
+        assert targets == ["dungeon_rs_armory", "dungeon_rs_corridor", "dungeon_rs_vent", "hub_plaza"], targets
 
     def test_corridor_three_exits(self):
         rs = _compile_rs(self.composer)
         targets = _scene_targets(rs, "dungeon_rs_corridor::corridor")
-        assert targets == ["dungeon_rs_canteen", "dungeon_rs_lab", "dungeon_rs_monitor"], targets
+        assert targets == ["dungeon_rs_canteen", "dungeon_rs_lab", "dungeon_rs_monitor", "hub_plaza"], targets
 
     def test_lab_three_exits(self):
         rs = _compile_rs(self.composer)
         targets = _scene_targets(rs, "dungeon_rs_lab::lab")
-        assert targets == ["dungeon_rs_autopsy", "dungeon_rs_boss", "dungeon_rs_dorm"], targets
+        assert targets == ["dungeon_rs_autopsy", "dungeon_rs_boss", "dungeon_rs_dorm", "hub_plaza"], targets
 
     def test_branch_modules_return_to_mainline(self):
         rs = _compile_rs(self.composer)
         # 前置分支回 corridor
-        assert _scene_targets(rs, "dungeon_rs_armory::armory") == ["dungeon_rs_corridor"]
-        assert _scene_targets(rs, "dungeon_rs_monitor::monitor") == ["dungeon_rs_corridor"]
-        assert _scene_targets(rs, "dungeon_rs_canteen::canteen") == ["dungeon_rs_corridor"]
+        assert _scene_targets(rs, "dungeon_rs_armory::armory") == ["dungeon_rs_corridor", "hub_plaza"]
+        assert _scene_targets(rs, "dungeon_rs_monitor::monitor") == ["dungeon_rs_corridor", "hub_plaza"]
+        assert _scene_targets(rs, "dungeon_rs_canteen::canteen") == ["dungeon_rs_corridor", "hub_plaza"]
         # 深层分支回 lab
-        assert _scene_targets(rs, "dungeon_rs_autopsy::autopsy") == ["dungeon_rs_lab"]
-        assert _scene_targets(rs, "dungeon_rs_dorm::dorm") == ["dungeon_rs_lab"]
+        assert _scene_targets(rs, "dungeon_rs_autopsy::autopsy") == ["dungeon_rs_lab", "hub_plaza"]
+        assert _scene_targets(rs, "dungeon_rs_dorm::dorm") == ["dungeon_rs_lab", "hub_plaza"]
 
     def test_vent_shortcut_jumps_to_lab(self):
         rs = _compile_rs(self.composer)

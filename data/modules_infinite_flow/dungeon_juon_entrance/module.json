@@ -48,6 +48,15 @@
       ],
       "mood": "panic",
       "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -88,11 +97,13 @@
       "exit_labels": {
         "dungeon_juon_hallway": "踏入佐伯家大门，进入二楼走廊",
         "dungeon_juon_neighbor": "敲响邻居家的门，打听佐伯家的事",
-        "dungeon_juon_well": "绕到屋后，查看庭院里的枯井"
+        "dungeon_juon_well": "绕到屋后，查看庭院里的枯井",
+        "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
       "guidance": "咒怨副本入口。经典日式恐怖氛围，进入宅子前的情报收集与分支选择。"
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "reusable": true
 }

@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v1.11 — 无限流撤退口补齐 + entrance reusable (2026-08-05)
+
+### 模块数据 (`data/modules_infinite_flow/*`)
+
+- 26 个非 BOSS 模块加"撤退回主神空间"出口（`exits.flee` → hub + `exit_labels.hub_plaza`），依据 v2 设计 §3.3-4；attic 已有撤退口跳过
+- 三个 entrance 模块标 `reusable: true`，支持撤退后重试同一副本
+- 新增幂等批量脚本 `scripts/add_retreat_exits.py`
+
+### 测试
+
+- 出口图断言同步（3 出口 → 3+撤退口）：`test_juon_branches.py` / `test_rs_dungeon_graph.py` / `test_xt_dungeon_graph.py`
+- 全量 266 passed 零回归；`verify_infinite_flow.py` 验证 9 seed BOSS 100% 可达
+
 ## v1.10 — 世界观驱动前端 UI + selectedMode 作用域修复 (2026-08-04)
 
 ### Web 前端 (`trpg_agent_web/static/index.html`)

@@ -46,6 +46,15 @@
       ],
       "mood": "serene",
       "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "xt_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -88,7 +97,8 @@
       "exit_labels": {
         "dungeon_xiuxian_danfang": "通过试炼，前往丹房",
         "dungeon_xiuxian_arena": "前往演武场，与青云宗弟子切磋",
-        "dungeon_xiuxian_mentor": "拜访传功长老，请教修炼功法"
+        "dungeon_xiuxian_mentor": "拜访传功长老，请教修炼功法",
+        "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
       "guidance": "修仙副本中层。选剑定缘，埋下青云宗阴谋的伏笔。"
     }

@@ -32,13 +32,14 @@ def _targets(adv, scene_id: str) -> set[str]:
 
 class TestJuonBranchGraph:
     def test_entrance_three_exits_no_ghost(self):
-        """entrance 恰有三出口：主线 + neighbor + well，不含其他幽灵目标。"""
+        """entrance 三出口 + 撤退口：主线 + neighbor + well + hub，不含其他幽灵目标。"""
         adv, _ = _compile()
         targets = _targets(adv, "dungeon_juon_entrance::gate")
         assert targets == {
             "dungeon_juon_hallway::hallway",
             "dungeon_juon_neighbor::living_room",
             "dungeon_juon_well::yard",
+            "hub_plaza::plaza",
         }, f"entrance 出口异常: {targets}"
 
     def test_hallway_three_exits(self):
@@ -48,6 +49,7 @@ class TestJuonBranchGraph:
             "dungeon_juon_attic::attic",
             "dungeon_juon_bathroom::bath",
             "dungeon_juon_storage::closet",
+            "hub_plaza::plaza",
         }, f"hallway 出口异常: {targets}"
 
     def test_attic_three_exits_with_retreat(self):
@@ -64,10 +66,10 @@ class TestJuonBranchGraph:
         """分支模块出口回主线（reusable 回边），副本链不因分支断裂。"""
         adv, _ = _compile()
         for scene_id, expected in {
-            "dungeon_juon_well::yard": {"dungeon_juon_hallway::hallway"},
-            "dungeon_juon_storage::closet": {"dungeon_juon_hallway::hallway"},
-            "dungeon_juon_bathroom::bath": {"dungeon_juon_hallway::hallway"},
-            "dungeon_juon_diary::attic_diary": {"dungeon_juon_attic::attic"},
+            "dungeon_juon_well::yard": {"dungeon_juon_hallway::hallway", "hub_plaza::plaza"},
+            "dungeon_juon_storage::closet": {"dungeon_juon_hallway::hallway", "hub_plaza::plaza"},
+            "dungeon_juon_bathroom::bath": {"dungeon_juon_hallway::hallway", "hub_plaza::plaza"},
+            "dungeon_juon_diary::attic_diary": {"dungeon_juon_attic::attic", "hub_plaza::plaza"},
         }.items():
             assert _targets(adv, scene_id) == expected, f"{scene_id} 回边异常"
 
@@ -77,8 +79,12 @@ class TestJuonBranchGraph:
         assert _targets(adv, "dungeon_juon_neighbor::living_room") == {
             "dungeon_juon_deed::deed",
             "dungeon_juon_hallway::hallway",
+            "hub_plaza::plaza",
         }
-        assert _targets(adv, "dungeon_juon_deed::deed") == {"dungeon_juon_hallway::hallway"}
+        assert _targets(adv, "dungeon_juon_deed::deed") == {
+            "dungeon_juon_hallway::hallway",
+            "hub_plaza::plaza",
+        }
 
     def test_pool_still_validates(self):
         """加 6 个分支模块后 validate 零问题。"""

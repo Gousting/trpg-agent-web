@@ -350,3 +350,31 @@ data/modules_harry_potter/     ← 哈利波特（4 模块，独立）
 ### 验证
 
 全链路跑通，出口机制/叙事/检定核心链路验证通过。状态：✅ 完成
+
+---
+
+## 2026-08-05 — 无限流撤退口补齐 + entrance reusable（验收 5 前置）
+
+### 变更内容
+
+依据 `docs/infinite-flow-v2-design.md` §3.3-4（每个非 BOSS 模块必须有"撤退回 hub"出口）与验收标准第 5 条（中途撤退回 hub 可行）：
+
+- **26 个非 BOSS 模块加撤退口**：模块级 `exits` 追加 `flee` 出口（`next_location_type: hub`、`provides_clues: <world>_retreated`、mood anxiety、label "撤退回主神空间（无奖励）"），场景级 `exit_labels` 追加 `hub_plaza` 映射（世界观专属文案：咒怨/生化/修仙各一句）。attic 原本已有撤退口（模板来源），跳过
+- **三个 entrance 标 `reusable: true`**：撤退后再选同一副本时入口模块豁免 used_ids 去重，支持重试；此前只有 hallway/corridor/trial 等链中模块可复用，entrance 会挡路
+- 新增脚本 `scripts/add_retreat_exits.py`（幂等，可重跑）
+
+### 涉及文件
+
+| 文件 | 改动 |
+|---|---|
+| `data/modules_infinite_flow/*/module.json` ×26 | exits + exit_labels 撤退口 |
+| `data/modules_infinite_flow/dungeon_{juon,rs,xiuxian}_entrance/module.json` ×3 | `reusable: true` |
+| `tests/test_juon_branches.py` / `test_rs_dungeon_graph.py` / `test_xt_dungeon_graph.py` | 出口图断言同步（3 出口 → 3+撤退口，期望数组加 hub_plaza） |
+| `scripts/add_retreat_exits.py` | 新增批量脚本 |
+
+### 验证
+
+- `scripts/verify_infinite_flow.py`：静态校验无问题；组合后 126 场景/117 节点，每模块多 `_N_to_hub_plaza` 转场；9 个 seed BOSS 100% 可达
+- 全量测试：`266 passed`（原 254 + 同步断言），零回归
+
+状态：✅ 完成

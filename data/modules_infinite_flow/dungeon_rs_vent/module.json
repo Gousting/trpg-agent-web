@@ -37,6 +37,15 @@
       ],
       "mood": "anxiety",
       "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -76,7 +85,8 @@
       "leads_to": [],
       "exit_labels": {
         "dungeon_rs_lab": "钻出管道，直达实验室区",
-        "dungeon_rs_corridor": "退回列车残骸，改走正门"
+        "dungeon_rs_corridor": "退回列车残骸，改走正门",
+        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
       "guidance": "生化分支·捷径层。高风险高回报的跳层路线，成功后直达实验室。"
     }

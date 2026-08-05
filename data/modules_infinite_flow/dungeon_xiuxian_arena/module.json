@@ -27,6 +27,15 @@
       ],
       "mood": "dread",
       "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "xt_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -67,7 +76,8 @@
       "vote_prompt": "内门剑修的挑战摆在面前，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_xiuxian_danfang": "比试结束，前往丹房"
+        "dungeon_xiuxian_danfang": "比试结束，前往丹房",
+        "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
       "guidance": "修仙分支·精英战层。挑战内门剑修获取情报，完成后前往丹房。"
     }

@@ -27,6 +27,15 @@
       ],
       "mood": "anxiety",
       "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -61,7 +70,8 @@
       "vote_prompt": "浴室的异象让你们脊背发凉，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_juon_hallway": "冲出浴室，回到二楼走廊"
+        "dungeon_juon_hallway": "冲出浴室，回到二楼走廊",
+        "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
       "guidance": "咒怨分支·SAN 事件。高精神压力场景，SAN 检定触发。完成后返回主线走廊。"
     }

@@ -27,6 +27,15 @@
       ],
       "mood": "anxiety",
       "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -65,7 +74,8 @@
       "vote_prompt": "监控画面记录着实验体的情报，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_rs_corridor": "获取情报，返回走廊"
+        "dungeon_rs_corridor": "获取情报，返回走廊",
+        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
       "guidance": "生化分支·情报层。提供BOSS弱点情报，完成后返回主线走廊。"
     }

@@ -37,6 +37,15 @@
       ],
       "mood": "dread",
       "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "xt_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -76,7 +85,8 @@
       "leads_to": [],
       "exit_labels": {
         "dungeon_xiuxian_boss": "穿过禁地，直逼丹房后门",
-        "dungeon_xiuxian_danfang": "退出禁地，返回丹房正门"
+        "dungeon_xiuxian_danfang": "退出禁地，返回丹房正门",
+        "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
       "guidance": "修仙分支·危险捷径层。高风险跳层直逼BOSS，或原路返回丹房。"
     }

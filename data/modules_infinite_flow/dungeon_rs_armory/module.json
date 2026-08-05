@@ -27,6 +27,15 @@
       ],
       "mood": "anxiety",
       "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -65,7 +74,8 @@
       "vote_prompt": "武器库里的感染者缓缓起身，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_rs_corridor": "取得装备，返回走廊继续深入"
+        "dungeon_rs_corridor": "取得装备，返回走廊继续深入",
+        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
       "guidance": "生化分支·装备层。可选战斗获取装备线索，完成后返回主线走廊。"
     }

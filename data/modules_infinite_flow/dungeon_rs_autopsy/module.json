@@ -27,6 +27,15 @@
       ],
       "mood": "dread",
       "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -65,7 +74,8 @@
       "vote_prompt": "解剖台上的研究数据近在眼前，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_rs_lab": "获取弱点情报，返回实验室"
+        "dungeon_rs_lab": "获取弱点情报，返回实验室",
+        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
       "guidance": "生化分支·削弱层。研究样本获取BOSS弱点（rs_boss_weakened），削弱暴君战斗。"
     }

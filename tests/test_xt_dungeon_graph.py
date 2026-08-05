@@ -47,27 +47,27 @@ class TestXtDungeonGraph:
     def test_entrance_three_exits(self):
         scenes = _compile_xt(self.composer)
         targets = _scene_targets(scenes, "dungeon_xiuxian_entrance::mountain_gate")
-        assert targets == ["dungeon_xiuxian_field", "dungeon_xiuxian_library", "dungeon_xiuxian_trial"], targets
+        assert targets == ["dungeon_xiuxian_field", "dungeon_xiuxian_library", "dungeon_xiuxian_trial", "hub_plaza"], targets
 
     def test_trial_three_exits(self):
         scenes = _compile_xt(self.composer)
         targets = _scene_targets(scenes, "dungeon_xiuxian_trial::trial_field")
-        assert targets == ["dungeon_xiuxian_arena", "dungeon_xiuxian_danfang", "dungeon_xiuxian_mentor"], targets
+        assert targets == ["dungeon_xiuxian_arena", "dungeon_xiuxian_danfang", "dungeon_xiuxian_mentor", "hub_plaza"], targets
 
     def test_danfang_three_exits(self):
         scenes = _compile_xt(self.composer)
         targets = _scene_targets(scenes, "dungeon_xiuxian_danfang::danfang")
-        assert targets == ["dungeon_xiuxian_boss", "dungeon_xiuxian_court", "dungeon_xiuxian_forbidden"], targets
+        assert targets == ["dungeon_xiuxian_boss", "dungeon_xiuxian_court", "dungeon_xiuxian_forbidden", "hub_plaza"], targets
 
     def test_branch_modules_return_to_mainline(self):
         scenes = _compile_xt(self.composer)
         # 前置分支回 trial
-        assert _scene_targets(scenes, "dungeon_xiuxian_library::library") == ["dungeon_xiuxian_trial"]
-        assert _scene_targets(scenes, "dungeon_xiuxian_field::field") == ["dungeon_xiuxian_trial"]
+        assert _scene_targets(scenes, "dungeon_xiuxian_library::library") == ["dungeon_xiuxian_trial", "hub_plaza"]
+        assert _scene_targets(scenes, "dungeon_xiuxian_field::field") == ["dungeon_xiuxian_trial", "hub_plaza"]
         # 深层分支回 danfang
-        assert _scene_targets(scenes, "dungeon_xiuxian_arena::arena") == ["dungeon_xiuxian_danfang"]
-        assert _scene_targets(scenes, "dungeon_xiuxian_mentor::mentor_hall") == ["dungeon_xiuxian_danfang"]
-        assert _scene_targets(scenes, "dungeon_xiuxian_court::court") == ["dungeon_xiuxian_danfang"]
+        assert _scene_targets(scenes, "dungeon_xiuxian_arena::arena") == ["dungeon_xiuxian_danfang", "hub_plaza"]
+        assert _scene_targets(scenes, "dungeon_xiuxian_mentor::mentor_hall") == ["dungeon_xiuxian_danfang", "hub_plaza"]
+        assert _scene_targets(scenes, "dungeon_xiuxian_court::court") == ["dungeon_xiuxian_danfang", "hub_plaza"]
 
     def test_forbidden_shortcut_jumps_to_boss(self):
         scenes = _compile_xt(self.composer)

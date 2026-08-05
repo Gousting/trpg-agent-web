@@ -27,6 +27,15 @@
       ],
       "mood": "serene",
       "next_location_type": "dungeon_xt"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "xt_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -67,7 +76,8 @@
       "vote_prompt": "藏经阁的书香中，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_xiuxian_trial": "参悟功法，返回试炼场"
+        "dungeon_xiuxian_trial": "参悟功法，返回试炼场",
+        "hub_plaza": "修仙之路不可强求——撤退回主神空间"
       },
       "guidance": "修仙分支·机缘层。获取修炼功法增益，完成后返回试炼场。"
     }

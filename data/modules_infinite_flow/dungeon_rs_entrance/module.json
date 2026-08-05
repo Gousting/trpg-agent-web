@@ -48,6 +48,15 @@
       ],
       "mood": "panic",
       "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -88,11 +97,13 @@
       "exit_labels": {
         "dungeon_rs_corridor": "穿过隧道，深入蜂巢地下通道",
         "dungeon_rs_armory": "搜寻列车旁的武器库，找武器和补给",
-        "dungeon_rs_vent": "钻进通风管道，抄近路深入"
+        "dungeon_rs_vent": "钻进通风管道，抄近路深入",
+        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
       "guidance": "生化副本入口。获取装备和地图信息，决定深入策略。"
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "reusable": true
 }

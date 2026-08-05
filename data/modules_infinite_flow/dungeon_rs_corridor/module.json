@@ -46,6 +46,15 @@
       ],
       "mood": "anxiety",
       "next_location_type": "dungeon_rs"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -86,7 +95,8 @@
       "exit_labels": {
         "dungeon_rs_lab": "继续深入，前往T病毒实验室",
         "dungeon_rs_monitor": "进入监控室，查看设施监控录像",
-        "dungeon_rs_canteen": "搜索员工食堂，寻找补给"
+        "dungeon_rs_canteen": "搜索员工食堂，寻找补给",
+        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
       },
       "guidance": "生化副本中层。收集情报或搜索补给，准备面对第一波感染者。"
     }

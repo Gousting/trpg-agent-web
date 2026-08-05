@@ -27,6 +27,15 @@
       ],
       "mood": "dread",
       "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -57,7 +66,8 @@
       "vote_prompt": "日记揭示了诅咒的真相，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_juon_attic": "带着日记的真相，回到阁楼"
+        "dungeon_juon_attic": "带着日记的真相，回到阁楼",
+        "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
       "guidance": "咒怨分支·关键线索。揭示俊雄与伽椰子的真相——战斗中喊出俊雄的名字可削弱伽椰子（呼应 BOSS 模块 rules）。完成后返回阁楼。"
     }

@@ -27,6 +27,15 @@
       ],
       "mood": "anxiety",
       "next_location_type": "dungeon_jy"
+    },
+    {
+      "id": "flee",
+      "label": "撤退回主神空间（无奖励）",
+      "provides_clues": [
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
     }
   ],
   "scenes": [
@@ -65,7 +74,8 @@
       "vote_prompt": "枯井的呼唤越来越清晰，你们选择？",
       "leads_to": [],
       "exit_labels": {
-        "dungeon_juon_hallway": "退回屋内，回到二楼走廊"
+        "dungeon_juon_hallway": "退回屋内，回到二楼走廊",
+        "hub_plaza": "咒怨太深了——撤退回主神空间"
       },
       "guidance": "咒怨分支·恐怖事件。SAN 检定高发，获得关键信物线索。完成后返回主线走廊。"
     }
