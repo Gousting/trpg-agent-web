@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## v1.14 — 无限流全量测试修复：轮回者崩溃 + 远程玩家支持 (2026-08-05)
+
+### Bug 修复（无限流模式实测发现）
+
+- **拾取崩溃**：`_handle_pickup` 访问 `inv_state.inventory`，`Reincarnator` 无此属性 → 第一轮拾取即 AttributeError 中断游戏流。修复：`Reincarnator` 补 `inventory` 字段 + to_dict/from_dict 序列化
+- **检定崩溃**：`_dice_consequence` 访问 `inv_state.san`，轮回者无 SAN → 检定失败后崩溃、无 done 收尾。修复：无限流分支（`hasattr(san)` 判断）失败后果直接走 HP 伤害
+
+### 功能：AI 玩家支持远程 API
+
+- `_ai_player_stream` / `_ai_teammates_action` / `_ai_pick_option` 三处硬编码 `OllamaClient` 改为 `_make_client(player_host, ..., api_key)`，KP+玩家可同时用远程模型（如 deepseek-v4-flash 双端）
+- 调用点透传 `kp_api_key`
+
+### 验证
+
+- 全量 273 passed 零回归
+- 真实跑团（deepseek-flash KP + 本地 ornith）：19 轮完整跑到 done，战斗/检定/拾取全链路，轮回者 HP 12→8、AP 15→16
+- 真实跑团（deepseek-flash 双端）：22 轮 KP/16 轮玩家跑到 done，12 次检定、5 次投票（多场战斗）、轮回者战败 HP 0 重伤撤退，速度约为本地 ornith 的 2 倍
+
 ## v1.13 — 无限流模块机制差异化：combat/rest/trap + 选项贴合剧情 (2026-08-05)
 
 ### 模块机制（阶段一）
