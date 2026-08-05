@@ -20,17 +20,28 @@
   },
   "exits": [
     {
-      "id": "back",
-      "label": "比试结束，前往丹房",
+      "id": "victory",
+      "label": "击败内门剑修，获得丹房线索",
       "provides_clues": [
-        "xt_arena_done"
+        "xt_arena_done",
+        "xt_arena_clue"
       ],
-      "mood": "dread",
+      "mood": "relief",
       "next_location_type": "dungeon_xt"
     },
     {
+      "id": "defeat",
+      "label": "不敌剑修，撤回主神空间",
+      "provides_clues": [
+        "xt_arena_failed",
+        "xt_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
+    },
+    {
       "id": "flee",
-      "label": "撤退回主神空间（无奖励）",
+      "label": "跳下石台逃走，撤回主神空间",
       "provides_clues": [
         "xt_retreated"
       ],
@@ -75,10 +86,7 @@
       ],
       "vote_prompt": "内门剑修的挑战摆在面前，你们选择？",
       "leads_to": [],
-      "exit_labels": {
-        "dungeon_xiuxian_danfang": "比试结束，前往丹房",
-        "hub_plaza": "修仙之路不可强求——撤退回主神空间"
-      },
+      "exit_labels": {},
       "guidance": "修仙分支·精英战层。挑战内门剑修获取情报，完成后前往丹房。",
       "image": "/images/scenes/inf_dungeon_xiuxian_arena_00001_.png"
     }
@@ -90,5 +98,42 @@
       "attitude": "hostile"
     }
   ],
-  "variance": null
+  "variance": null,
+  "module_type": "combat",
+  "enemies": [
+    {
+      "id": "inner_disciple",
+      "name": "内门剑修·青云",
+      "hp": 20,
+      "armor": 1,
+      "attack_bonus": 4,
+      "damage": "1d8+2",
+      "behavior": "剑法凌厉，每回合寻找破绽发动突刺，剑身缠绕着青色灵气"
+    }
+  ],
+  "environment": {
+    "terrain": "悬空的演武石台，四周是云海",
+    "lighting": "normal",
+    "hazards": [
+      "石台边缘——后退可能坠落",
+      "插地的剑旗——可拔起作为武器"
+    ]
+  },
+  "outcomes": {
+    "victory": {
+      "label": "胜利",
+      "consequence": "剑修收剑而立，眼中闪过一丝赞许。「不错——丹房的老家伙最怕雷法，你们若能找到雷属性的法宝，胜算大增。」他转身离去，留下这句话。",
+      "reward": "获得战斗线索"
+    },
+    "defeat": {
+      "label": "失败",
+      "consequence": "你们被击退，负伤退出。",
+      "reward": "无奖励"
+    },
+    "flee": {
+      "label": "撤退",
+      "consequence": "你们选择撤退，撤回主神空间。",
+      "reward": "无奖励"
+    }
+  }
 }

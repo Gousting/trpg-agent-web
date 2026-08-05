@@ -407,3 +407,38 @@ data/modules_harry_potter/     ← 哈利波特（4 模块，独立）
 - VLM 审查 28/28 PASS
 
 状态：✅ 完成
+
+---
+
+## 2026-08-05 — 无限流模块机制差异化（阶段一：combat/rest/trap + 选项贴合剧情）
+
+### 变更内容
+
+用户反馈三个问题：副本机制无差异（所有非 boss 模块行为等同叙事）、投票选项泛化（"观察/放弃观察"类填充词）、可玩性不足。阶段一解决前两个：
+
+- **combat 遭遇战**：storage/armory/arena 标 `module_type: combat` + enemies/environment/outcomes（敌人数据贴合剧情：白衣怨影/感染保安/内门剑修）。三出口语义：victory 回主线带线索、defeat 负伤撤回主神空间、flee 主动撤退。**踩坑记录**：①combat 模块原始场景 exit_labels 会导致 authored 认领错位（victory/defeat 各认领一个目标，flee 因随机匹配被关闭成死路）——清空 exit_labels 走随机匹配解决；②defeat/flee 同 target（hub）时 authored 去重会丢一个——让 defeat/flee 都指向 hub 后随机匹配正常
+- **rest 补给**：canteen/dorm/field 标 `module_type: rest` + `rest` 数据，进入自动恢复（无限流恢复轮回者 HP，san 折算 HP；COC 恢复全员 HP/SAN）
+- **trap 陷阱**：well/vent/forbidden 标 `module_type: trap` + `trap` 数据（check/difficulty/hp_loss/san_loss/success_clue），进入时 d20 检定，成功加线索、失败扣 HP（无限流 san 折算 HP）
+- **组合器**：`ModuleMeta` 新增 `rest`/`trap` 字段（from_dict 解析）
+- **运行时**：`web_server._module_scene_effects()` helper，在战斗跳转和投票移动两个场景切换点触发
+- **选项贴合剧情**：删除泛用 filler，出口不足 3 个时用场景 `opportunities`；选中机会选项直接作为玩家行动进入检定流程（有实际后果）
+- 新增 `scripts/annotate_module_types.py`（9 模块数据标注脚本，可重跑）
+
+### 涉及文件
+
+| 文件 | 改动 |
+|---|---|
+| `data/modules_infinite_flow/{storage,armory,arena,canteen,dorm,field,well,vent,forbidden}/module.json` | 类型 + 机制数据 |
+| `trpg_agent/adventure/module_composer.py` | ModuleMeta.rest/trap |
+| `trpg_agent_web/web_server.py` | _module_scene_effects + 两处调用 + opportunities 选项 |
+| `tests/test_module_effects.py` | 新增 7 用例 |
+| `tests/test_{juon_branches,rs_dungeon_graph,xt_dungeon_graph}.py` | 出口断言同步（combat 场景化） |
+| `scripts/annotate_module_types.py` | 新增 |
+
+### 验证
+
+- 全量 273 passed（+7 新用例），零回归
+- combat 三出口组合验证：victory 回主线、defeat/flee 回 hub（无死路）
+- 出口图测试更新：storage::closet → storage::combat_encounter 等
+
+状态：✅ 完成

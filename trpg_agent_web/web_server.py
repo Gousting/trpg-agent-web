@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 import os
+import random
 import re
 import shutil
 import time
@@ -605,6 +606,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     
     # ── 模块组合模式 ──────────────────────────
     adventure: Adventure | None = None
+    composer = None  # ModuleComposer | None（rest/trap 机制查询用）
     if compose_modules:
         yield _sse("status", {"text": "组合模块剧情..."})
         modules_dir = _modules_dir_for_world(world)
@@ -1042,6 +1044,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 }
                 yield _sse("room_change", room_change)
                 await asyncio.sleep(0.5)
+                # 模块机制：rest/trap 效果（战斗跳转进入的新场景）
+                for _ef in _module_scene_effects(composer, adventure, session.state.scene_id, session, is_infinite_flow):
+                    yield _sse("status", {"text": _ef})
+                    await asyncio.sleep(0.3)
 
             yield _sse("kp_stream_end", {
                 "state": _state_snapshot(session),
@@ -1086,6 +1092,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             is_live = mode == "live"
             vote_timeout = vote_seconds if is_live else VOTE_WINDOW_SECONDS
             vote_targets: dict[str, str] = {}
+            opp_actions: dict[str, str] = {}  # 机会选项（无 target，选中走检定）
             if adventure is not None:
                 # 模块模式：投票选项 = 当前场景的真实出口，投票结果将驱动场景切换
                 exits = adventure.scene_exits(
@@ -1096,10 +1103,14 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 for letter, exit_view in zip(letters, exits):
                     vote_options[letter] = exit_view.label
                     vote_targets[letter] = exit_view.target_id
-                # 出口不足 3 个时，用不跳转场景的自由行动选项补齐按键
-                fillers = ["继续深入调查当前场景", "谨慎地观察四周", "与同伴商议下一步行动"]
-                for letter, filler in zip(letters[len(vote_options):], fillers):
-                    vote_options[letter] = filler
+                # 出口不足 3 个时，用场景 opportunities（作者写的剧情贴合互动）补齐，
+                # 而非泛用填充词；选中机会选项会作为玩家行动进入检定流程
+                if len(vote_options) < 3:
+                    scene_obj = adventure.get_scene(session.state.scene_id)
+                    opps = [o.text for o in (scene_obj.opportunities if scene_obj else []) or [] if o.text]
+                    for letter, opp in zip(letters[len(vote_options):], opps):
+                        vote_options[letter] = opp
+                        opp_actions[letter] = opp
             else:
                 vote_options = {
                     "a": "深入调查当前的线索",
@@ -1168,8 +1179,17 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 moved_scene = session.move_to_scene(target_scene_id, adventure)
                 if moved_scene is not None:
                     moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+                # 模块机制：rest/trap 效果（投票移动进入的新场景）
+                if moved_scene is not None and session.state is not None:
+                    for _ef in _module_scene_effects(composer, adventure, session.state.scene_id, session, is_infinite_flow):
+                        yield _sse("status", {"text": _ef})
+                        await asyncio.sleep(0.3)
 
-            action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
+            if choice in opp_actions:
+                # 机会选项：直接作为玩家行动，进入检定/拾取流程（有实际后果）
+                action = opp_actions[choice]
+            else:
+                action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
             yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
             yield _sse("player_token", {"text": action, "speaker": speaker})
             if teammate_actions:
@@ -1599,6 +1619,59 @@ async def _ai_pick_option(player_host: str, player_model: str,
     except Exception:
         log.warning("AI 投票选项挑选失败，回退为默认选项 a", exc_info=True)
     return "a"
+
+
+def _module_scene_effects(composer, adventure, scene_id, session, is_infinite_flow: bool) -> list[str]:
+    """进入新场景时按模块类型触发机制（rest 恢复 / trap 检定）。返回播报文本列表。"""
+    if composer is None or session is None or session.state is None:
+        return []
+    module_id = (scene_id or "").split("::")[0]
+    mod = composer._modules.get(module_id)
+    if mod is None:
+        return []
+    meta = mod.meta
+    texts: list[str] = []
+    if meta.module_type == "rest" and meta.rest:
+        hp = int(meta.rest.get("hp_recover", 0) or 0)
+        san = int(meta.rest.get("san_recover", 0) or 0)
+        rein = session.state.reincarnator
+        if is_infinite_flow and rein is not None:
+            total = 0
+            if rein.hp < rein.max_hp:
+                total = min(rein.max_hp - rein.hp, hp + san)
+                rein.hp += total
+            texts.append(f"🍖 在「{meta.title}」稍作休整，{rein.name} 恢复了 {total} 点生命（{rein.hp}/{rein.max_hp}）")
+        else:
+            for inv in session.state.investigators:
+                if hp and inv.hp < getattr(inv, "max_hp", inv.hp):
+                    inv.hp = min(getattr(inv, "max_hp", inv.hp), inv.hp + hp)
+                if san and inv.san < getattr(inv, "max_san", inv.san):
+                    inv.san = min(getattr(inv, "max_san", inv.san), inv.san + san)
+            texts.append(f"🍖 在「{meta.title}」稍作休整，全员恢复 {hp} HP / {san} SAN")
+    elif meta.module_type == "trap" and meta.trap:
+        trap = meta.trap
+        diff = int(trap.get("difficulty", 12) or 12)
+        hp_loss = int(trap.get("hp_loss", 0) or 0)
+        san_loss = int(trap.get("san_loss", 0) or 0)
+        clue = str(trap.get("success_clue", "") or "")
+        roll = random.randint(1, 20)
+        success = roll <= diff
+        rein = session.state.reincarnator
+        if success:
+            if clue:
+                session.state.resolved_elements.add(clue)
+            texts.append(f"🎲 「{meta.title}」检定成功（d20={roll}≤{diff}）！你们识破了危险" + (f"，发现线索：{clue}" if clue else ""))
+        else:
+            total = hp_loss + san_loss
+            if is_infinite_flow and rein is not None:
+                rein.hp = max(1, rein.hp - total)
+                texts.append(f"💥 「{meta.title}」检定失败（d20={roll}>{diff}），{rein.name} 损失 {total} 点生命（{rein.hp}/{rein.max_hp}）")
+            else:
+                if session.state.investigators:
+                    inv = session.state.investigators[0]
+                    inv.hp = max(1, inv.hp - total)
+                texts.append(f"💥 「{meta.title}」检定失败（d20={roll}>{diff}），损失 {total} 点生命")
+    return texts
 
 
 def _handle_pickup(dmap: DungeonMap, inv_state, action: str) -> list[str]:

@@ -61,13 +61,17 @@ class TestXtDungeonGraph:
 
     def test_branch_modules_return_to_mainline(self):
         scenes = _compile_xt(self.composer)
-        # 前置分支回 trial
+        # 前置分支回 trial（arena 已是 combat 遭遇战，单独断言）
         assert _scene_targets(scenes, "dungeon_xiuxian_library::library") == ["dungeon_xiuxian_trial", "hub_plaza"]
         assert _scene_targets(scenes, "dungeon_xiuxian_field::field") == ["dungeon_xiuxian_trial", "hub_plaza"]
         # 深层分支回 danfang
-        assert _scene_targets(scenes, "dungeon_xiuxian_arena::arena") == ["dungeon_xiuxian_danfang", "hub_plaza"]
         assert _scene_targets(scenes, "dungeon_xiuxian_mentor::mentor_hall") == ["dungeon_xiuxian_danfang", "hub_plaza"]
         assert _scene_targets(scenes, "dungeon_xiuxian_court::court") == ["dungeon_xiuxian_danfang", "hub_plaza"]
+        # combat 遭遇战（arena）：胜利回主线（同副本模块），失败/逃跑回 hub
+        v_targets = _scene_targets(scenes, "dungeon_xiuxian_arena::combat_victory")
+        assert v_targets and "hub_plaza" not in v_targets, f"胜利应回主线: {v_targets}"
+        assert _scene_targets(scenes, "dungeon_xiuxian_arena::combat_defeat") == ["hub_plaza"]
+        assert _scene_targets(scenes, "dungeon_xiuxian_arena::combat_flee") == ["hub_plaza"]
 
     def test_forbidden_shortcut_jumps_to_boss(self):
         scenes = _compile_xt(self.composer)

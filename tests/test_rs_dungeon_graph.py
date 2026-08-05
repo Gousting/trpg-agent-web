@@ -64,13 +64,17 @@ class TestRsDungeonGraph:
 
     def test_branch_modules_return_to_mainline(self):
         rs = _compile_rs(self.composer)
-        # 前置分支回 corridor
-        assert _scene_targets(rs, "dungeon_rs_armory::armory") == ["dungeon_rs_corridor", "hub_plaza"]
+        # 前置分支回 corridor（armory 已是 combat 遭遇战，单独断言）
         assert _scene_targets(rs, "dungeon_rs_monitor::monitor") == ["dungeon_rs_corridor", "hub_plaza"]
         assert _scene_targets(rs, "dungeon_rs_canteen::canteen") == ["dungeon_rs_corridor", "hub_plaza"]
         # 深层分支回 lab
         assert _scene_targets(rs, "dungeon_rs_autopsy::autopsy") == ["dungeon_rs_lab", "hub_plaza"]
         assert _scene_targets(rs, "dungeon_rs_dorm::dorm") == ["dungeon_rs_lab", "hub_plaza"]
+        # combat 遭遇战（armory）：胜利回主线（同副本模块），失败/逃跑回 hub
+        v_targets = _scene_targets(rs, "dungeon_rs_armory::combat_victory")
+        assert v_targets and "hub_plaza" not in v_targets, f"胜利应回主线: {v_targets}"
+        assert _scene_targets(rs, "dungeon_rs_armory::combat_defeat") == ["hub_plaza"]
+        assert _scene_targets(rs, "dungeon_rs_armory::combat_flee") == ["hub_plaza"]
 
     def test_vent_shortcut_jumps_to_lab(self):
         rs = _compile_rs(self.composer)

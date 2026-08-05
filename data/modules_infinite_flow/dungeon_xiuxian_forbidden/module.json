@@ -93,5 +93,13 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "trap",
+  "trap": {
+    "check": "spirit",
+    "difficulty": 14,
+    "hp_loss": 4,
+    "san_loss": 3,
+    "success_clue": "xt_forbidden_clue"
+  }
 }

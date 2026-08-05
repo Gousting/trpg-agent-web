@@ -20,17 +20,28 @@
   },
   "exits": [
     {
-      "id": "back",
-      "label": "撤出储物间，回到走廊",
+      "id": "victory",
+      "label": "驱散白衣怨影，带着发现返回走廊",
       "provides_clues": [
-        "jy_storage_done"
+        "jy_storage_done",
+        "jy_storage_clue"
       ],
-      "mood": "anxiety",
+      "mood": "relief",
       "next_location_type": "dungeon_jy"
     },
     {
+      "id": "defeat",
+      "label": "被怨影击退，撤回主神空间",
+      "provides_clues": [
+        "jy_storage_failed",
+        "jy_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
+    },
+    {
       "id": "flee",
-      "label": "撤退回主神空间（无奖励）",
+      "label": "逃出储物间，撤回主神空间",
       "provides_clues": [
         "jy_retreated"
       ],
@@ -69,14 +80,48 @@
       ],
       "vote_prompt": "怨灵逼近，你们如何应对？",
       "leads_to": [],
-      "exit_labels": {
-        "dungeon_juon_hallway": "击退怨灵，撤出储物间回到走廊",
-        "hub_plaza": "咒怨太深了——撤退回主神空间"
-      },
+      "exit_labels": {},
       "guidance": "咒怨分支·遭遇战（叙事冲突）。HP/SAN 受损风险，胜利后获得背景线索。完成后返回主线走廊。",
       "image": "/images/scenes/inf_dungeon_juon_storage_00001_.png"
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "combat",
+  "enemies": [
+    {
+      "id": "white_shadow",
+      "name": "白衣怨影",
+      "hp": 14,
+      "armor": 0,
+      "attack_bonus": 3,
+      "damage": "1d4+2",
+      "behavior": "半透明的白衣人形在杂物堆间游走，发出嘶哑的气音"
+    }
+  ],
+  "environment": {
+    "terrain": "塞满旧被褥和纸箱的狭小储物间",
+    "lighting": "dim",
+    "hazards": [
+      "杂物堆——移动时可能绊倒",
+      "悬吊的麻绳——可用来捆住怨影"
+    ]
+  },
+  "outcomes": {
+    "victory": {
+      "label": "胜利",
+      "consequence": "怨影在麻绳与咒语的夹击下发出最后一声凄厉的哀嚎，化作灰烬消散。杂物堆深处露出一本浸血的日记——这是关于佐伯家的重要线索。",
+      "reward": "获得战斗线索"
+    },
+    "defeat": {
+      "label": "失败",
+      "consequence": "你们被击退，负伤退出。",
+      "reward": "无奖励"
+    },
+    "flee": {
+      "label": "撤退",
+      "consequence": "你们选择撤退，撤回主神空间。",
+      "reward": "无奖励"
+    }
+  }
 }

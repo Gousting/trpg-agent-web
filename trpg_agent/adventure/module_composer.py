@@ -223,6 +223,12 @@ class ModuleMeta:
     # 模块类型——story（默认，叙事模块）或 combat（战斗遭遇）
     module_type: str = "story"
 
+    # rest（补给休整）数据——{hp_recover, san_recover}
+    rest: dict[str, int] = field(default_factory=dict)
+
+    # trap（陷阱/恐怖事件）数据——{check, difficulty, hp_loss, san_loss, success_clue}
+    trap: dict[str, object] = field(default_factory=dict)
+
     @classmethod
     def from_dict(cls, d: dict) -> "ModuleMeta":
         entry = d.get("entry", {}) or {}
@@ -256,6 +262,8 @@ class ModuleMeta:
             is_ending=bool(d.get("is_ending", False)),
             reusable=bool(d.get("reusable", False)),
             module_type=str(d.get("module_type", "") or d.get("type", "") or "story"),
+            rest={str(k): int(v) for k, v in (d.get("rest") or {}).items()},
+            trap=dict(d.get("trap") or {}),
         )
 
 

@@ -82,5 +82,13 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "trap",
+  "trap": {
+    "check": "spirit",
+    "difficulty": 12,
+    "hp_loss": 1,
+    "san_loss": 2,
+    "success_clue": "jy_well_clue"
+  }
 }

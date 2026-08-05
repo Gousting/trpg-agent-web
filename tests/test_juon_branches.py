@@ -48,7 +48,7 @@ class TestJuonBranchGraph:
         assert targets == {
             "dungeon_juon_attic::attic",
             "dungeon_juon_bathroom::bath",
-            "dungeon_juon_storage::closet",
+            "dungeon_juon_storage::combat_encounter",
             "hub_plaza::plaza",
         }, f"hallway 出口异常: {targets}"
 
@@ -63,15 +63,21 @@ class TestJuonBranchGraph:
         }, f"attic 出口异常: {targets}"
 
     def test_branch_modules_return_to_mainline(self):
-        """分支模块出口回主线（reusable 回边），副本链不因分支断裂。"""
+        """分支模块出口回主线（reusable 回边），副本链不因分支断裂。
+        storage 已是 combat 遭遇战——战斗胜利回主线、失败/逃跑回 hub。"""
         adv, _ = _compile()
         for scene_id, expected in {
             "dungeon_juon_well::yard": {"dungeon_juon_hallway::hallway", "hub_plaza::plaza"},
-            "dungeon_juon_storage::closet": {"dungeon_juon_hallway::hallway", "hub_plaza::plaza"},
             "dungeon_juon_bathroom::bath": {"dungeon_juon_hallway::hallway", "hub_plaza::plaza"},
             "dungeon_juon_diary::attic_diary": {"dungeon_juon_attic::attic", "hub_plaza::plaza"},
         }.items():
             assert _targets(adv, scene_id) == expected, f"{scene_id} 回边异常"
+        # combat 遭遇战：胜利回主线（hallway），失败/逃跑回 hub
+        assert _targets(adv, "dungeon_juon_storage::combat_victory") == {
+            "dungeon_juon_entrance::gate", "dungeon_juon_hallway::hallway",
+        }, "storage 胜利应回主线"
+        assert _targets(adv, "dungeon_juon_storage::combat_defeat") == {"hub_plaza::plaza"}
+        assert _targets(adv, "dungeon_juon_storage::combat_flee") == {"hub_plaza::plaza"}
 
     def test_neighbor_deed_chain(self):
         """邻居支线两模块链：neighbor → deed → hallway。"""

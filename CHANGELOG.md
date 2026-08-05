@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## v1.13 — 无限流模块机制差异化：combat/rest/trap + 选项贴合剧情 (2026-08-05)
+
+### 模块机制（阶段一）
+
+- **combat 遭遇战**（storage 白衣怨影 / armory 感染保安 / arena 内门剑修）：标 `module_type: combat` + enemies/environment/outcomes，走现有战斗系统桥接。三出口语义：victory 回主线带线索、defeat 负伤撤回主神空间、flee 主动撤退
+- **rest 补给**（canteen 食堂 / dorm 宿舍 / field 灵田）：标 `module_type: rest` + `rest:{hp_recover, san_recover}`，进入场景自动恢复（轮回者 HP；COC 全员 HP/SAN）
+- **trap 陷阱**（well 枯井 / vent 通风管道 / forbidden 禁地）：标 `module_type: trap` + `trap:{check, difficulty, hp_loss, san_loss, success_clue}`，进入时 d20 检定，成功得线索、失败扣血
+- 组合器 `ModuleMeta` 新增 `rest`/`trap` 字段；`web_server._module_scene_effects()` 在战斗跳转 + 投票移动两个场景切换点触发
+
+### 选项贴合剧情
+
+- 删除泛用填充词（"继续深入调查当前场景/谨慎地观察四周/与同伴商议"），出口不足 3 个时改用场景作者写的 `opportunities`（剧情贴合互动）
+- 选中机会选项直接作为玩家行动进入检定流程（有实际后果），不再是无 target 的空选项
+
+### 涉及
+
+`data/modules_infinite_flow/*/module.json` ×9、`trpg_agent/adventure/module_composer.py`、`trpg_agent_web/web_server.py`、`tests/test_module_effects.py`（新增 7 用例）、出口图测试断言同步（storage/armory/arena 变 combat 场景）
+
+### 验证
+
+全量 273 passed 零回归；combat 三出口组合验证（victory 回主线、defeat/flee 回 hub 不死路）
+
 ## v1.12 — 无限流场景图生成 + image 字段挂载 (2026-08-05)
 
 ### 场景图 (`data/scenes/Sceneimage/inf_*.png` ×28)

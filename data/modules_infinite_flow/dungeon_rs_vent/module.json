@@ -93,5 +93,13 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "trap",
+  "trap": {
+    "check": "agility",
+    "difficulty": 11,
+    "hp_loss": 3,
+    "san_loss": 0,
+    "success_clue": "rs_vent_clue"
+  }
 }

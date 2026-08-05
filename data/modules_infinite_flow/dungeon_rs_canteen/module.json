@@ -82,5 +82,10 @@
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "rest",
+  "rest": {
+    "hp_recover": 4,
+    "san_recover": 2
+  }
 }

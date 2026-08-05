@@ -90,5 +90,10 @@
       "attitude": "neutral"
     }
   ],
-  "variance": null
+  "variance": null,
+  "module_type": "rest",
+  "rest": {
+    "hp_recover": 5,
+    "san_recover": 3
+  }
 }

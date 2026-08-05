@@ -20,17 +20,28 @@
   },
   "exits": [
     {
-      "id": "back",
-      "label": "带着装备返回走廊",
+      "id": "victory",
+      "label": "击败感染保安，带着装备返回走廊",
       "provides_clues": [
-        "rs_armory_done"
+        "rs_armory_done",
+        "rs_armory_clue"
       ],
-      "mood": "anxiety",
+      "mood": "relief",
       "next_location_type": "dungeon_rs"
     },
     {
+      "id": "defeat",
+      "label": "被感染者压制，撤回主神空间",
+      "provides_clues": [
+        "rs_armory_failed",
+        "rs_retreated"
+      ],
+      "mood": "anxiety",
+      "next_location_type": "hub"
+    },
+    {
       "id": "flee",
-      "label": "撤退回主神空间（无奖励）",
+      "label": "撤离武器库，撤回主神空间",
       "provides_clues": [
         "rs_retreated"
       ],
@@ -73,14 +84,48 @@
       ],
       "vote_prompt": "武器库里的感染者缓缓起身，你们选择？",
       "leads_to": [],
-      "exit_labels": {
-        "dungeon_rs_corridor": "取得装备，返回走廊继续深入",
-        "hub_plaza": "这次生化围剿到此为止——撤退回主神空间"
-      },
+      "exit_labels": {},
       "guidance": "生化分支·装备层。可选战斗获取装备线索，完成后返回主线走廊。",
       "image": "/images/scenes/inf_dungeon_rs_armory_00001_.png"
     }
   ],
   "npcs": [],
-  "variance": null
+  "variance": null,
+  "module_type": "combat",
+  "enemies": [
+    {
+      "id": "infected_guard",
+      "name": "感染保安",
+      "hp": 16,
+      "armor": 1,
+      "attack_bonus": 3,
+      "damage": "1d6+2",
+      "behavior": "摇晃着站起来，灰白的皮肤下青筋暴起，嘶吼着扑向你们"
+    }
+  ],
+  "environment": {
+    "terrain": "倒地的武器架与碎玻璃",
+    "lighting": "dim",
+    "hazards": [
+      "地面碎玻璃——闪避检定 -1",
+      "战术步枪——夺下可提升伤害"
+    ]
+  },
+  "outcomes": {
+    "victory": {
+      "label": "胜利",
+      "consequence": "感染保安轰然倒地。你们从武器架上取下完好的战术步枪和防弹背心——弹药不多，但聊胜于无。监控室的线索提到「武器库里有重火力」——现在你们明白了。",
+      "reward": "获得战斗线索"
+    },
+    "defeat": {
+      "label": "失败",
+      "consequence": "你们被击退，负伤退出。",
+      "reward": "无奖励"
+    },
+    "flee": {
+      "label": "撤退",
+      "consequence": "你们选择撤退，撤回主神空间。",
+      "reward": "无奖励"
+    }
+  }
 }
