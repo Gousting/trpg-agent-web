@@ -81,6 +81,15 @@
   </div>
 
   <div class="field">
+    <label>模式</label>
+    <select id="mode">
+      <option value="ai">AI 自动（KP 与角色全 AI 操作）</option>
+      <option value="human">人类玩家（你扮演调查员）</option>
+      <option value="live">直播互动（观众投票推动剧情）</option>
+    </select>
+  </div>
+
+  <div class="field">
     <label>回合数</label>
     <input id="turns" type="number" value="12" min="1" max="200">
   </div>
@@ -110,7 +119,7 @@ function startEntry() {
     player_host: FIXED_HOST,
     kp_api_key: key,
     world: document.getElementById('world').value,
-    mode: 'ai',
+    mode: document.getElementById('mode').value,
     turns: parseInt(document.getElementById('turns').value) || 12,
     compose_modules: true,
     load_profile: false,

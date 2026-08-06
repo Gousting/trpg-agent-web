@@ -199,6 +199,12 @@ async def index() -> str:
     return (STATIC_DIR / "index.html").read_text(encoding="utf-8")
 
 
+@app.get("/index.html", response_class=HTMLResponse)
+async def index_legacy() -> str:
+    """兼容入口页跳转：entry.html 的 startEntry() 跳 '/index.html?entry=1'。"""
+    return (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+
+
 @app.get("/health")
 async def health() -> dict:
     """健康检查端点，供反向代理/容器编排探活使用，不做任何鉴权。"""
@@ -250,7 +256,7 @@ def _state_snapshot(session: Session) -> dict:
     return snap
 
 
-_MAX_LLM_OUTPUT_CHARS = 6000  # 单次生成的硬上限，防止模型异常（卡在重复/不停止生成）导致内存无限增长
+_MAX_LLM_OUTPUT_CHARS = 10000  # 单次生成的硬上限，防止模型异常（卡在重复/不停止生成）导致内存无限增长
 
 
 async def _chat_stream(client, system: str, user_msg: str,
@@ -291,6 +297,9 @@ async def _chat_stream(client, system: str, user_msg: str,
         yield f"\n[错误] {e}"
     if buf and not in_marker:
         yield buf
+    stats = getattr(client, "last_stats", None)
+    if stats and stats.get("finish_reason") == "length":
+        log.warning("LLM 输出被 max_tokens 截断（finish_reason=length），模型=%s", getattr(client, "model", "?"))
 
 
 def _could_be_gs_prefix(s: str) -> bool:
@@ -805,7 +814,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         roster_names = [inv["name"] for inv in roster]
     yield _sse("kp_stream_start", {})
     raw_opening = await _chat_generate(kp_client, system_prompt, coc_directive,
-                                       temperature=0.8, max_tokens=4000)
+                                       temperature=0.8, max_tokens=6000)
     opening_text = _sanitize(raw_opening) if raw_opening else ""
     needs_retry, nudge = (
         _check_kp_narration(opening_text, roster_names=roster_names, is_intro=True)
@@ -814,7 +823,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
     if needs_retry:
         log.info("开场白质量守卫触发重试：%s", nudge)
         raw_retry = await _chat_generate(kp_client, system_prompt, coc_directive + "\n\n" + nudge,
-                                         temperature=0.8, max_tokens=4000)
+                                         temperature=0.8, max_tokens=6000)
         if raw_retry:
             opening_text = _sanitize(raw_retry)
     if not opening_text:
@@ -1365,7 +1374,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
         yield _sse("kp_stream_start", {})
         raw_narration = await _chat_generate(kp_client, system_prompt, kp_user,
-                                             temperature=0.8, max_tokens=4000)
+                                             temperature=0.8, max_tokens=6000)
         narration = _sanitize(raw_narration) if raw_narration else ""
         if narration:
             scene_for_check = adventure.get_scene(session.state.scene_id) if adventure else None
@@ -1376,7 +1385,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             if needs_retry:
                 log.info("KP 叙述质量守卫触发重试：%s", nudge)
                 raw_retry = await _chat_generate(kp_client, system_prompt, kp_user + "\n\n" + nudge,
-                                                 temperature=0.8, max_tokens=4000)
+                                                 temperature=0.8, max_tokens=6000)
                 if raw_retry:
                     narration = _sanitize(raw_retry)
         if not narration:
@@ -1393,8 +1402,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             if m:
                 narration = _EXIT_MARKER_RE.sub("", narration).rstrip()
                 exit_choice = int(m.group(1))
-            elif current_exits and _non_combat_turns > 0:
+            elif current_exits and _non_combat_turns > 0 and not _was_truncated(kp_client):
                 # KP 没给出口标记 → 自动选择（单出口直接走，多出口随机）
+                # 若叙事被 max_tokens 截断则不自动推进，避免"话没说完就被拉走"
                 import random as _random
                 exit_choice = 1 if len(current_exits) == 1 else _random.randint(1, len(current_exits))
             if exit_choice is not None and 1 <= exit_choice <= len(current_exits):
@@ -1663,12 +1673,27 @@ async def _ai_pick_option(player_host: str, player_model: str,
         )
         await client.aclose()
         text = response.strip().lower()
-        for letter in ["a", "b", "c"]:
-            if letter in text:
-                return letter
+        # 1) 严格匹配独立字母 a/b/c（不被其他字母包围，避免解释文字里的字母误中）
+        m = re.search(r"(?<![a-z])[abc](?![a-z])", text)
+        if m:
+            return m.group(0)
+        # 2) 中文/数字表述映射（模型可能输出"选第一个/选2"而非字母）
+        for k, v in (("第一个", "a"), ("第二个", "b"), ("第三个", "c"),
+                     ("选项一", "a"), ("选项二", "b"), ("选项三", "c"),
+                     ("1", "a"), ("2", "b"), ("3", "c")):
+            if k in text:
+                return v
     except Exception:
-        log.warning("AI 投票选项挑选失败，回退为默认选项 a", exc_info=True)
-    return "a"
+        log.warning("AI 投票选项挑选失败，随机回退", exc_info=True)
+    # 3) 失败时随机回退，避免永远命中通道一
+    letters = [k for k in vote_options if k in ("a", "b", "c")]
+    return random.choice(letters) if letters else "a"
+
+
+def _was_truncated(client) -> bool:
+    """LLM 输出是否因 max_tokens/长度上限被截断（叙事不完整）。"""
+    stats = getattr(client, "last_stats", None)
+    return bool(stats and stats.get("finish_reason") == "length")
 
 
 def _module_scene_effects(composer, adventure, scene_id, session, is_infinite_flow: bool) -> list[str]:

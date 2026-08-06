@@ -95,6 +95,7 @@ class RemoteClient:
             "POST", f"{self._base_url}/chat/completions", json=payload
         ) as resp:
             resp.raise_for_status()
+            finish_reason = None
             async for line in resp.aiter_lines():
                 if not line.startswith("data: "):
                     continue
@@ -111,6 +112,10 @@ class RemoteClient:
                     content = delta.get("content", "")
                     if content:
                         yield content
+                    fr = choices[0].get("finish_reason")
+                    if fr:
+                        finish_reason = fr
+            self.last_stats = {"finish_reason": finish_reason}
 
     async def aclose(self) -> None:
         await self._client.aclose()
