@@ -481,3 +481,28 @@ data/modules_harry_potter/     ← 哈利波特（4 模块，独立）
 - puzzle/choice/interaction 该局未随机经过（组合 140 场景，路径概率问题），代码路径由单测覆盖
 
 状态：✅ 完成
+
+## 2026-08-06 — P2 流程修复 + 入口路由修复 + 手机端验证
+
+### 变更内容
+- `_ai_pick_option`：正则严格提取 a/b/c（独立字母边界）+ 中文/数字表述映射 + 失败随机回退，修复"永远命中通道一"
+- KP 叙事截断：max_tokens 4000→6000、remote_client 透传 finish_reason、输出超长日志 + 截断标记
+- 截断不自动推进：`_was_truncated()` 检测 finish_reason=length 时跳过自动选出口，修复"话没说完被拉回主神空间"
+- `/index.html` 路由缺失（entry.html 跳转 404，手机端游戏起不来）——补 index_legacy 路由
+- P1-2 修正：roster 按钮条件从 mobile-live 放宽到 live（startGame 无条件加 live class，所有模式可见）
+
+### 涉及文件
+| 文件 | 改动 |
+|---|---|
+| `trpg_agent/llm/remote_client.py` | finish_reason 透传 |
+| `trpg_agent_web/web_server.py` | /index.html 路由、_ai_pick_option、_was_truncated、KP max_tokens |
+| `trpg_agent_web/static/index.html` | 进度条、记录框 32dvh、roster 按钮、mode 选择 |
+| `trpg_agent_web/static/entry.html` | 模式选择（ai/human/live） |
+
+### 验证
+- 全量 300 passed + 30 subtests，零回归
+- WS 路径端到端：335 事件、3 次 KP 叙事无截断、dice_roll×2、room_change 正常、done 收尾、零错误
+- 手机视口 390×844 playwright + qwen3.7-plus VLM 审查：布局无重叠溢出、记录框 40-45%、调查员按钮清晰、叙事推进正常
+- DOM 实测：进度条加载后隐藏、roster 按钮 79×46 触控达标、记录框约 34% 视口高
+
+状态：✅ 完成（e4a9f38 已推送）

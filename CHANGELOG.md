@@ -391,3 +391,15 @@ ModuleMeta 扩展 module_type 字段（story/combat/investigation/exploration/so
 - 出口机制全链路验证：青云山门→藏经阁（分支）→试炼场→演武场（分支）→炼丹房，主线/分支 zigzag 完整走通
 - 检定/伤害结算正常，KP 叙事质量达标
 - BOSS/AP/存档有 T2/T6 单测兜底，live 模式需直播实测
+
+## v2.4 — P2 流程修复 + 入口路由修复 (2026-08-06)
+
+### 修复
+- `_ai_pick_option` 选项识别：正则严格提取 + 中文数字映射 + 失败随机回退（不再永远选 a）
+- KP 叙事截断：max_tokens 6000 + finish_reason 透传 + 截断日志
+- 截断不自动推进场景（修复"话没说完被拉回主神空间"）
+- `/index.html` 404 路由缺失（entry.html 跳转后游戏起不来）——补 index_legacy 路由
+- roster 按钮所有模式可见（P1-2 修正）
+
+### 验证
+- 300 passed 全绿；WS 端到端 335 事件零错误；手机视口 VLM 审查通过
