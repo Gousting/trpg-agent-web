@@ -1004,10 +1004,18 @@
     }
 
     #action-log {
-      height: 32dvh;
-      min-height: 180px;
-      padding: 10px 12px 10px;
+      height: 26dvh;
+      min-height: 150px;
+      max-height: 30dvh;
+      padding: 8px 10px 8px;
       z-index: 12;
+      /* 手机端半透明背景：底图透出，不整块遮挡 */
+      background:
+        linear-gradient(180deg, rgba(250,244,232,0.82), rgba(250,244,232,0.55) 45%, rgba(244,234,214,0.38)),
+        radial-gradient(circle at 85% 22%, rgba(120,80,50,0.10), transparent 55%);
+      backdrop-filter: blur(2px);
+      border-radius: 10px 10px 0 0;
+      box-shadow: 0 -6px 24px rgba(0,0,0,0.22);
     }
     #action-log h2 {
       font-size: 22px;
@@ -1140,10 +1148,11 @@
       gap: 7px;
     }
     body.mobile-live #action-log {
-      height: 34dvh;
-      min-height: 210px;
-      padding: 10px 10px 8px;
-      border-radius: 10px;
+      height: 28dvh;
+      min-height: 170px;
+      max-height: 32dvh;
+      padding: 8px 10px 8px;
+      border-radius: 10px 10px 0 0;
     }
     body.mobile-live #action-log h2 {
       font-size: 19px;
@@ -1241,9 +1250,10 @@
       min-height: 56dvh;
     }
     #action-log {
-      height: 34dvh;
-      min-height: 230px;
-      padding: 11px 10px 10px;
+      height: 28dvh;
+      min-height: 160px;
+      max-height: 32dvh;
+      padding: 8px 10px 8px;
     }
     #action-log h2 {
       font-size: 20px;
