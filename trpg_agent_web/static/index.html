@@ -254,6 +254,20 @@
     transform: scale(1);
     z-index: 2;
   }
+  /* 模糊铺底层：场景图放大模糊垫底，消除 contain 死黑边，前景完整图叠加 */
+  .scene-blur {
+    position: absolute;
+    inset: -48px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(22px) brightness(0.74) saturate(1.25);
+    transform: scale(1.06);
+    opacity: 0;
+    transition: opacity 0.7s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .scene-blur.show { opacity: 1; }
   #scene-img.active { opacity: 1; }
   body.vote-focus #scene-img.active {
     animation: cameraPush 1s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -935,7 +949,7 @@
       border: none;
       box-shadow: none;
       object-fit: contain;
-      filter: sepia(0.2) brightness(0.78) saturate(0.88) contrast(1.06);
+      filter: sepia(0.18) brightness(0.88) saturate(0.92) contrast(1.05);
     }
     #scene-bg::before,
     #scene-bg::after,
@@ -947,7 +961,8 @@
     }
     #scene-label,
     #scene-mood {
-      bottom: 10px;
+      top: 10px;
+      bottom: auto;
       z-index: 9;
       text-shadow: 0 2px 10px rgba(0,0,0,0.7);
     }
@@ -1026,7 +1041,7 @@
       z-index: 40;
       /* 手机端毛玻璃底：顶部更实保可读，底部渐透衔接底图 */
       background:
-        linear-gradient(180deg, rgba(250,244,232,0.97) 0%, rgba(250,244,232,0.90) 55%, rgba(246,237,218,0.78));
+        linear-gradient(180deg, rgba(250,244,232,0.88) 0%, rgba(250,244,232,0.78) 55%, rgba(246,237,218,0.58));
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(122,92,52,0.28);
@@ -1425,6 +1440,7 @@
   </div>
   <div class="scene-stage">
     <div id="scene-bg">
+      <div class="scene-blur" aria-hidden="true"></div>
       <img id="scene-img" src="" alt="">
     </div>
     <div class="scene-corners"></div>
@@ -1860,7 +1876,7 @@ function startGame() {
     gmap = d.map;
     tileGrid = d.grid;
     const img = document.getElementById('scene-img');
-    if (d.image) img.src = d.image;
+    if (d.image) { img.src = d.image; setSceneBlur(d.image); }
     document.getElementById('scene-label').textContent = gmap.current_room_name || '';
     document.getElementById('status').textContent = '地圖生成完成';
     syncStageMeta();
@@ -1922,6 +1938,13 @@ function startGame() {
     }
   });
 
+  function setSceneBlur(src) {
+    const blurEl = document.querySelector('.scene-blur');
+    if (!blurEl || !src) return;
+    blurEl.style.backgroundImage = 'url("' + src + '")';
+    requestAnimationFrame(() => blurEl.classList.add('show'));
+  }
+
   function applyKpStreamEnd(d) {
     if (d.state) updateState(d.state);
     if (d.scene) {
@@ -1930,6 +1953,7 @@ function startGame() {
       if (img.src !== newSrc && img.getAttribute('src') !== newSrc) {
         img.src = newSrc;
         img.classList.add('active');
+        setSceneBlur(newSrc);
       }
       document.getElementById('scene-label').textContent = d.scene.location || '';
       document.getElementById('scene-mood').textContent = d.scene.mood || '';
@@ -2062,7 +2086,7 @@ function startGame() {
     tileGrid = d.grid;
     if (gmap) gmap.current_room_id = d.room_id;
     const img = document.getElementById('scene-img');
-    if (d.image) img.src = d.image;
+    if (d.image) { img.src = d.image; setSceneBlur(d.image); }
     document.getElementById('scene-label').textContent = d.room_name || '';
     addLog('system', '', '📍 進入 ' + d.room_name + ' — ' + d.room_desc);
     syncStageMeta();

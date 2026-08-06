@@ -5,11 +5,8 @@
   "strength": 10,
   "agility": 10,
   "spirit": 10,
-  "ap": 16,
+  "ap": 17,
   "conditions": [
     "重伤"
-  ],
-  "inventory": [
-    "手电筒电池"
   ]
 }
