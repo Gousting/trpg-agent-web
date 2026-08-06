@@ -906,11 +906,11 @@
       margin-left: 0;
     }
 
-    /* 让主舞台占据手机上部，图片完整显示（不裁切） */
+    /* 让主舞台占据手机上部，图片完整显示（不裁切），底部撑到记录框顶部消除空隙 */
     #scene {
-      height: 50dvh;
+      height: calc(100dvh - 36px - 26dvh);
       min-height: 0;
-      max-height: 54dvh;
+      max-height: none;
       padding: 0;
       align-items: stretch;
       overflow: hidden;
@@ -1205,8 +1205,8 @@
 
     /* 纯手机直播页变体（仅 mobile + live/broadcast 开启） */
     body.mobile-live #scene {
-      height: 50dvh;
-      max-height: 54dvh;
+      height: calc(100dvh - 36px - 26dvh);
+      max-height: none;
     }
     body.mobile-live #right-panel {
       padding: 0 8px 30dvh;
@@ -1312,8 +1312,8 @@
   /* 小屏竖屏进一步保护可读性 */
   @media (max-width: 430px) and (orientation: portrait) {
     #scene {
-      height: 48dvh;
-      max-height: 52dvh;
+      height: calc(100dvh - 36px - 26dvh);
+      max-height: none;
     }
     #action-log {
       height: 26dvh;
