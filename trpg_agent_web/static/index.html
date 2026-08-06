@@ -906,9 +906,11 @@
       margin-left: 0;
     }
 
-    /* 让主舞台优先占据手机首屏 */
+    /* 让主舞台占据手机上部，图片完整显示（不裁切） */
     #scene {
-      min-height: 58dvh;
+      height: 50dvh;
+      min-height: 0;
+      max-height: 54dvh;
       padding: 0;
       align-items: stretch;
       overflow: hidden;
@@ -916,7 +918,8 @@
     }
     .scene-stage {
       width: 100%;
-      min-height: 58dvh;
+      height: 100%;
+      min-height: 0;
     }
     #scene-bg {
       inset: 0;
@@ -931,8 +934,8 @@
       height: 100%;
       border: none;
       box-shadow: none;
-      object-fit: cover;
-      filter: sepia(0.2) brightness(0.74) saturate(0.86) contrast(1.06);
+      object-fit: contain;
+      filter: sepia(0.2) brightness(0.78) saturate(0.88) contrast(1.06);
     }
     #scene-bg::before,
     #scene-bg::after,
@@ -958,16 +961,15 @@
       font-size: 11px;
     }
 
-    /* 手机端将信息区变为下方卡片堆叠 */
+    /* 手机端将信息区变为下方卡片堆叠（底部留出贴底记录框的空间） */
     #right-panel {
       margin: 0;
       display: grid;
       grid-template-columns: 1fr;
       gap: 8px;
-      padding: 8px 8px 16px;
+      padding: 8px 8px 30dvh;
     }
     #characters,
-    #action-log,
     #vote-bar {
       position: static;
       width: auto;
@@ -979,6 +981,19 @@
       border-radius: 8px;
       box-shadow: 0 10px 24px rgba(0,0,0,0.34);
       backdrop-filter: blur(1px);
+    }
+    /* 记录框贴底固定：不占文档流，图片/档案区在其上方滚动 */
+    #action-log {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      margin: 0;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 -8px 28px rgba(0,0,0,0.4);
+      backdrop-filter: blur(3px);
+      z-index: 40;
     }
 
     #characters {
@@ -1008,14 +1023,13 @@
       min-height: 150px;
       max-height: 30dvh;
       padding: 8px 10px 8px;
-      z-index: 12;
+      z-index: 40;
       /* 手机端半透明背景：底图透出，不整块遮挡 */
       background:
-        linear-gradient(180deg, rgba(250,244,232,0.82), rgba(250,244,232,0.55) 45%, rgba(244,234,214,0.38)),
-        radial-gradient(circle at 85% 22%, rgba(120,80,50,0.10), transparent 55%);
-      backdrop-filter: blur(2px);
-      border-radius: 10px 10px 0 0;
-      box-shadow: 0 -6px 24px rgba(0,0,0,0.22);
+        linear-gradient(180deg, rgba(250,244,232,0.88), rgba(250,244,232,0.62) 45%, rgba(246,237,218,0.46));
+      backdrop-filter: blur(3px);
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 -8px 28px rgba(0,0,0,0.4);
     }
     #action-log h2 {
       font-size: 22px;
@@ -1128,11 +1142,11 @@
       max-height: 30dvh;
     }
     body.broadcast #action-log {
-      height: 42dvh;
-      min-height: 260px;
+      height: 26dvh;
+      min-height: 150px;
+      max-height: 30dvh;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.46), rgba(255,255,255,0.18) 20%, transparent 54%),
-        var(--paper);
+        linear-gradient(180deg, rgba(250,244,232,0.88), rgba(250,244,232,0.62) 45%, rgba(246,237,218,0.46));
     }
     body.broadcast .log-msg {
       font-size: 15px;
@@ -1141,18 +1155,19 @@
 
     /* 纯手机直播页变体（仅 mobile + live/broadcast 开启） */
     body.mobile-live #scene {
-      min-height: 58dvh;
+      height: 50dvh;
+      max-height: 54dvh;
     }
     body.mobile-live #right-panel {
-      padding: 0 8px 10px;
+      padding: 0 8px 30dvh;
       gap: 7px;
     }
     body.mobile-live #action-log {
-      height: 28dvh;
-      min-height: 170px;
-      max-height: 32dvh;
+      height: 26dvh;
+      min-height: 150px;
+      max-height: 30dvh;
       padding: 8px 10px 8px;
-      border-radius: 10px 10px 0 0;
+      border-radius: 12px 12px 0 0;
     }
     body.mobile-live #action-log h2 {
       font-size: 19px;
@@ -1247,12 +1262,13 @@
   /* 小屏竖屏进一步保护可读性 */
   @media (max-width: 430px) and (orientation: portrait) {
     #scene {
-      min-height: 56dvh;
+      height: 48dvh;
+      max-height: 52dvh;
     }
     #action-log {
-      height: 28dvh;
-      min-height: 160px;
-      max-height: 32dvh;
+      height: 26dvh;
+      min-height: 150px;
+      max-height: 30dvh;
       padding: 8px 10px 8px;
     }
     #action-log h2 {
