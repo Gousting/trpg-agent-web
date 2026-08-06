@@ -587,10 +587,12 @@ def _resolve_outcome_ap(outcome_id: str, encounter: CombatEncounter | None) -> i
     return 3 if outcome_id == "victory" else 1
 
 
-async def _vote_window(sid: str, timeout_seconds: int = VOTE_WINDOW_SECONDS):
+async def _vote_window(sid: str, timeout_seconds: int = VOTE_WINDOW_SECONDS, first_vote_wins: bool = False):
     """投票窗口——推送实时票数变化，最后一次 yield 是 ('__result__', tally)。
 
     共享给常规投票和战斗投票两种场景使用。
+    first_vote_wins=True 时（人类玩家单人模式）收到第一票即结束，
+    不等满窗口——单人点选项应当即生效，而非"投票"。
     """
     _vote_tallies[sid] = {}
     vote_queue: asyncio.Queue = asyncio.Queue()
@@ -605,6 +607,9 @@ async def _vote_window(sid: str, timeout_seconds: int = VOTE_WINDOW_SECONDS):
                 await asyncio.wait_for(vote_queue.get(), timeout=remaining)
                 current_tally = _vote_tallies.get(sid, {})
                 yield ("vote_tally", {"tally": dict(current_tally)})
+                if first_vote_wins:
+                    # 单人选择：第一票即锁定，立即结束窗口
+                    break
             except asyncio.TimeoutError:
                 break
     finally:
@@ -1136,7 +1141,12 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         else:
             # ── 人类 / 直播模式：展示选项，等待投票 ──
             is_live = mode == "live"
-            vote_timeout = vote_seconds if is_live else VOTE_WINDOW_SECONDS
+            # human 单人模式：窗口不设短超时（first_vote_wins 下第一票即结束），
+            # 玩家点选项立即生效；live 用参数投票时长；ai 用默认窗口
+            if mode == "human":
+                vote_timeout = 3600  # 单人等待玩家选择，第一票即锁定
+            else:
+                vote_timeout = vote_seconds if is_live else VOTE_WINDOW_SECONDS
             vote_targets: dict[str, str] = {}
             opp_actions: dict[str, str] = {}  # 机会选项（无 target，选中走检定）
             module_interactions: dict[str, dict] | None = None  # 模块交互选项（puzzle/social/choice/interaction）
@@ -1208,8 +1218,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 )
 
             # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
+            # human 单人模式：第一票即锁定（点选项立即生效），不等满窗口
             tally: dict[str, int] = {}
-            async for evt_name, evt_data in _vote_window(sid, vote_timeout):
+            async for evt_name, evt_data in _vote_window(sid, vote_timeout, first_vote_wins=(mode == "human")):
                 if evt_name == "__result__":
                     tally = evt_data
                 else:
@@ -1221,6 +1232,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 choice = await _ai_pick_option(player_host, player_model, vote_options, last_narration, speaker, kp_api_key)
                 yield _sse("ai_pick", {"choice": choice, "label": vote_options.get(choice, "")})
             else:
+                # human 模式窗口极长（3600s）理论上不会走到这里；兜底选 a 避免流卡死
                 choice = "a"
 
             # 投票结束：取回队友行动（投票窗口内已完成，失败则空 dict 兜底）

@@ -2093,12 +2093,21 @@ function showVoteBar(evt) {
   // 否则多场对局并发时投票会全部落到后端“第一个进行中的场次”（真实串票 bug，见 docs/production-readiness-issues.md #2）
   voteSessionId = evt.session_id || '';
   if (evt.vote_seconds) totalVoteSeconds = evt.vote_seconds;
-  // T4：live 模式投票标题标注主控（"你的行动"）；否则回退到世界观默认投票标题
+  // T4：live 模式投票标题标注主控（"你的行动"）；human 单人显示行动选择；否则世界观默认投票标题
   const voteTitle = bar.querySelector('.vote-title');
   if (voteTitle) {
     if (currentMode === 'live' && leaderName) voteTitle.textContent = `你的行动（${leaderName}）`;
     else if (currentMode === 'live') voteTitle.textContent = '弹幕投票 · 主控行动';
+    else if (currentMode === 'human') voteTitle.textContent = '你的行动';
     else voteTitle.textContent = worldPreset(currentWorld).voteTitleDefault;
+  }
+  // human 单人模式：隐藏投票专属元素（票数/进度条/倒计时/锁定章），点选项即选择
+  const isHuman = currentMode === 'human';
+  bar.classList.toggle('single-choice', isHuman);
+  if (isHuman) {
+    bar.querySelectorAll('.vote-num, .vote-bar-track, .vote-timer, #vote-stamp').forEach(el => { if (el) el.style.display = 'none'; });
+  } else {
+    bar.querySelectorAll('.vote-num, .vote-bar-track, .vote-timer, #vote-stamp').forEach(el => { if (el) el.style.display = ''; });
   }
   // T5：hub 场景（选项含"进入副本"）渲染为副本选择卡片 + 通关标记
   const isHubSelect = Object.values(opts).some(t => (t || '').includes('进入副本'));
@@ -2126,9 +2135,9 @@ function showVoteBar(evt) {
   stamp.classList.remove('show');
   stamp.textContent = '票选锁定';
   bar.classList.add('active');
-  setStageVoteState('投票进行中');
+  setStageVoteState(isHuman ? '请选择行动' : '投票进行中');
   updateVoteCounts();
-  startVoteTimer();
+  if (!isHuman) startVoteTimer();  // human 单人：无倒计时，点击选项即锁定
 }
 
 function hideVoteBar() {
@@ -2157,6 +2166,11 @@ function startVoteTimer() {
     if (remaining <= 5) timerEl.classList.add('urgent');
     if (remaining <= 0) {
       clearVoteTimer();
+      if (currentMode === 'human') {
+        // 人类玩家超时未选：不自动投 A，保持选项可见，等待玩家点击
+        setStageVoteState('请选择行动');
+        return;
+      }
       if (!voteChosen) castVote('a'); // 超时自动投 A
       lockVoteResultVisual();
       timerEl.textContent = '计票中…';
@@ -2178,8 +2192,13 @@ function castVote(key) {
   // 不停止倒计时——投票窗口保持开放，其他人仍可投票
   const bar = document.getElementById('vote-bar');
   bar.querySelector(`[data-key="${key}"]`).classList.add('voted');
-  setStageVoteState('已投 ' + key.toUpperCase());
+  setStageVoteState(currentMode === 'human' ? '已选择 ' + key.toUpperCase() : '已投 ' + key.toUpperCase());
   updateVoteCounts();
+  // human 单人模式：点选即锁定，等待下一轮
+  if (currentMode === 'human') {
+    lockVoteResultVisual();
+    clearVoteTimer();
+  }
   // 发送选择到服务器（服务器端累加 tally 并通过 SSE 广播）
   fetch('/api/vote', {
     method: 'POST',
