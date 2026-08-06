@@ -71,7 +71,6 @@ def main():
     cases = [
         ("OLLAMA gemma4:12b (本地慢基线)", "ollama", "gemma4:12b"),
         ("OLLAMA ornith:9b (本地快)", "ollama", "ornith:9b"),
-        ("OLLAMA qwen3.5:9b (本地)", "ollama", "qwen3.5:9b"),
         ("ZEN nemotron-3-ultra-free", "zen", "nemotron-3-ultra-free"),
         ("ZEN deepseek-v4-flash-free", "zen", "deepseek-v4-flash-free"),
     ]

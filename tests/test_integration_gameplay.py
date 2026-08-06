@@ -10,7 +10,7 @@ from trpg_agent.adventure.module_composer import ModuleComposer
 from trpg_agent.llm.client import OllamaClient
 
 OLLAMA_HOST = "http://192.168.0.108:11434"
-OLLAMA_MODEL = "qwen3.5:9b"
+OLLAMA_MODEL = "ornith:9b"
 MODULES_DIR = Path(__file__).resolve().parent.parent / "data" / "modules"
 
 async def main():
