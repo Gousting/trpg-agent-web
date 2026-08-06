@@ -1022,23 +1022,60 @@
       height: 26dvh;
       min-height: 150px;
       max-height: 30dvh;
-      padding: 8px 10px 8px;
+      padding: 16px 12px 10px;
       z-index: 40;
-      /* 手机端半透明背景：底图透出，不整块遮挡 */
+      /* 手机端毛玻璃底：顶部更实保可读，底部渐透衔接底图 */
       background:
-        linear-gradient(180deg, rgba(250,244,232,0.88), rgba(250,244,232,0.62) 45%, rgba(246,237,218,0.46));
-      backdrop-filter: blur(3px);
-      border-radius: 12px 12px 0 0;
-      box-shadow: 0 -8px 28px rgba(0,0,0,0.4);
+        linear-gradient(180deg, rgba(250,244,232,0.97) 0%, rgba(250,244,232,0.90) 55%, rgba(246,237,218,0.78));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(122,92,52,0.28);
+      border-bottom: none;
+      border-radius: 14px 14px 0 0;
+      box-shadow: 0 -10px 32px rgba(0,0,0,0.42);
+    }
+    /* 顶部鎏金描边：卷轴边质感 */
+    #action-log::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, rgba(168,128,64,0.55) 18%, rgba(200,158,86,0.85) 50%, rgba(168,128,64,0.55) 82%, transparent);
+      pointer-events: none;
+    }
+    /* 顶部 grabber 手柄：暗示可拖/可滚 */
+    #action-log::after {
+      content: '';
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 38px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(96,64,32,0.30);
+      pointer-events: none;
     }
     #action-log h2 {
-      font-size: 22px;
-      letter-spacing: 1px;
-      margin-bottom: 3px;
+      font-size: 20px;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      padding: 0 2px 6px;
+      border-bottom: 1px solid rgba(150,112,64,0.30);
     }
     .log-msg {
       font-size: 14px;
       line-height: 1.72;
+    }
+    .log-msg.kp {
+      border-left: 3px solid rgba(158,108,52,0.55);
+      border-radius: 0 6px 6px 0;
+      padding: 4px 8px;
+      margin: 2px 0;
+      background: linear-gradient(90deg, rgba(158,108,52,0.10), transparent 85%);
     }
     .log-msg.player,
     .log-msg.system,
@@ -1047,6 +1084,19 @@
     .log-msg.damage {
       font-size: 12px;
     }
+    .log-msg.system,
+    .log-msg.dice,
+    .log-msg.item {
+      align-self: center;
+      background: rgba(96,64,32,0.08);
+      border-radius: 999px;
+      padding: 3px 10px;
+      margin: 3px auto;
+    }
+    /* 细滚动条 */
+    #action-log::-webkit-scrollbar { width: 4px; }
+    #action-log::-webkit-scrollbar-thumb { background: rgba(150,112,64,0.4); border-radius: 2px; }
+    #action-log::-webkit-scrollbar-track { background: transparent; }
 
     /* 投票条在手机端固定底部，便于互动 */
     #vote-bar {
@@ -1222,12 +1272,12 @@
       justify-content: center;
       position: fixed;
       right: 12px;
-      bottom: calc(34dvh + 26px);
+      bottom: calc(26dvh + 14px);
       z-index: 53;
       border: 1px solid #b69a6f;
       background: linear-gradient(180deg, #6f5333 0%, #4f3a24 100%);
       color: #f3e1c0;
-      padding: 12px 16px;
+      padding: 10px 16px;
       border-radius: 999px;
       font-family: var(--font-display);
       font-size: 14px;
