@@ -205,6 +205,12 @@ async def index_legacy() -> str:
     return (STATIC_DIR / "index.html").read_text(encoding="utf-8")
 
 
+@app.get("/entry.html", response_class=HTMLResponse)
+async def entry_page() -> str:
+    """快捷入口页（手机端直达）：填 key 选模式即开始。"""
+    return (STATIC_DIR / "entry.html").read_text(encoding="utf-8")
+
+
 @app.get("/health")
 async def health() -> dict:
     """健康检查端点，供反向代理/容器编排探活使用，不做任何鉴权。"""
