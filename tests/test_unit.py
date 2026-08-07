@@ -125,6 +125,22 @@ class TestSanitize:
         # The outer quote check: first char is not a quote, so it should pass through
         assert "不该来这里" in r
 
+    def test_strip_epiphany_opening(self):
+        r = _sanitize("这一刻，仿佛整个世界都安静了。你们推开铁门。")
+        assert "仿佛整个世界" not in r
+        assert "你们推开铁门" in r
+
+    def test_strip_epiphany_mid_text(self):
+        r = _sanitize("脚步声停下了。此刻，时间好像凝固了一般。灰尘在光柱里浮动。")
+        assert "时间好像凝固" not in r
+        assert "脚步声停下" in r
+        assert "灰尘在光柱里浮动" in r
+
+    def test_epiphany_narration_untouched(self):
+        # 有效叙事不含"仿佛"，不应被误删
+        original = "这一刻，你听见了走廊尽头的脚步声。"
+        assert _sanitize(original) == original
+
 
 # ═══════════════════════════════════════════════════════════════
 # Persona + Prompt Assembly 测试
@@ -138,6 +154,32 @@ class TestPersona:
         assert len(prompt) > 1000
         assert "守秘人" in prompt
         assert "调查员" in prompt
+
+    def test_load_tone_by_world(self):
+        coc = load_system_prompt(world="coc")
+        hp = load_system_prompt(world="harry_potter")
+        inf = load_system_prompt(world="infinite_flow")
+        # 三个世界观基调 header 都在
+        assert "世界观语言基调" in coc
+        assert "世界观语言基调" in hp
+        assert "世界观语言基调" in inf
+        # 各自内容不同
+        assert "婴儿鞋" in coc          # COC few-shot
+        assert "霍格沃茨" in hp or "画像" in hp
+        assert "主神空间" in inf or "【" in inf
+        assert coc != hp != inf
+
+    def test_load_tone_unknown_world_fallback(self):
+        # 未知世界观回退到只有核心（无基调 header）
+        p = load_system_prompt(world="not_a_world")
+        assert "世界观语言基调" not in p
+        assert "守秘人" in p
+
+    def test_negative_list_in_core(self):
+        # 通用反 AI 味负面清单在 kp_core 里
+        prompt = load_system_prompt()
+        assert "排比三连" in prompt
+        assert "禁用词表" in prompt
 
     def test_prompt_assembly_basic(self):
         result = assemble_system_prompt(persona="核心人格")

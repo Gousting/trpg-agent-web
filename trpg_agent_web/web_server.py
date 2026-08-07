@@ -781,7 +781,7 @@ async def event_stream(host: str, kp_model: str, player_model: str,
         old_dir = Path("data/sessions") / sid
         if old_dir.exists():
             shutil.rmtree(old_dir)
-        session = Session(sid, auto_save_interval=0, max_context=8192)
+        session = Session(sid, auto_save_interval=0, max_context=8192, world=world)
         _sessions[sid] = session
 
         # ── 无限流：创建轮回者 ──────────────────────

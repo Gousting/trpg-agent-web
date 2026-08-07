@@ -117,6 +117,7 @@ class Session:
         db = None,
         skip_characters: bool = False,  # load_game 等场景跳过角色加载
         auto_save_interval: int = AUTO_SAVE_INTERVAL,  # 自动存档间隔（0=禁用）
+        world: str = "coc",  # 世界观 → 加载 prompts/tone_{world}_zh.md 语言基调
     ):
         self.session_id = session_id
         self.max_context = max_context
@@ -149,8 +150,8 @@ class Session:
         else:
             self._history_store = HistoryStore(self._history_path)
 
-        # 加载 KP 人格
-        self._persona = load_system_prompt()
+        # 加载 KP 人格（按世界观选语言基调）
+        self._persona = load_system_prompt(world=world)
 
         # 自动加载角色卡（load_game 等场景可跳过，避免 DB 污染）
         if not skip_characters:

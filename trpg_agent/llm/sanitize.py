@@ -265,9 +265,33 @@ def _sanitize_trailing(text: str) -> str:
     return text
 
 
+# ---------------------------------------------------------------------------
+# 模式：升华总结句
+# "这一刻，仿佛整个世界都安静了" / "此刻，时间好像凝固了" —— 典型 AI 腔抒情。
+# 只匹配"这一刻/此刻/那一瞬间" + 仿佛/好像/似乎 的感慨从句，整句删除。
+# 有效叙事（"这一刻，你听见了脚步声"）不含"仿佛"，不会被误伤。
+# 前导标点（句号/感叹号/问号或行首）保留。
+# ---------------------------------------------------------------------------
+_EPIPHANY_CLAUSE = re.compile(
+    r"((?:^|[。！？.!?]))\s*"
+    r"(?:这一刻|此刻|那一瞬间|那一刻|那一刹那|就在此时)[，,]\s*"
+    # 可选抽象主语（时间/世界/空气/一切……），最多 6 字；有效叙事主语（你/门/他）不在列表
+    r"(?:时间|世界|一切|空气|四周|周围|眼前|万物|寂静|沉默|整个|所有)?"
+    r"(?:仿佛|好像|似乎)"
+    r"[^。！？.!?]*[。！？.!?]?\s*"
+)
+
+
+def _strip_epiphany_sentences(text: str) -> str:
+    """删除升华总结句（"这一刻，仿佛时间都凝固了"）。"""
+    return _EPIPHANY_CLAUSE.sub(lambda m: m.group(1), text).strip()
+
+
 def _sanitize(text: str) -> str:
-    """完整清洗管道：前半 → 剥外层引号 → 后半。"""
-    return _sanitize_trailing(_unwrap_enclosing_quotes(_sanitize_leading(text)))
+    """完整清洗管道：前半 → 升华总结句 → 剥外层引号 → 后半。"""
+    return _sanitize_trailing(
+        _unwrap_enclosing_quotes(_strip_epiphany_sentences(_sanitize_leading(text)))
+    )
 
 
 # 中文句末标点（含全角和半角）
