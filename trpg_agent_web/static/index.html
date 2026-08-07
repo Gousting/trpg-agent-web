@@ -1815,7 +1815,6 @@ function startGame() {
     seed: document.getElementById('seed').value || '',
     mode: document.getElementById('mode').value,
     world: document.getElementById('world').value,
-    kp_api_key: document.getElementById('kp-api-key').value,
     player_host: document.getElementById('player-host').value,
     vote_seconds: document.getElementById('vote-seconds')?.value || '60',
     leader: leaderName,
@@ -1835,6 +1834,12 @@ function startGame() {
         (handlers[type] = handlers[type] || []).push(fn);
       },
       close() { try { ws.close(); } catch (e) {} },
+    };
+    // 鉴权：连接建立后先把 API Key 通过消息体发给服务端，避免进 URL/访问日志
+    ws.onopen = () => {
+      try {
+        ws.send(JSON.stringify({ type: 'auth', key: document.getElementById('kp-api-key').value || '' }));
+      } catch (e) {}
     };
     ws.onmessage = (ev) => {
       let m;

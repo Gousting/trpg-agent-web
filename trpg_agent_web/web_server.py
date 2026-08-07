@@ -18,6 +18,7 @@ import re
 import shutil
 import time
 from collections import deque
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
@@ -119,7 +120,84 @@ OPENING = "1928年深秋，你们收到匿名信，来到阿卡姆郊外的废�
 # Web 应用
 # ═══════════════════════════════════════════════════════
 
-app = FastAPI(title="COC TRPG 跑团")
+# ── 生命周期 / 后台维护 ──────────────────────
+# 启动清理 + 限流桶后台清扫。用 lifespan 而非模块导入时执行，确保后台任务在事件循环
+# 启动后创建（模块导入时还没有运行中的 loop，asyncio.create_task 会抛错）。
+_TTS_CACHE_MAX_AGE_SECONDS = 7 * 24 * 3600  # TTS 缓存保留上限：7 天
+
+
+def _cleanup_map_png(dmap) -> None:
+    """删除本局生成的地图 PNG（每局一张 current_<uuid>.png）。"""
+    try:
+        if dmap is not None:
+            dmap.image_path.unlink(missing_ok=True)
+    except Exception:
+        log.debug("清理地图 PNG 失败", exc_info=True)
+
+
+def _startup_cleanup() -> None:
+    """启动时清理磁盘残留，防止无限增长。
+
+    - static/maps/current_*.png：每局一张，异常退出（模型预检失败/崩溃）会残留；
+      启动时统一清一遍。
+    - data/tts_cache/*.mp3：按 md5 缓存只增不删，超过 7 天的启动时删除。
+    """
+    try:
+        maps_dir = STATIC_DIR / "maps"
+        if maps_dir.is_dir():
+            for p in maps_dir.glob("current_*.png"):
+                try:
+                    p.unlink(missing_ok=True)
+                except Exception:
+                    log.debug("清理地图 PNG 失败: %s", p, exc_info=True)
+    except Exception:
+        log.debug("扫描地图目录失败", exc_info=True)
+    try:
+        if TTS_DIR.is_dir():
+            cutoff = time.time() - _TTS_CACHE_MAX_AGE_SECONDS
+            for p in TTS_DIR.glob("*.mp3"):
+                try:
+                    if p.stat().st_mtime < cutoff:
+                        p.unlink(missing_ok=True)
+                except Exception:
+                    log.debug("清理 TTS 缓存失败: %s", p, exc_info=True)
+    except Exception:
+        log.debug("扫描 TTS 目录失败", exc_info=True)
+
+
+async def _rate_limit_sweeper() -> None:
+    """后台任务：每分钟清扫一次限流桶，删除窗口外（及空）的 IP 条目。
+
+    _rate_limit_buckets 按 IP 建 deque，若从不删除，公网长时间运行后内存会随访问
+    IP 数量无限增长。窗口沿用 _RATE_LIMIT_WINDOW_SECONDS。
+    """
+    while True:
+        await asyncio.sleep(60)
+        now = time.monotonic()
+        expired = [
+            ip for ip, bucket in _rate_limit_buckets.items()
+            if not bucket or now - bucket[-1] > _RATE_LIMIT_WINDOW_SECONDS
+        ]
+        for ip in expired:
+            _rate_limit_buckets.pop(ip, None)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期：启动清理 + 启动限流桶后台清扫，退出时取消任务。"""
+    _startup_cleanup()
+    sweeper = asyncio.create_task(_rate_limit_sweeper())
+    try:
+        yield
+    finally:
+        sweeper.cancel()
+        try:
+            await sweeper
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(title="COC TRPG 跑团", lifespan=lifespan)
 
 # ── 限流 ───────────────────────────────
 # 极简单的内存滑动窗口限流，只作用于 /api/ 前缀接口，防止单 IP 高频刷投票/重复建流。
@@ -183,6 +261,9 @@ _vote_tallies: dict[str, dict[str, int]] = {}
 _vote_queues: dict[str, asyncio.Queue] = {}
 # 无限流强化：sid → Session 引用（强化接口读取/修改轮回者状态）
 _sessions: dict[str, "Session"] = {}
+# SSE 会话令牌：token → 参数 dict（含 API Key，存内存），一次性使用。
+# POST /api/session 创建，GET /api/stream?token=xxx 消费——避免 API Key 出现在 URL。
+_stream_tokens: dict[str, dict] = {}
 VOTE_WINDOW_SECONDS = 32  # 略长于前端 30s 倒计时，确保超时自动投的那一票也能被计入
 LIVE_VOTE_SECONDS = 90     # 直播模式投票窗口（给观众打字+弹幕延迟留时间）
 
@@ -466,7 +547,6 @@ def _scene_for_room(room_type: str) -> dict | None:
                 return {"image": f"/images/scenes/{m.filename}", "location": m.location, "mood": m.mood, "score": 1.0}
         # 回退：随机场景
         if sm._images:
-            import random
             fname = random.choice(list(sm._images.keys()))
             tags = sm._images[fname]
             return {"image": f"/images/scenes/{fname}", "location": tags.get("location", ""),
@@ -476,17 +556,17 @@ def _scene_for_room(room_type: str) -> dict | None:
     return None
 
 
-def _room_threat_events(rc: dict, inv_state, speaker: str) -> list[dict]:
+def _room_threat_events(rc: dict, inv_state, speaker: str, rng=None) -> list[dict]:
     """房间威胁事件：返回 [(type, text), ...]。"""
+    rng = rng or random
     events: list[dict] = []
     threats_text = rc.get("threats", "")
     if not threats_text or threats_text == "无":
         return events
 
-    import random
     # 30% 概率触发 SAN 损失
-    if random.random() < 0.30:
-        loss = random.randint(1, 3)
+    if rng.random() < 0.30:
+        loss = rng.randint(1, 3)
         inv_state.san = max(0, inv_state.san - loss)
         events.append({
             "type": "san_loss",
@@ -495,8 +575,8 @@ def _room_threat_events(rc: dict, inv_state, speaker: str) -> list[dict]:
             "amount": loss,
         })
     # 10% 概率触发直接伤害
-    if random.random() < 0.10:
-        dmg = random.randint(1, 2)
+    if rng.random() < 0.10:
+        dmg = rng.randint(1, 2)
         inv_state.take_damage(dmg)
         events.append({
             "type": "damage",
@@ -507,23 +587,23 @@ def _room_threat_events(rc: dict, inv_state, speaker: str) -> list[dict]:
     return events
 
 
-def _dice_consequence(dice_context: str, inv_state) -> dict | None:
+def _dice_consequence(dice_context: str, inv_state, rng=None) -> dict | None:
     """骰子失败后果。"""
     if "失败" not in dice_context:
         return None
-    import random
+    rng = rng or random
     # 无限流轮回者无 SAN——失败后果直接走 HP 伤害（50% 概率）
     if not hasattr(inv_state, "san"):
-        if random.random() < 0.5:
-            dmg = random.randint(1, 2)
+        if rng.random() < 0.5:
+            dmg = rng.randint(1, 2)
             inv_state.take_damage(dmg)
             log.info("DICE_CONS: %s HP -%d (无限流无SAN)", inv_state.name, dmg)
             return {"type": "damage", "amount": dmg, "text": f"HP -{dmg}"}
         return None
     # 50% SAN损失，30% HP损失，20% 无损失
-    r = random.random()
+    r = rng.random()
     if r < 0.5:
-        loss = random.randint(1, 2)
+        loss = rng.randint(1, 2)
         old = inv_state.san
         inv_state.san = max(0, inv_state.san - loss)
         import sys
@@ -631,7 +711,9 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                        leader: str = "",
                        load_profile: bool = False):
     """SSE 事件流 — 完整的游戏循环。"""
-    
+    # 会话级随机源：本场所有骰子/随机选择都走这个实例，互不污染全局 random。
+    session_rng = random.Random(seed)
+
     # ── 模块组合模式 ──────────────────────────
     adventure: Adventure | None = None
     composer = None  # ModuleComposer | None（rest/trap 机制查询用）
@@ -653,11 +735,10 @@ async def event_stream(host: str, kp_model: str, player_model: str,
 
         # ── 强制战斗注入 ──
         if force_combat:
-            import random as _rnd
             combat_mods = [m for m in composer._modules.values()
                           if m.meta.module_type == "combat" and m.encounter is not None]
             if combat_mods:
-                cm = _rnd.choice(combat_mods)
+                cm = session_rng.choice(combat_mods)
                 cs = _combat_to_scene(cm.meta.id, cm.encounter)
                 adventure._scenes[cs.id] = cs
                 adventure.start_scene = cs.id
@@ -687,377 +768,774 @@ async def event_stream(host: str, kp_model: str, player_model: str,
             log.warning("无法连接 Ollama host=%s 做模型预检，跳过校验", host, exc_info=True)
             available = []
         if available and kp_model not in available:
+            # 预检失败也算一局结束：清掉刚渲染的地图 PNG，避免残留
+            _cleanup_map_png(dmap)
             yield _sse("error", {"text": f"KP模型 {kp_model} 不可用"})
             return
 
     kp_client = _make_client(host, kp_model, kp_api_key, timeout=300)
+    try:
 
-    # ── Session ───────────────────────────────
-    sid = sid or f"web_{datetime.now().strftime('%m%d_%H%M%S')}_{uuid4().hex[:8]}"
-    old_dir = Path("data/sessions") / sid
-    if old_dir.exists():
-        shutil.rmtree(old_dir)
-    session = Session(sid, auto_save_interval=0, max_context=8192)
-    _sessions[sid] = session
+        # ── Session ───────────────────────────────
+        sid = sid or f"web_{datetime.now().strftime('%m%d_%H%M%S')}_{uuid4().hex[:8]}"
+        old_dir = Path("data/sessions") / sid
+        if old_dir.exists():
+            shutil.rmtree(old_dir)
+        session = Session(sid, auto_save_interval=0, max_context=8192)
+        _sessions[sid] = session
 
-    # ── 无限流：创建轮回者 ──────────────────────
-    is_infinite_flow = _is_infinite_world(world)
-    roster = _roster_for_world(world)  # 非无限流世界观各自的「1主控+2NPC队友」名单
-    if is_infinite_flow:
-        from trpg_agent.memory.game_state import Reincarnator, INITIAL_ALLOCATION_POINTS
-        loaded = _load_reincarnator() if load_profile else None
-        if loaded is not None:
-            rein = loaded
-            rein.hp = rein.max_hp  # 开局回满
-            yield _sse("status", {"text": f"🌀 已继承轮回者 — 三维 {rein.strength}/{rein.agility}/{rein.spirit}，AP {rein.ap}，强化 {len(rein.talents)} 个"})
-        else:
-            rein = Reincarnator(name="轮回者", max_hp=12, hp=12,
-                                strength=10, agility=10, spirit=10, ap=0)
-            # 自由分配初始属性点：用户可后续通过强化面板分配
-            rein.ap += INITIAL_ALLOCATION_POINTS
-            yield _sse("status", {"text": f"🌀 轮回者已创建 — 三维属性 10/10/10，{INITIAL_ALLOCATION_POINTS} 点可分配"})
-        if session.state is not None:
-            session.state.reincarnator = rein
+        # ── 无限流：创建轮回者 ──────────────────────
+        is_infinite_flow = _is_infinite_world(world)
+        roster = _roster_for_world(world)  # 非无限流世界观各自的「1主控+2NPC队友」名单
+        if is_infinite_flow:
+            from trpg_agent.memory.game_state import Reincarnator, INITIAL_ALLOCATION_POINTS
+            loaded = _load_reincarnator() if load_profile else None
+            if loaded is not None:
+                rein = loaded
+                rein.hp = rein.max_hp  # 开局回满
+                yield _sse("status", {"text": f"🌀 已继承轮回者 — 三维 {rein.strength}/{rein.agility}/{rein.spirit}，AP {rein.ap}，强化 {len(rein.talents)} 个"})
+            else:
+                rein = Reincarnator(name="轮回者", max_hp=12, hp=12,
+                                    strength=10, agility=10, spirit=10, ap=0)
+                # 自由分配初始属性点：用户可后续通过强化面板分配
+                rein.ap += INITIAL_ALLOCATION_POINTS
+                yield _sse("status", {"text": f"🌀 轮回者已创建 — 三维属性 10/10/10，{INITIAL_ALLOCATION_POINTS} 点可分配"})
+            if session.state is not None:
+                session.state.reincarnator = rein
 
-    for inv_data in (INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster):
-        # 避免重复：characters.json 可能已经加载过
-        existing = session.state.find_investigator(inv_data["name"])
-        if existing:
-            existing.hp = inv_data.get("hp", existing.hp)
-            existing.san = inv_data.get("san", existing.san)
-            existing.max_hp = inv_data.get("max_hp", existing.max_hp)
-            existing.max_san = inv_data.get("max_san", existing.max_san)
-            existing.luck = inv_data.get("luck", existing.luck)
-        else:
-            inv = Investigator(
-                name=inv_data["name"], hp=inv_data["hp"], max_hp=inv_data["max_hp"],
-                san=inv_data["san"], max_san=inv_data["max_san"], luck=inv_data["luck"],
-                skills=inv_data["skills"], inventory=list(inv_data.get("inventory", [])),
-            )
-            session.state.investigators.append(inv)
-    session.state.location = current_room.name if current_room else ""
-
-    # ── 模块模式：注入冒险上下文 ──────────────
-    opening_text = OPENING
-    if adventure is not None:
-        start_scene = adventure.get_scene(adventure.start_scene)
-        if start_scene is not None:
-            opening_text = start_scene.description
-            session.state.scene_id = adventure.start_scene
-            session.state.location = start_scene.title
-            session.state.adventure_id = adventure.id
-            # 注入模块 NPC
-            from trpg_agent.memory.game_state import Npc
-            for npc_name in adventure.npc_names():
-                if not session.state.find_npc(npc_name):
-                    nd = adventure.get_npc(npc_name)
-                    if nd:
-                        session.state.npcs.append(Npc(
-                            name=nd.name, attitude=nd.attitude,
-                            description=nd.description,
-                            location=adventure.start_scene,
-                        ))
-
-    rein_data = None
-    if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
-        rein = session.state.reincarnator
-        rein_data = {
-            **rein.to_dict(),
-            "stats_text": (
-                f"力量 {rein.strength} | 敏捷 {rein.agility} | 精神 {rein.spirit} "
-                f"| HP {rein.hp}/{rein.max_hp} | AP {rein.ap}"
-            ),
-        }
-    yield _sse("init", {
-        "session_id": sid,
-        "investigators": INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster,
-        "reincarnator": rein_data,
-        "kp_model": kp_model, "player_model": player_model,
-        "opening": opening_text, "room": rc, "mode": mode,
-        "compose_modules": compose_modules,
-        "vote_seconds": vote_seconds,
-    })
-
-    # ── KP 开场（流式）────────────────────────
-    # 根据初始房间类型选场景图
-    initial_room_type = current_room.room_type if current_room else "entrance"
-    scene_info = _scene_for_room(initial_room_type)
-    # 模块模式：用模块场景图覆盖
-    if adventure is not None:
-        start_scene2 = adventure.get_scene(adventure.start_scene)
-        if start_scene2 and start_scene2.image:
-            scene_info = {**scene_info, "image": start_scene2.image} if scene_info else {"image": start_scene2.image, "mood": "dread"}
-    bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else _bgm_default
-    
-    system_prompt = session.build_system_prompt(adventure=adventure)
-    # 注入世界观氛围指令（COC 恐怖 / 无限流副本）
-    scene_context = start_scene.description if (adventure and (start_scene := adventure.get_scene(adventure.start_scene))) else OPENING
-    if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
-        rein_roster = [session.state.reincarnator.name] + [t["name"] for t in INFINITE_FLOW_TEAMMATES]
-        coc_directive = (
-            f"当前场景：{scene_context}\n"
-            f"位置：{rc['name']} — {rc['desc']}\n"
-            f"团队：{'、'.join(rein_roster)}（{rein_roster[0]} 为主控轮回者，其余为随行队友）\n"
-            f"线索：{rc.get('clues', '暂无')}\n"
-            f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
-            "【重要指令】\n"
-            "1. 你是无限流副本主持人，营造危险与未知交织的副本氛围。\n"
-            "2. 描述中必须包含感官细节：声音、气味、触感、光线。\n"
-            "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
-            "4. 如果提到线索，让它显得诡异而非寻常。\n"
-            "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
-        )
-        roster_names = rein_roster
-    else:
-        coc_directive = (
-            f"当前场景：{scene_context}\n"
-            f"位置：{rc['name']} — {rc['desc']}\n"
-            f"角色：{', '.join(i['name'] for i in roster)}\n"
-            f"线索：{rc.get('clues', '暂无')}\n"
-            f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
-            "【重要指令】\n"
-            f"1. 你是这个世界观（{world or 'coc'}）的主持人，营造符合设定基调的沉浸式氛围{'——人类渺小、真相可怖、理智侵蚀' if not world or world.lower() in ('coc', 'cthulhu') else ''}。\n"
-            "2. 描述中必须包含感官细节：声音、气味、触感、光线。\n"
-            "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
-            "4. 如果提到线索，让它显得诡异而非寻常。\n"
-            "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
-        )
-        roster_names = [inv["name"] for inv in roster]
-    yield _sse("kp_stream_start", {})
-    raw_opening = await _chat_generate(kp_client, system_prompt, coc_directive,
-                                       temperature=0.8, max_tokens=6000)
-    opening_text = _sanitize(raw_opening) if raw_opening else ""
-    needs_retry, nudge = (
-        _check_kp_narration(opening_text, roster_names=roster_names, is_intro=True)
-        if opening_text else (False, "")
-    )
-    if needs_retry:
-        log.info("开场白质量守卫触发重试：%s", nudge)
-        raw_retry = await _chat_generate(kp_client, system_prompt, coc_directive + "\n\n" + nudge,
-                                         temperature=0.8, max_tokens=6000)
-        if raw_retry:
-            opening_text = _sanitize(raw_retry)
-    if not opening_text:
-        opening_text = f"你们站在{current_room.name}中。{current_room.description}"
-    async for chunk in _fake_stream(opening_text):
-        yield _sse("kp_token", {"text": chunk})
-    session.record_turn("(游戏开始)", opening_text)
-
-    # TTS + BGM
-    audio_url = await _speak(opening_text[:500])
-    yield _sse("kp_stream_end", {
-        "state": _state_snapshot(session),
-        "scene": scene_info,
-        "audio_url": audio_url,
-        "bgm_track": bgm_track,
-    })
-    await asyncio.sleep(0.5)
-
-    # ── 游戏循环 ──────────────────────────────
-    last_narration = opening_text
-    if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
-        # 无限流：主控固定为轮回者（无需投票选主控，也不轮转），2 个 AI 队友常驻辅助
-        leader_name = session.state.reincarnator.name
-        player_order = [leader_name]
-        teammates = list(INFINITE_FLOW_TEAMMATES)
-    else:
-        player_order = [inv["name"] for inv in roster]
-        # T3 队友系统：live 模式固定主控（leader）由投票驱动，其余为 AI 队友
-        leader_name = leader or roster[0]["name"]
-        if leader_name not in player_order:
-            leader_name = roster[0]["name"]
-        teammates = [inv for inv in roster if inv["name"] != leader_name]
-    current_bgm = bgm_track
-    current_scene = scene_info
-    # ── 战斗编排器 ──
-    rein = None
-    if is_infinite_flow and session.state is not None:
-        rein = session.state.reincarnator
-    combat_orch = CombatOrchestrator(
-        investigators_state=_investigators_state_text(session),
-        melee_bonus=rein.melee_bonus() if rein else 0,
-        dodge_bonus=rein.dodge_bonus() if rein else 0,
-        spirit_resist_bonus=rein.spirit_resist_bonus() if rein else 0,
-        reincarnator=rein,
-    )
-
-    _turn = 0  # 循环迭代计数（含战斗回合）
-    _non_combat_turns = 0  # 非战斗回合计数
-    while _non_combat_turns < turns:
-        # live 模式：主控固定（投票驱动），不轮转
-        speaker = leader_name if mode == "live" else player_order[_turn % len(player_order)]
-        if is_infinite_flow and rein is not None and speaker == rein.name:
-            inv_data = {"name": rein.name, "color": "#8a5fd6"}
-            inv_state = rein
-        else:
-            inv_data = next(inv for inv in roster if inv["name"] == speaker)
-            inv_state = session.state.find_investigator(speaker)
-        rc = dmap.room_context()
-        teammate_actions: dict[str, str] = {}  # T3：本轮 AI 队友行动（live 模式填充）
-        _turn += 1
-
-        # ── 战斗场景检测 ──
-        in_combat = combat_orch.check_combat(adventure, session.state.scene_id)
-
-        if in_combat:
-            # 首次进入：应用队伍状态缩放
-            if combat_orch.combat_loop is not None and combat_orch.combat_loop.current_round == 0:
-                invs = session.state.investigators
-                if invs:
-                    avg_hp = sum(i.hp / max(i.max_hp, 1) for i in invs) / len(invs)
-                    combat_orch.combat_loop._state.encounter.apply_scaling(len(invs), party_hp_ratio=avg_hp)
-                yield _sse("status", {"text": f"⚔️ 战斗开始：{combat_orch.combat_loop._state.encounter.title}"})
-
-            # ── 进场叙事 + 选项生成 ──
-            enter_sys, enter_usr = combat_orch.prepare_enter()
-            yield _sse("kp_stream_start", {})
-            enter_output = ""
-            async for token in _chat_stream(kp_client, enter_sys, enter_usr,
-                                            temperature=0.85, max_tokens=1200):
-                enter_output += token
-                yield _sse("kp_token", {"text": token})
-            if not enter_output:
-                enter_output = (
-                    "（战斗陷入僵局……）\n---\n**观望局势**\n静观其变，等待时机。"
-                    "\n---\n**主动出击**\n冒险突进，正面对抗。\n---\n**且战且退**\n边打边撤，寻找生路。"
+        for inv_data in (INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster):
+            # 避免重复：characters.json 可能已经加载过
+            existing = session.state.find_investigator(inv_data["name"])
+            if existing:
+                existing.hp = inv_data.get("hp", existing.hp)
+                existing.san = inv_data.get("san", existing.san)
+                existing.max_hp = inv_data.get("max_hp", existing.max_hp)
+                existing.max_san = inv_data.get("max_san", existing.max_san)
+                existing.luck = inv_data.get("luck", existing.luck)
+            else:
+                inv = Investigator(
+                    name=inv_data["name"], hp=inv_data["hp"], max_hp=inv_data["max_hp"],
+                    san=inv_data["san"], max_san=inv_data["max_san"], luck=inv_data["luck"],
+                    skills=inv_data["skills"], inventory=list(inv_data.get("inventory", [])),
                 )
-            round_state = combat_orch.complete_enter(enter_output)
-            audio_url = await _speak(round_state.opening_narration[:500])
-            yield _sse("kp_stream_end", {
-                "state": _state_snapshot(session),
-                "scene": None,
-                "audio_url": audio_url,
-                "bgm_track": None,
-            })
+                session.state.investigators.append(inv)
+        session.state.location = current_room.name if current_room else ""
 
-            # ── 投票 ──
-            vote_options = {opt.option_key.lower(): opt.label for opt in round_state.options}
-            if not vote_options:
-                vote_options = {"a": "观望局势", "b": "主动出击", "c": "且战且退"}
-            yield _sse("vote", {
-                "options": vote_options,
-                "session_id": sid,
-                "speaker": speaker,
-            })
-            tally: dict[str, int] = {}
-            async for evt_name, evt_data in _vote_window(sid):
-                if evt_name == "__result__":
-                    tally = evt_data
-                else:
-                    yield _sse(evt_name, evt_data)
-            choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0)) if tally else next(iter(vote_options.keys()), "a")
+        # ── 模块模式：注入冒险上下文 ──────────────
+        opening_text = OPENING
+        if adventure is not None:
+            start_scene = adventure.get_scene(adventure.start_scene)
+            if start_scene is not None:
+                opening_text = start_scene.description
+                session.state.scene_id = adventure.start_scene
+                session.state.location = start_scene.title
+                session.state.adventure_id = adventure.id
+                # 注入模块 NPC
+                from trpg_agent.memory.game_state import Npc
+                for npc_name in adventure.npc_names():
+                    if not session.state.find_npc(npc_name):
+                        nd = adventure.get_npc(npc_name)
+                        if nd:
+                            session.state.npcs.append(Npc(
+                                name=nd.name, attitude=nd.attitude,
+                                description=nd.description,
+                                location=adventure.start_scene,
+                            ))
 
-            # ── 机制 + 叙事结算 ──
-            mech_result = combat_orch.submit_and_resolve_mechanics(choice)
-            yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
-            yield _sse("player_token", {"text": f"（全员选择了「{vote_options[choice]}」）", "speaker": speaker})
-            yield _sse("player_stream_end", {"speaker": speaker})
-            # ── 应用伤害到调查员状态（按人数精确分摊，总和不超过原始伤害）──
-            if mech_result.damage_to_investigators:
-                if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
-                    rein = session.state.reincarnator
-                    rein.take_damage(mech_result.damage_to_investigators)
-                else:
-                    n = len(roster)
-                    base_dmg, remainder = divmod(mech_result.damage_to_investigators, n)
-                    for i, invd in enumerate(roster):
-                        dmg = base_dmg + (1 if i < remainder else 0)
-                        if dmg <= 0:
-                            continue
-                        st = session.state.find_investigator(invd["name"])
-                        if st:
-                            st.take_damage(dmg)
-            if mech_result.san_loss and not is_infinite_flow:
-                inv_state.san = max(0, inv_state.san - mech_result.san_loss)
-            # 推送掷骰/伤害结果到前端（speaker/skill 供前端日志/骰子叠加层展示）
-            yield _sse("dice_roll", {
-                "text": mech_result.summary,
-                "speaker": speaker,
-                "skill": mech_result.skill or "",
-                "success": mech_result.success,
-                "damage_to_enemies": mech_result.damage_to_enemies,
-                "damage_to_investigators": mech_result.damage_to_investigators,
-                "san_loss": mech_result.san_loss,
-            })
-            await asyncio.sleep(0.2)
-            # BOSS 阶段事件推送（狂暴/召唤等，独立 status 让前端醒目展示）
-            for ph in (getattr(mech_result, "phase_events", None) or []):
-                yield _sse("status", {"text": f"⚠️ {ph.get('name', '阶段变化')}——{ph.get('behavior', '')}"})
-                await asyncio.sleep(0.4)
+        rein_data = None
+        if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+            rein = session.state.reincarnator
+            rein_data = {
+                **rein.to_dict(),
+                "stats_text": (
+                    f"力量 {rein.strength} | 敏捷 {rein.agility} | 精神 {rein.spirit} "
+                    f"| HP {rein.hp}/{rein.max_hp} | AP {rein.ap}"
+                ),
+            }
+        yield _sse("init", {
+            "session_id": sid,
+            "investigators": INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster,
+            "reincarnator": rein_data,
+            "kp_model": kp_model, "player_model": player_model,
+            "opening": opening_text, "room": rc, "mode": mode,
+            "compose_modules": compose_modules,
+            "vote_seconds": vote_seconds,
+        })
 
-            res_sys, res_usr = combat_orch.prepare_resolve()
-            yield _sse("kp_stream_start", {})
-            resolution_output = ""
-            async for token in _chat_stream(kp_client, res_sys, res_usr,
-                                            temperature=0.8, max_tokens=1500):
-                resolution_output += token
-                yield _sse("kp_token", {"text": token})
-            if not resolution_output:
-                resolution_output = f"（{mech_result.summary}）"
+        # ── KP 开场（流式）────────────────────────
+        # 根据初始房间类型选场景图
+        initial_room_type = current_room.room_type if current_room else "entrance"
+        scene_info = _scene_for_room(initial_room_type)
+        # 模块模式：用模块场景图覆盖
+        if adventure is not None:
+            start_scene2 = adventure.get_scene(adventure.start_scene)
+            if start_scene2 and start_scene2.image:
+                scene_info = {**scene_info, "image": start_scene2.image} if scene_info else {"image": start_scene2.image, "mood": "dread"}
+        bgm_track = _bgm_for_mood(scene_info["mood"]) if scene_info else _bgm_default
+    
+        system_prompt = session.build_system_prompt(adventure=adventure)
+        # 注入世界观氛围指令（COC 恐怖 / 无限流副本）
+        scene_context = start_scene.description if (adventure and (start_scene := adventure.get_scene(adventure.start_scene))) else OPENING
+        if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+            rein_roster = [session.state.reincarnator.name] + [t["name"] for t in INFINITE_FLOW_TEAMMATES]
+            coc_directive = (
+                f"当前场景：{scene_context}\n"
+                f"位置：{rc['name']} — {rc['desc']}\n"
+                f"团队：{'、'.join(rein_roster)}（{rein_roster[0]} 为主控轮回者，其余为随行队友）\n"
+                f"线索：{rc.get('clues', '暂无')}\n"
+                f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
+                "【重要指令】\n"
+                "1. 你是无限流副本主持人，营造危险与未知交织的副本氛围。\n"
+                "2. 描述中必须包含感官细节：声音、气味、触感、光线。\n"
+                "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
+                "4. 如果提到线索，让它显得诡异而非寻常。\n"
+                "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
+            )
+            roster_names = rein_roster
+        else:
+            coc_directive = (
+                f"当前场景：{scene_context}\n"
+                f"位置：{rc['name']} — {rc['desc']}\n"
+                f"角色：{', '.join(i['name'] for i in roster)}\n"
+                f"线索：{rc.get('clues', '暂无')}\n"
+                f"⚠ 威胁：{rc.get('threats', '无')}\n\n"
+                "【重要指令】\n"
+                f"1. 你是这个世界观（{world or 'coc'}）的主持人，营造符合设定基调的沉浸式氛围{'——人类渺小、真相可怖、理智侵蚀' if not world or world.lower() in ('coc', 'cthulhu') else ''}。\n"
+                "2. 描述中必须包含感官细节：声音、气味、触感、光线。\n"
+                "3. 如果房间有威胁，必须在叙述中暗示它——让玩家感到不安。\n"
+                "4. 如果提到线索，让它显得诡异而非寻常。\n"
+                "5. 叙述控制在3-5句，营造紧张氛围后把选择交还玩家。"
+            )
+            roster_names = [inv["name"] for inv in roster]
+        yield _sse("kp_stream_start", {})
+        raw_opening = await _chat_generate(kp_client, system_prompt, coc_directive,
+                                           temperature=0.8, max_tokens=6000)
+        opening_text = _sanitize(raw_opening) if raw_opening else ""
+        needs_retry, nudge = (
+            _check_kp_narration(opening_text, roster_names=roster_names, is_intro=True)
+            if opening_text else (False, "")
+        )
+        if needs_retry:
+            log.info("开场白质量守卫触发重试：%s", nudge)
+            raw_retry = await _chat_generate(kp_client, system_prompt, coc_directive + "\n\n" + nudge,
+                                             temperature=0.8, max_tokens=6000)
+            if raw_retry:
+                opening_text = _sanitize(raw_retry)
+        if not opening_text:
+            opening_text = f"你们站在{current_room.name}中。{current_room.description}"
+        async for chunk in _fake_stream(opening_text):
+            yield _sse("kp_token", {"text": chunk})
+        session.record_turn("(游戏开始)", opening_text)
 
-            result = combat_orch.complete_turn(resolution_output)
-            outcome = result.outcome
+        # TTS + BGM
+        audio_url = await _speak(opening_text[:500])
+        yield _sse("kp_stream_end", {
+            "state": _state_snapshot(session),
+            "scene": scene_info,
+            "audio_url": audio_url,
+            "bgm_track": bgm_track,
+        })
+        await asyncio.sleep(0.5)
 
-            # 极端兜底
-            if outcome is None:
-                fallback = combat_orch.force_end_if_needed(COMBAT_MAX_ROUNDS)
-                if fallback:
-                    outcome = fallback
-                    resolution_output += "\n\n（战斗持续过久，局势再也无法维持……）"
+        # ── 游戏循环 ──────────────────────────────
+        last_narration = opening_text
+        if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+            # 无限流：主控固定为轮回者（无需投票选主控，也不轮转），2 个 AI 队友常驻辅助
+            leader_name = session.state.reincarnator.name
+            player_order = [leader_name]
+            teammates = list(INFINITE_FLOW_TEAMMATES)
+        else:
+            player_order = [inv["name"] for inv in roster]
+            # T3 队友系统：live 模式固定主控（leader）由投票驱动，其余为 AI 队友
+            leader_name = leader or roster[0]["name"]
+            if leader_name not in player_order:
+                leader_name = roster[0]["name"]
+            teammates = [inv for inv in roster if inv["name"] != leader_name]
+        current_bgm = bgm_track
+        current_scene = scene_info
+        # ── 战斗编排器 ──
+        rein = None
+        if is_infinite_flow and session.state is not None:
+            rein = session.state.reincarnator
+        combat_orch = CombatOrchestrator(
+            investigators_state=_investigators_state_text(session),
+            melee_bonus=rein.melee_bonus() if rein else 0,
+            dodge_bonus=rein.dodge_bonus() if rein else 0,
+            spirit_resist_bonus=rein.spirit_resist_bonus() if rein else 0,
+            reincarnator=rein,
+        )
+
+        _turn = 0  # 循环迭代计数（含战斗回合）
+        _non_combat_turns = 0  # 非战斗回合计数
+        while _non_combat_turns < turns:
+            # live 模式：主控固定（投票驱动），不轮转
+            speaker = leader_name if mode == "live" else player_order[_turn % len(player_order)]
+            if is_infinite_flow and rein is not None and speaker == rein.name:
+                inv_data = {"name": rein.name, "color": "#8a5fd6"}
+                inv_state = rein
+            else:
+                inv_data = next(inv for inv in roster if inv["name"] == speaker)
+                inv_state = session.state.find_investigator(speaker)
+            rc = dmap.room_context()
+            teammate_actions: dict[str, str] = {}  # T3：本轮 AI 队友行动（live 模式填充）
+            _turn += 1
+
+            # ── 战斗场景检测 ──
+            in_combat = combat_orch.check_combat(adventure, session.state.scene_id)
+
+            if in_combat:
+                # 首次进入：应用队伍状态缩放
+                if combat_orch.combat_loop is not None and combat_orch.combat_loop.current_round == 0:
+                    invs = session.state.investigators
+                    if invs:
+                        avg_hp = sum(i.hp / max(i.max_hp, 1) for i in invs) / len(invs)
+                        combat_orch.combat_loop._state.encounter.apply_scaling(len(invs), party_hp_ratio=avg_hp)
+                    yield _sse("status", {"text": f"⚔️ 战斗开始：{combat_orch.combat_loop._state.encounter.title}"})
+
+                # ── 进场叙事 + 选项生成 ──
+                enter_sys, enter_usr = combat_orch.prepare_enter()
+                yield _sse("kp_stream_start", {})
+                enter_output = ""
+                async for token in _chat_stream(kp_client, enter_sys, enter_usr,
+                                                temperature=0.85, max_tokens=1200):
+                    enter_output += token
+                    yield _sse("kp_token", {"text": token})
+                if not enter_output:
+                    enter_output = (
+                        "（战斗陷入僵局……）\n---\n**观望局势**\n静观其变，等待时机。"
+                        "\n---\n**主动出击**\n冒险突进，正面对抗。\n---\n**且战且退**\n边打边撤，寻找生路。"
+                    )
+                round_state = combat_orch.complete_enter(enter_output)
+                audio_url = await _speak(round_state.opening_narration[:500])
+                yield _sse("kp_stream_end", {
+                    "state": _state_snapshot(session),
+                    "scene": None,
+                    "audio_url": audio_url,
+                    "bgm_track": None,
+                })
+
+                # ── 投票 ──
+                vote_options = {opt.option_key.lower(): opt.label for opt in round_state.options}
+                if not vote_options:
+                    vote_options = {"a": "观望局势", "b": "主动出击", "c": "且战且退"}
+                yield _sse("vote", {
+                    "options": vote_options,
+                    "session_id": sid,
+                    "speaker": speaker,
+                })
+                tally: dict[str, int] = {}
+                async for evt_name, evt_data in _vote_window(sid):
+                    if evt_name == "__result__":
+                        tally = evt_data
+                    else:
+                        yield _sse(evt_name, evt_data)
+                choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0)) if tally else next(iter(vote_options.keys()), "a")
+
+                # ── 机制 + 叙事结算 ──
+                mech_result = combat_orch.submit_and_resolve_mechanics(choice)
+                yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
+                yield _sse("player_token", {"text": f"（全员选择了「{vote_options[choice]}」）", "speaker": speaker})
+                yield _sse("player_stream_end", {"speaker": speaker})
+                # ── 应用伤害到调查员状态（按人数精确分摊，总和不超过原始伤害）──
+                if mech_result.damage_to_investigators:
+                    if is_infinite_flow and session.state is not None and session.state.reincarnator is not None:
+                        rein = session.state.reincarnator
+                        rein.take_damage(mech_result.damage_to_investigators)
+                    else:
+                        n = len(roster)
+                        base_dmg, remainder = divmod(mech_result.damage_to_investigators, n)
+                        for i, invd in enumerate(roster):
+                            dmg = base_dmg + (1 if i < remainder else 0)
+                            if dmg <= 0:
+                                continue
+                            st = session.state.find_investigator(invd["name"])
+                            if st:
+                                st.take_damage(dmg)
+                if mech_result.san_loss and not is_infinite_flow:
+                    inv_state.san = max(0, inv_state.san - mech_result.san_loss)
+                # 推送掷骰/伤害结果到前端（speaker/skill 供前端日志/骰子叠加层展示）
+                yield _sse("dice_roll", {
+                    "text": mech_result.summary,
+                    "speaker": speaker,
+                    "skill": mech_result.skill or "",
+                    "success": mech_result.success,
+                    "damage_to_enemies": mech_result.damage_to_enemies,
+                    "damage_to_investigators": mech_result.damage_to_investigators,
+                    "san_loss": mech_result.san_loss,
+                })
+                await asyncio.sleep(0.2)
+                # BOSS 阶段事件推送（狂暴/召唤等，独立 status 让前端醒目展示）
+                for ph in (getattr(mech_result, "phase_events", None) or []):
+                    yield _sse("status", {"text": f"⚠️ {ph.get('name', '阶段变化')}——{ph.get('behavior', '')}"})
+                    await asyncio.sleep(0.4)
+
+                res_sys, res_usr = combat_orch.prepare_resolve()
+                yield _sse("kp_stream_start", {})
+                resolution_output = ""
+                async for token in _chat_stream(kp_client, res_sys, res_usr,
+                                                temperature=0.8, max_tokens=1500):
+                    resolution_output += token
+                    yield _sse("kp_token", {"text": token})
+                if not resolution_output:
+                    resolution_output = f"（{mech_result.summary}）"
+
+                result = combat_orch.complete_turn(resolution_output)
+                outcome = result.outcome
+
+                # 极端兜底
+                if outcome is None:
+                    fallback = combat_orch.force_end_if_needed(COMBAT_MAX_ROUNDS)
+                    if fallback:
+                        outcome = fallback
+                        resolution_output += "\n\n（战斗持续过久，局势再也无法维持……）"
+                        yield _sse("kp_token", {"text": "\n\n" + combat_orch.combat_loop.end_summary()})
+
+                if outcome is not None:
                     yield _sse("kp_token", {"text": "\n\n" + combat_orch.combat_loop.end_summary()})
+                    resolution_output += "\n\n" + combat_orch.combat_loop.end_summary()
 
-            if outcome is not None:
-                yield _sse("kp_token", {"text": "\n\n" + combat_orch.combat_loop.end_summary()})
-                resolution_output += "\n\n" + combat_orch.combat_loop.end_summary()
+                session.record_turn(result.action, resolution_output, speaker=speaker)
+                last_narration = resolution_output
 
-            session.record_turn(result.action, resolution_output, speaker=speaker)
-            last_narration = resolution_output
+                if outcome is not None:
+                    summary = combat_orch.combat_summary()
+                    if summary:
+                        session.record_combat(summary)
 
-            if outcome is not None:
-                summary = combat_orch.combat_summary()
-                if summary:
-                    session.record_combat(summary)
+                # ── 无限流：副本通关结算 AP ──────────
+                # 优先读战斗 encounter 结局声明的 reward_ap（模块作者可配置），
+                # 读不到或为 0 时回退旧硬编码数值（victory 3 / defeat/flee 1）。
+                ap_gained = 0
+                if is_infinite_flow and outcome is not None and session.state is not None and session.state.reincarnator is not None:
+                    rein = session.state.reincarnator
+                    encounter = None
+                    if combat_orch.combat_loop is not None and combat_orch.combat_loop._state is not None:
+                        encounter = combat_orch.combat_loop._state.encounter
+                    ap_gained = _resolve_outcome_ap(str(outcome), encounter)
+                    if ap_gained:
+                        rein.ap += ap_gained
+                        yield _sse("status", {"text": f"💰 副本结算：获得 {ap_gained} 强化点（AP），当前 {rein.ap} 点"})
+                    # T6：副本结束（任一结局）存档轮回者
+                    _save_reincarnator(rein)
 
-            # ── 无限流：副本通关结算 AP ──────────
-            # 优先读战斗 encounter 结局声明的 reward_ap（模块作者可配置），
-            # 读不到或为 0 时回退旧硬编码数值（victory 3 / defeat/flee 1）。
-            ap_gained = 0
-            if is_infinite_flow and outcome is not None and session.state is not None and session.state.reincarnator is not None:
-                rein = session.state.reincarnator
-                encounter = None
-                if combat_orch.combat_loop is not None and combat_orch.combat_loop._state is not None:
-                    encounter = combat_orch.combat_loop._state.encounter
-                ap_gained = _resolve_outcome_ap(str(outcome), encounter)
-                if ap_gained:
-                    rein.ap += ap_gained
-                    yield _sse("status", {"text": f"💰 副本结算：获得 {ap_gained} 强化点（AP），当前 {rein.ap} 点"})
-                # T6：副本结束（任一结局）存档轮回者
-                _save_reincarnator(rein)
+                audio_url = await _speak(resolution_output[:500])
 
-            audio_url = await _speak(resolution_output[:500])
+                # ── 战斗结束跳转 ──
+                moved_scene = None
+                if outcome is not None:
+                    scene = adventure.get_scene(session.state.scene_id) if adventure else None
+                    if scene:
+                        trans = combat_orch.scene_transition_info(scene)
+                        if trans:
+                            _mid, target_id = trans
+                            moved_scene = session.move_to_scene(target_id, adventure)
+                            if moved_scene is not None:
+                                moved_scene, _trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+                    combat_orch.reset()
 
-            # ── 战斗结束跳转 ──
-            moved_scene = None
-            if outcome is not None:
-                scene = adventure.get_scene(session.state.scene_id) if adventure else None
-                if scene:
-                    trans = combat_orch.scene_transition_info(scene)
-                    if trans:
-                        _mid, target_id = trans
-                        moved_scene = session.move_to_scene(target_id, adventure)
-                        if moved_scene is not None:
-                            moved_scene, _trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
-                combat_orch.reset()
+                # ── 场景切换 / 收尾 ──
+                scene_changed = False
+                bgm_changed = False
+                new_bgm = current_bgm
+                room_change = None
+                if moved_scene is not None:
+                    session.state.location = moved_scene.title
+                    current_scene = {"image": moved_scene.image, "location": moved_scene.title, "mood": moved_scene.mood}
+                    scene_changed = True
+                    if moved_scene.mood:
+                        track = _bgm_for_mood(moved_scene.mood)
+                        if track != current_bgm:
+                            new_bgm = track
+                            current_bgm = track
+                            bgm_changed = True
+                    room_change = {
+                        "room_id": None,
+                        "room_name": moved_scene.title,
+                        "room_desc": moved_scene.description,
+                        "items": [],
+                        "map": dmap.to_dict(),
+                        "grid": dmap.grid,
+                        "image": moved_scene.image or dmap.relative_path,
+                        "room": rc,
+                    }
+                    yield _sse("room_change", room_change)
+                    await asyncio.sleep(0.5)
+                    # 模块机制：rest/trap 效果（战斗跳转进入的新场景）
+                    for _ef in _module_scene_effects(composer, adventure, session.state.scene_id, session, is_infinite_flow):
+                        yield _sse("status", {"text": _ef})
+                        await asyncio.sleep(0.3)
 
-            # ── 场景切换 / 收尾 ──
+                yield _sse("kp_stream_end", {
+                    "state": _state_snapshot(session),
+                    "scene": current_scene if scene_changed else None,
+                    "audio_url": audio_url,
+                    "bgm_track": new_bgm if bgm_changed else None,
+                    "room_change": room_change,
+                    "room": rc,
+                })
+                await asyncio.sleep(0.3)
+                continue  # 战斗回合自成一体
+
+            # ── 玩家行动 ───────────────────────────
+            moved_scene = None  # 投票驱动的模块场景切换结果（仅模块模式下可能非 None）
+            trans_meta = None   # 过渡元数据链（供 KP 过渡指令构建）
+            if mode == "ai":
+                # ── AI 模式：本地 LLM 扮演调查员 ────
+                # 模块交互优先：puzzle/social/choice/interaction 场景，AI 自动选一个并结算
+                ai_interactions = _module_interaction_options(
+                    composer, adventure, session.state.scene_id, session)
+                if ai_interactions:
+                    ai_choice = await _ai_pick_option(
+                        player_host, player_model, {l: v["text"] for l, v in ai_interactions.items()},
+                        last_narration, speaker, kp_api_key, session_rng)
+                    if ai_choice not in ai_interactions:
+                        ai_choice = next(iter(ai_interactions))
+                    sel = ai_interactions[ai_choice]
+                    yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
+                    yield _sse("player_token", {"text": f"（{speaker} 选择：{sel['text']}）", "speaker": speaker})
+                    yield _sse("player_stream_end", {"speaker": speaker})
+                    await asyncio.sleep(0.2)
+                    for _ef in _module_interaction_resolve(sel, session, is_infinite_flow):
+                        yield _sse("status", {"text": _ef})
+                        await asyncio.sleep(0.3)
+                    continue  # 交互回合不消耗移动/检定流程
+                yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
+                action = ""
+                # force_pickup: 首轮强制拾取房间物品
+                if force_pickup and _non_combat_turns == 0:
+                    room_items = dmap.current_room.items if dmap.current_room else []
+                    if room_items:
+                        action = f"{speaker}捡起{room_items[0]}"
+                        yield _sse("player_token", {"text": action, "speaker": speaker})
+                    else:
+                        action = f"（{speaker} 谨慎地观察四周）"
+                        yield _sse("player_token", {"text": action, "speaker": speaker})
+                else:
+                    async for token in _ai_player_stream(player_host, player_model, inv_data, inv_state,
+                                                         rc, last_narration, speaker,
+                                                         is_infinite_flow=is_infinite_flow,
+                                                         api_key=kp_api_key):
+                        action += token
+                        yield _sse("player_token", {"text": token, "speaker": speaker})
+                    if not action.strip():
+                        action = f"（{speaker} 谨慎地观察四周）"
+                        yield _sse("player_token", {"text": action, "speaker": speaker})
+                yield _sse("player_stream_end", {"speaker": speaker})
+                await asyncio.sleep(0.2)
+            else:
+                # ── 人类 / 直播模式：展示选项，等待投票 ──
+                is_live = mode == "live"
+                # human 单人模式：窗口不设短超时（first_vote_wins 下第一票即结束），
+                # 玩家点选项立即生效；live 用参数投票时长；ai 用默认窗口
+                if mode == "human":
+                    vote_timeout = 3600  # 单人等待玩家选择，第一票即锁定
+                else:
+                    vote_timeout = vote_seconds if is_live else VOTE_WINDOW_SECONDS
+                vote_targets: dict[str, str] = {}
+                opp_actions: dict[str, str] = {}  # 机会选项（无 target，选中走检定）
+                module_interactions: dict[str, dict] | None = None  # 模块交互选项（puzzle/social/choice/interaction）
+                if adventure is not None:
+                    # 模块交互优先：puzzle/social/choice/interaction 场景先用作者定义的交互选项
+                    module_interactions = _module_interaction_options(
+                        composer, adventure, session.state.scene_id, session)
+                    if module_interactions:
+                        vote_options = {l: v["text"] for l, v in module_interactions.items()}
+                        opp_actions = {l: l for l in module_interactions}  # 占位：选中后单独结算
+                    else:
+                        # 模块模式：投票选项 = 当前场景的真实出口，投票结果将驱动场景切换
+                        exits = adventure.scene_exits(
+                            session.state.scene_id, resolved_ids=session.state.resolved_elements,
+                        )
+                        letters = ["a", "b", "c"]
+                        vote_options = {}
+                        for letter, exit_view in zip(letters, exits):
+                            vote_options[letter] = exit_view.label
+                            vote_targets[letter] = exit_view.target_id
+                        # 出口不足 3 个时，用场景 opportunities（作者写的剧情贴合互动）补齐，
+                        # 而非泛用填充词；选中机会选项会作为玩家行动进入检定流程
+                        if len(vote_options) < 3:
+                            scene_obj = adventure.get_scene(session.state.scene_id)
+                            opps = [o.text for o in (scene_obj.opportunities if scene_obj else []) or [] if o.text]
+                            for letter, opp in zip(letters[len(vote_options):], opps):
+                                vote_options[letter] = opp
+                                opp_actions[letter] = opp
+                else:
+                    vote_options = {
+                        "a": "深入调查当前的线索",
+                        "b": "与同伴讨论接下来的行动",
+                        "c": "谨慎地搜索房间的每个角落",
+                    }
+                    # 用当前房间场景定制选项
+                    room_name = rc.get("name", "") if rc else ""
+                    if "办公室" in room_name or "书房" in room_name:
+                        vote_options = {"a": "翻查桌上的文件和信件", "b": "检查书架后的隐藏空间", "c": "仔细观察墙上的照片和地图"}
+                    elif "走廊" in room_name:
+                        vote_options = {"a": "贴着墙壁缓慢前进", "b": "检查地面的脚印和痕迹", "c": "倾听周围的异常声响"}
+                    elif "病房" in room_name or "医院" in room_name:
+                        vote_options = {"a": "查看病床上的约束带痕迹", "b": "翻阅床头柜的病历记录", "c": "检查窗户是否通向外部"}
+
+                # T5：无限流 hub 场景附加已通关副本标记（供前端卡片显示 ✓）
+                cleared_dungeons: list[str] = []
+                if is_infinite_flow and adventure is not None and session.state is not None:
+                    hub_scene = adventure.get_scene(session.state.scene_id)
+                    if hub_scene is not None and "主神空间" in (hub_scene.title or ""):
+                        for clue, label in (("dungeon_clear_jy", "咒怨"),
+                                            ("dungeon_clear_rs", "生化"),
+                                            ("dungeon_clear_xt", "修仙")):
+                            if clue in session.state.resolved_elements:
+                                cleared_dungeons.append(label)
+
+                yield _sse("vote", {
+                    "options": vote_options,
+                    "session_id": sid,
+                    "speaker": speaker,
+                    "vote_seconds": vote_timeout,
+                    "cleared_dungeons": cleared_dungeons,
+                })
+
+                # T3：投票窗口期间并行生成 AI 队友行动（隐藏延迟，不拖长单轮）
+                teammate_task = None
+                if is_live:
+                    teammate_prompt_data = _build_teammate_prompt_data(session, teammates)
+                    teammate_task = asyncio.create_task(
+                        _ai_teammates_action(player_host, player_model, teammate_prompt_data, rc, last_narration, "", kp_api_key)
+                    )
+
+                # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
+                # human 单人模式：第一票即锁定（点选项立即生效），不等满窗口
+                tally: dict[str, int] = {}
+                async for evt_name, evt_data in _vote_window(sid, vote_timeout, first_vote_wins=(mode == "human")):
+                    if evt_name == "__result__":
+                        tally = evt_data
+                    else:
+                        yield _sse(evt_name, evt_data)
+                if tally:
+                    choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
+                elif is_live:
+                    # 直播模式无人投票 → AI 接手选择
+                    choice = await _ai_pick_option(player_host, player_model, vote_options, last_narration, speaker, kp_api_key, session_rng)
+                    yield _sse("ai_pick", {"choice": choice, "label": vote_options.get(choice, "")})
+                else:
+                    # human 模式窗口极长（3600s）理论上不会走到这里；兜底选 a 避免流卡死
+                    choice = "a"
+
+                # 投票结束：取回队友行动（投票窗口内已完成，失败则空 dict 兜底）
+                if teammate_task is not None:
+                    teammate_actions = await teammate_task
+
+                # 投票结果驱动模块场景切换——只有选中真实出口时才会真正移动
+                target_scene_id = vote_targets.get(choice)
+                # 模块交互结算：选中 puzzle/social/choice/interaction 选项时立即结算，不移动场景
+                if module_interactions and choice in module_interactions:
+                    for _ef in _module_interaction_resolve(module_interactions[choice], session, is_infinite_flow):
+                        yield _sse("status", {"text": _ef})
+                        await asyncio.sleep(0.3)
+
+                if adventure is not None and target_scene_id:
+                    moved_scene = session.move_to_scene(target_scene_id, adventure)
+                    if moved_scene is not None:
+                        moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+                    # 模块机制：rest/trap 效果（投票移动进入的新场景）
+                    if moved_scene is not None and session.state is not None:
+                        for _ef in _module_scene_effects(composer, adventure, session.state.scene_id, session, is_infinite_flow):
+                            yield _sse("status", {"text": _ef})
+                            await asyncio.sleep(0.3)
+
+                if module_interactions and choice in module_interactions:
+                    # 模块交互选项：用选项文字作为玩家行动（不进场景移动）
+                    action = module_interactions[choice].get("text", "")
+                elif choice in opp_actions:
+                    # 机会选项：直接作为玩家行动，进入检定/拾取流程（有实际后果）
+                    action = opp_actions[choice]
+                else:
+                    action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
+                yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
+                yield _sse("player_token", {"text": action, "speaker": speaker})
+                if teammate_actions:
+                    for _tname, _tact in teammate_actions.items():
+                        yield _sse("player_token", {"text": f"（{_tname}：{_tact}）", "speaker": _tname})
+                yield _sse("player_stream_end", {"speaker": speaker})
+                await asyncio.sleep(0.2)
+
+            # ── 房间物品拾取 ───────────────────────
+            items_picked = _handle_pickup(dmap, inv_state, action)
+            if items_picked:
+                yield _sse("item_pickup", {
+                    "speaker": speaker, "items": items_picked,
+                    "inventory": list(inv_state.inventory),
+                })
+
+            # ── 检定 ───────────────────────────────
+            dice_context, dice_result = "", {}
+            try:
+                dice_context, roll_req = await session.classify_and_resolve(
+                    kp_client, action)
+                if roll_req:
+                    dice_result = {"skill": roll_req.skill, "difficulty": roll_req.difficulty}
+            except Exception:
+                log.warning("检定解析/结算失败，本轮跳过检定", exc_info=True)
+            if dice_context:
+                yield _sse("dice_roll", {
+                    "speaker": speaker, "text": dice_context,
+                    "skill": dice_result.get("skill", ""),
+                })
+                await asyncio.sleep(0.5)
+
+            # ── 骰子后果 ───────────────────────────
+            consequence = _dice_consequence(dice_context, inv_state, session_rng) if dice_context else None
+            if consequence:
+                yield _sse(consequence["type"], {
+                    "speaker": speaker, "text": consequence.get("text", ""),
+                    "amount": consequence.get("amount", 0),
+                })
+
+            # ── KP 叙述（流式）────────────────────
+            system_prompt = session.build_system_prompt(adventure=adventure)
+            context_parts = []
+            # 房间线索 + 威胁注入
+            room_clues = rc.get("clues", "")
+            room_threats = rc.get("threats", "")
+            if room_clues:
+                context_parts.append(f"[房间线索] {room_clues}")
+            if room_threats and room_threats != "无":
+                context_parts.append(f"[房间威胁] {room_threats}")
+
+            if dice_context:
+                is_success = "成功" in dice_context and "失败" not in dice_context
+                who = dice_result.get("character", speaker)
+                skill = dice_result.get("skill", "行动")
+                if is_success:
+                    directive = (
+                        f"[系统检定结果]\n"
+                        f"{who} 的「{skill}」检定：成功——{dice_context}\n"
+                        f"你必须叙述他/她成功了。描述具体发现/做到/说服了什么。"
+                    )
+                else:
+                    directive = (
+                        f"[系统检定结果]\n"
+                        f"{who} 的「{skill}」检定：失败——{dice_context}\n"
+                        f"你必须叙述他/她失败了，并描述由此产生的危险后果。"
+                    )
+                    if consequence:
+                        directive += f"\n此外，他/她还承受了：{consequence.get('text', '')}"
+                context_parts.append(directive)
+            if items_picked:
+                context_parts.append(f"[获得物品] {', '.join(items_picked)}")
+            # 模块模式：投票已经把队伍移动到了新场景——告知 KP 描述抵达
+            if moved_scene is not None:
+                if trans_meta:
+                    # 有过渡元数据 → 构建结构化 KP 过渡指令
+                    tm = trans_meta[0]  # 使用第一条过渡元数据（通常只有一条）
+                    TYPE_LABELS = {
+                        "combat": "战斗", "story": "剧情",
+                        "investigation": "调查", "exploration": "探索",
+                        "social": "社交", "horror": "恐怖", "rest": "休整",
+                    }
+                    from_type_label = TYPE_LABELS.get(tm.get("from_type", ""), tm.get("from_type", ""))
+                    to_type_label = TYPE_LABELS.get(tm.get("to_type", ""), tm.get("to_type", ""))
+                    from_type = tm.get("from_type", "")
+                    to_type = tm.get("to_type", "")
+
+                    trans_parts = [
+                        "[场景过渡]",
+                        f"队伍离开了「{tm['from_title']}」（{from_type_label}场景），现在来到了「{tm['to_title']}」（{to_type_label}场景）。",
+                    ]
+                    if tm.get("to_desc"):
+                        trans_parts.append(f"抵达后的景象：{tm['to_desc']}")
+
+                    # 类型切换提示——不同方向的切换给出不同的叙事指引
+                    if from_type and to_type and from_type != to_type:
+                        hints = _transition_hint(from_type, to_type)
+                        if hints:
+                            trans_parts.append(hints)
+
+                    trans_parts.append(
+                        "请用2-3句话叙述从离开到抵达的自然过渡。不要使用模板化句式。"
+                    )
+                    context_parts.append("\n".join(trans_parts))
+                else:
+                    context_parts.append(f"[场景切换] 队伍来到了新地点——{moved_scene.title}：{moved_scene.description}")
+            # 模块模式 + AI 玩家：告知可用的场景出口，允许 KP 用 <<EXIT n>> 请求移动
+            if adventure is not None and mode == "ai":
+                current_exits = adventure.scene_exits(
+                    session.state.scene_id, resolved_ids=session.state.resolved_elements,
+                )
+                if current_exits:
+                    exit_lines = "\n".join(f"{i}. {e.label}" for i, e in enumerate(current_exits, 1))
+                    context_parts.append(
+                        "[场景出口]\n" + exit_lines +
+                        "\n如果调查员的行动自然会让队伍前往上述某个地点，在叙述最后另起一行附加"
+                        " <<EXIT 序号>>（如 <<EXIT 1>>）；如果队伍仍留在当前场景，不要添加这个标记。"
+                    )
+            context_parts.append(f"[{speaker}] {action}")
+            # T3：队友行动并入 KP 叙述上下文（live 模式）
+            if teammate_actions:
+                team_text = "；".join(f"{name} {act}" for name, act in teammate_actions.items())
+                context_parts.append(f"[队友行动] {team_text}")
+            kp_user = "\n\n".join(context_parts) + "\n\n请叙述结果："
+
+            yield _sse("kp_stream_start", {})
+            raw_narration = await _chat_generate(kp_client, system_prompt, kp_user,
+                                                 temperature=0.8, max_tokens=6000)
+            narration = _sanitize(raw_narration) if raw_narration else ""
+            if narration:
+                scene_for_check = adventure.get_scene(session.state.scene_id) if adventure else None
+                needs_retry, nudge = _check_kp_narration(
+                    narration, user_msg=kp_user, prev_answer=last_narration,
+                    scene=scene_for_check, world_view=_consistency_world_view(session),
+                )
+                if needs_retry:
+                    log.info("KP 叙述质量守卫触发重试：%s", nudge)
+                    raw_retry = await _chat_generate(kp_client, system_prompt, kp_user + "\n\n" + nudge,
+                                                     temperature=0.8, max_tokens=6000)
+                    if raw_retry:
+                        narration = _sanitize(raw_retry)
+            if not narration:
+                narration = "（KP 沉思……）"
+
+            # 模块模式 + AI 玩家：解析 KP 叙述里的 <<EXIT n>>，驱动场景切换
+            # 如果 KP 没输出 <<EXIT n>>，自动推进到下一个模块场景（保持背景图持续更新）
+            if adventure is not None and mode == "ai":
+                m = _EXIT_MARKER_RE.search(narration)
+                current_exits = adventure.scene_exits(
+                    session.state.scene_id, resolved_ids=session.state.resolved_elements,
+                )
+                exit_choice = None
+                if m:
+                    narration = _EXIT_MARKER_RE.sub("", narration).rstrip()
+                    exit_choice = int(m.group(1))
+                elif current_exits and _non_combat_turns > 0 and not _was_truncated(kp_client):
+                    # KP 没给出口标记 → 自动选择（单出口直接走，多出口随机）
+                    # 若叙事被 max_tokens 截断则不自动推进，避免"话没说完就被拉走"
+                    exit_choice = 1 if len(current_exits) == 1 else session_rng.randint(1, len(current_exits))
+                if exit_choice is not None and 1 <= exit_choice <= len(current_exits):
+                    moved_scene = session.move_to_scene(
+                        current_exits[exit_choice - 1].target_id, adventure,
+                    )
+                    if moved_scene is not None:
+                        moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
+
+            async for chunk in _fake_stream(narration):
+                yield _sse("kp_token", {"text": chunk})
+
+            session.record_turn(action, narration, speaker=speaker)
+            last_narration = narration
+            _non_combat_turns += 1  # 战斗回合不计入总回合数
+
+            # TTS
+            audio_url = await _speak(narration[:500])
+
+            # ── 房间移动检测 ───────────────────────
             scene_changed = False
             bgm_changed = False
             new_bgm = current_bgm
-            room_change = None
-            if moved_scene is not None:
+            if adventure is not None and moved_scene is not None:
+                # 模块模式：场景切换已由投票结果 / <<EXIT n>> 驱动（session.move_to_scene），
+                # 这里只需把新场景同步给前端，不再依赖地牢地图的房间名检测
                 session.state.location = moved_scene.title
                 current_scene = {"image": moved_scene.image, "location": moved_scene.title, "mood": moved_scene.mood}
                 scene_changed = True
+                # 新场景带 mood → 按氛围切换 BGM
                 if moved_scene.mood:
                     track = _bgm_for_mood(moved_scene.mood)
                     if track != current_bgm:
@@ -1076,446 +1554,68 @@ async def event_stream(host: str, kp_model: str, player_model: str,
                 }
                 yield _sse("room_change", room_change)
                 await asyncio.sleep(0.5)
-                # 模块机制：rest/trap 效果（战斗跳转进入的新场景）
-                for _ef in _module_scene_effects(composer, adventure, session.state.scene_id, session, is_infinite_flow):
-                    yield _sse("status", {"text": _ef})
-                    await asyncio.sleep(0.3)
+            else:
+                room_change = _detect_move(dmap, action)
+                if room_change:
+                    session.state.location = room_change.get("room_name", "")
+                    # 新房间 → 按房间类型选场景图 + BGM
+                    new_room = dmap.current_room
+                    if new_room:
+                        scene_info = _scene_for_room(new_room.room_type)
+                        if scene_info and (current_scene is None or scene_info["image"] != current_scene.get("image")):
+                            current_scene = scene_info
+                            scene_changed = True
+                            # 新场景 → 检查 BGM
+                            track = _bgm_for_mood(scene_info.get("mood", ""))
+                            if track != current_bgm:
+                                new_bgm = track
+                                current_bgm = track
+                                bgm_changed = True
+                    # 新房间威胁
+                    new_rc = dmap.room_context()
+                    for inv_data_i in (INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster):
+                        inv_s = session.state.find_investigator(inv_data_i["name"])
+                        if inv_s:
+                            threat_events = _room_threat_events(new_rc, inv_s, inv_data_i["name"], session_rng)
+                            for evt in threat_events:
+                                yield _sse(evt["type"], {
+                                    "speaker": evt["speaker"],
+                                    "text": evt["text"],
+                                    "amount": evt.get("amount", 0),
+                                })
+                    yield _sse("room_change", room_change)
+                    await asyncio.sleep(0.5)
 
+            # 始终推送当前场景图，让前端自行去重
             yield _sse("kp_stream_end", {
                 "state": _state_snapshot(session),
-                "scene": current_scene if scene_changed else None,
+                "scene": current_scene,
                 "audio_url": audio_url,
                 "bgm_track": new_bgm if bgm_changed else None,
                 "room_change": room_change,
                 "room": rc,
             })
+
             await asyncio.sleep(0.3)
-            continue  # 战斗回合自成一体
 
-        # ── 玩家行动 ───────────────────────────
-        moved_scene = None  # 投票驱动的模块场景切换结果（仅模块模式下可能非 None）
-        trans_meta = None   # 过渡元数据链（供 KP 过渡指令构建）
-        if mode == "ai":
-            # ── AI 模式：本地 LLM 扮演调查员 ────
-            # 模块交互优先：puzzle/social/choice/interaction 场景，AI 自动选一个并结算
-            ai_interactions = _module_interaction_options(
-                composer, adventure, session.state.scene_id, session)
-            if ai_interactions:
-                ai_choice = await _ai_pick_option(
-                    player_host, player_model, {l: v["text"] for l, v in ai_interactions.items()},
-                    last_narration, speaker, kp_api_key)
-                if ai_choice not in ai_interactions:
-                    ai_choice = next(iter(ai_interactions))
-                sel = ai_interactions[ai_choice]
-                yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
-                yield _sse("player_token", {"text": f"（{speaker} 选择：{sel['text']}）", "speaker": speaker})
-                yield _sse("player_stream_end", {"speaker": speaker})
-                await asyncio.sleep(0.2)
-                for _ef in _module_interaction_resolve(sel, session, is_infinite_flow):
-                    yield _sse("status", {"text": _ef})
-                    await asyncio.sleep(0.3)
-                continue  # 交互回合不消耗移动/检定流程
-            yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
-            action = ""
-            # force_pickup: 首轮强制拾取房间物品
-            if force_pickup and _non_combat_turns == 0:
-                room_items = dmap.current_room.items if dmap.current_room else []
-                if room_items:
-                    action = f"{speaker}捡起{room_items[0]}"
-                    yield _sse("player_token", {"text": action, "speaker": speaker})
-                else:
-                    action = f"（{speaker} 谨慎地观察四周）"
-                    yield _sse("player_token", {"text": action, "speaker": speaker})
-            else:
-                async for token in _ai_player_stream(player_host, player_model, inv_data, inv_state,
-                                                     rc, last_narration, speaker,
-                                                     is_infinite_flow=is_infinite_flow,
-                                                     api_key=kp_api_key):
-                    action += token
-                    yield _sse("player_token", {"text": token, "speaker": speaker})
-                if not action.strip():
-                    action = f"（{speaker} 谨慎地观察四周）"
-                    yield _sse("player_token", {"text": action, "speaker": speaker})
-            yield _sse("player_stream_end", {"speaker": speaker})
-            await asyncio.sleep(0.2)
-        else:
-            # ── 人类 / 直播模式：展示选项，等待投票 ──
-            is_live = mode == "live"
-            # human 单人模式：窗口不设短超时（first_vote_wins 下第一票即结束），
-            # 玩家点选项立即生效；live 用参数投票时长；ai 用默认窗口
-            if mode == "human":
-                vote_timeout = 3600  # 单人等待玩家选择，第一票即锁定
-            else:
-                vote_timeout = vote_seconds if is_live else VOTE_WINDOW_SECONDS
-            vote_targets: dict[str, str] = {}
-            opp_actions: dict[str, str] = {}  # 机会选项（无 target，选中走检定）
-            module_interactions: dict[str, dict] | None = None  # 模块交互选项（puzzle/social/choice/interaction）
-            if adventure is not None:
-                # 模块交互优先：puzzle/social/choice/interaction 场景先用作者定义的交互选项
-                module_interactions = _module_interaction_options(
-                    composer, adventure, session.state.scene_id, session)
-                if module_interactions:
-                    vote_options = {l: v["text"] for l, v in module_interactions.items()}
-                    opp_actions = {l: l for l in module_interactions}  # 占位：选中后单独结算
-                else:
-                    # 模块模式：投票选项 = 当前场景的真实出口，投票结果将驱动场景切换
-                    exits = adventure.scene_exits(
-                        session.state.scene_id, resolved_ids=session.state.resolved_elements,
-                    )
-                    letters = ["a", "b", "c"]
-                    vote_options = {}
-                    for letter, exit_view in zip(letters, exits):
-                        vote_options[letter] = exit_view.label
-                        vote_targets[letter] = exit_view.target_id
-                    # 出口不足 3 个时，用场景 opportunities（作者写的剧情贴合互动）补齐，
-                    # 而非泛用填充词；选中机会选项会作为玩家行动进入检定流程
-                    if len(vote_options) < 3:
-                        scene_obj = adventure.get_scene(session.state.scene_id)
-                        opps = [o.text for o in (scene_obj.opportunities if scene_obj else []) or [] if o.text]
-                        for letter, opp in zip(letters[len(vote_options):], opps):
-                            vote_options[letter] = opp
-                            opp_actions[letter] = opp
-            else:
-                vote_options = {
-                    "a": "深入调查当前的线索",
-                    "b": "与同伴讨论接下来的行动",
-                    "c": "谨慎地搜索房间的每个角落",
-                }
-                # 用当前房间场景定制选项
-                room_name = rc.get("name", "") if rc else ""
-                if "办公室" in room_name or "书房" in room_name:
-                    vote_options = {"a": "翻查桌上的文件和信件", "b": "检查书架后的隐藏空间", "c": "仔细观察墙上的照片和地图"}
-                elif "走廊" in room_name:
-                    vote_options = {"a": "贴着墙壁缓慢前进", "b": "检查地面的脚印和痕迹", "c": "倾听周围的异常声响"}
-                elif "病房" in room_name or "医院" in room_name:
-                    vote_options = {"a": "查看病床上的约束带痕迹", "b": "翻阅床头柜的病历记录", "c": "检查窗户是否通向外部"}
-
-            # T5：无限流 hub 场景附加已通关副本标记（供前端卡片显示 ✓）
-            cleared_dungeons: list[str] = []
-            if is_infinite_flow and adventure is not None and session.state is not None:
-                hub_scene = adventure.get_scene(session.state.scene_id)
-                if hub_scene is not None and "主神空间" in (hub_scene.title or ""):
-                    for clue, label in (("dungeon_clear_jy", "咒怨"),
-                                        ("dungeon_clear_rs", "生化"),
-                                        ("dungeon_clear_xt", "修仙")):
-                        if clue in session.state.resolved_elements:
-                            cleared_dungeons.append(label)
-
-            yield _sse("vote", {
-                "options": vote_options,
-                "session_id": sid,
-                "speaker": speaker,
-                "vote_seconds": vote_timeout,
-                "cleared_dungeons": cleared_dungeons,
-            })
-
-            # T3：投票窗口期间并行生成 AI 队友行动（隐藏延迟，不拖长单轮）
-            teammate_task = None
-            if is_live:
-                teammate_prompt_data = _build_teammate_prompt_data(session, teammates)
-                teammate_task = asyncio.create_task(
-                    _ai_teammates_action(player_host, player_model, teammate_prompt_data, rc, last_narration, "", kp_api_key)
-                )
-
-            # 投票窗口：Queue 驱动循环，每次投票推送 tally 给前端，窗口结束后取多数票
-            # human 单人模式：第一票即锁定（点选项立即生效），不等满窗口
-            tally: dict[str, int] = {}
-            async for evt_name, evt_data in _vote_window(sid, vote_timeout, first_vote_wins=(mode == "human")):
-                if evt_name == "__result__":
-                    tally = evt_data
-                else:
-                    yield _sse(evt_name, evt_data)
-            if tally:
-                choice = max(vote_options.keys(), key=lambda k: tally.get(k, 0))
-            elif is_live:
-                # 直播模式无人投票 → AI 接手选择
-                choice = await _ai_pick_option(player_host, player_model, vote_options, last_narration, speaker, kp_api_key)
-                yield _sse("ai_pick", {"choice": choice, "label": vote_options.get(choice, "")})
-            else:
-                # human 模式窗口极长（3600s）理论上不会走到这里；兜底选 a 避免流卡死
-                choice = "a"
-
-            # 投票结束：取回队友行动（投票窗口内已完成，失败则空 dict 兜底）
-            if teammate_task is not None:
-                teammate_actions = await teammate_task
-
-            # 投票结果驱动模块场景切换——只有选中真实出口时才会真正移动
-            target_scene_id = vote_targets.get(choice)
-            # 模块交互结算：选中 puzzle/social/choice/interaction 选项时立即结算，不移动场景
-            if module_interactions and choice in module_interactions:
-                for _ef in _module_interaction_resolve(module_interactions[choice], session, is_infinite_flow):
-                    yield _sse("status", {"text": _ef})
-                    await asyncio.sleep(0.3)
-
-            if adventure is not None and target_scene_id:
-                moved_scene = session.move_to_scene(target_scene_id, adventure)
-                if moved_scene is not None:
-                    moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
-                # 模块机制：rest/trap 效果（投票移动进入的新场景）
-                if moved_scene is not None and session.state is not None:
-                    for _ef in _module_scene_effects(composer, adventure, session.state.scene_id, session, is_infinite_flow):
-                        yield _sse("status", {"text": _ef})
-                        await asyncio.sleep(0.3)
-
-            if module_interactions and choice in module_interactions:
-                # 模块交互选项：用选项文字作为玩家行动（不进场景移动）
-                action = module_interactions[choice].get("text", "")
-            elif choice in opp_actions:
-                # 机会选项：直接作为玩家行动，进入检定/拾取流程（有实际后果）
-                action = opp_actions[choice]
-            else:
-                action = f"（{speaker} 选择了「{vote_options.get(choice, '')}」）"
-            yield _sse("player_stream_start", {"speaker": speaker, "color": inv_data["color"]})
-            yield _sse("player_token", {"text": action, "speaker": speaker})
-            if teammate_actions:
-                for _tname, _tact in teammate_actions.items():
-                    yield _sse("player_token", {"text": f"（{_tname}：{_tact}）", "speaker": _tname})
-            yield _sse("player_stream_end", {"speaker": speaker})
-            await asyncio.sleep(0.2)
-
-        # ── 房间物品拾取 ───────────────────────
-        items_picked = _handle_pickup(dmap, inv_state, action)
-        if items_picked:
-            yield _sse("item_pickup", {
-                "speaker": speaker, "items": items_picked,
-                "inventory": list(inv_state.inventory),
-            })
-
-        # ── 检定 ───────────────────────────────
-        dice_context, dice_result = "", {}
-        try:
-            dice_context, roll_req = await session.classify_and_resolve(
-                kp_client, action)
-            if roll_req:
-                dice_result = {"skill": roll_req.skill, "difficulty": roll_req.difficulty}
-        except Exception:
-            log.warning("检定解析/结算失败，本轮跳过检定", exc_info=True)
-        if dice_context:
-            yield _sse("dice_roll", {
-                "speaker": speaker, "text": dice_context,
-                "skill": dice_result.get("skill", ""),
-            })
-            await asyncio.sleep(0.5)
-
-        # ── 骰子后果 ───────────────────────────
-        consequence = _dice_consequence(dice_context, inv_state) if dice_context else None
-        if consequence:
-            yield _sse(consequence["type"], {
-                "speaker": speaker, "text": consequence.get("text", ""),
-                "amount": consequence.get("amount", 0),
-            })
-
-        # ── KP 叙述（流式）────────────────────
-        system_prompt = session.build_system_prompt(adventure=adventure)
-        context_parts = []
-        # 房间线索 + 威胁注入
-        room_clues = rc.get("clues", "")
-        room_threats = rc.get("threats", "")
-        if room_clues:
-            context_parts.append(f"[房间线索] {room_clues}")
-        if room_threats and room_threats != "无":
-            context_parts.append(f"[房间威胁] {room_threats}")
-
-        if dice_context:
-            is_success = "成功" in dice_context and "失败" not in dice_context
-            who = dice_result.get("character", speaker)
-            skill = dice_result.get("skill", "行动")
-            if is_success:
-                directive = (
-                    f"[系统检定结果]\n"
-                    f"{who} 的「{skill}」检定：成功——{dice_context}\n"
-                    f"你必须叙述他/她成功了。描述具体发现/做到/说服了什么。"
-                )
-            else:
-                directive = (
-                    f"[系统检定结果]\n"
-                    f"{who} 的「{skill}」检定：失败——{dice_context}\n"
-                    f"你必须叙述他/她失败了，并描述由此产生的危险后果。"
-                )
-                if consequence:
-                    directive += f"\n此外，他/她还承受了：{consequence.get('text', '')}"
-            context_parts.append(directive)
-        if items_picked:
-            context_parts.append(f"[获得物品] {', '.join(items_picked)}")
-        # 模块模式：投票已经把队伍移动到了新场景——告知 KP 描述抵达
-        if moved_scene is not None:
-            if trans_meta:
-                # 有过渡元数据 → 构建结构化 KP 过渡指令
-                tm = trans_meta[0]  # 使用第一条过渡元数据（通常只有一条）
-                TYPE_LABELS = {
-                    "combat": "战斗", "story": "剧情",
-                    "investigation": "调查", "exploration": "探索",
-                    "social": "社交", "horror": "恐怖", "rest": "休整",
-                }
-                from_type_label = TYPE_LABELS.get(tm.get("from_type", ""), tm.get("from_type", ""))
-                to_type_label = TYPE_LABELS.get(tm.get("to_type", ""), tm.get("to_type", ""))
-                from_type = tm.get("from_type", "")
-                to_type = tm.get("to_type", "")
-
-                trans_parts = [
-                    "[场景过渡]",
-                    f"队伍离开了「{tm['from_title']}」（{from_type_label}场景），现在来到了「{tm['to_title']}」（{to_type_label}场景）。",
-                ]
-                if tm.get("to_desc"):
-                    trans_parts.append(f"抵达后的景象：{tm['to_desc']}")
-
-                # 类型切换提示——不同方向的切换给出不同的叙事指引
-                if from_type and to_type and from_type != to_type:
-                    hints = _transition_hint(from_type, to_type)
-                    if hints:
-                        trans_parts.append(hints)
-
-                trans_parts.append(
-                    "请用2-3句话叙述从离开到抵达的自然过渡。不要使用模板化句式。"
-                )
-                context_parts.append("\n".join(trans_parts))
-            else:
-                context_parts.append(f"[场景切换] 队伍来到了新地点——{moved_scene.title}：{moved_scene.description}")
-        # 模块模式 + AI 玩家：告知可用的场景出口，允许 KP 用 <<EXIT n>> 请求移动
-        if adventure is not None and mode == "ai":
-            current_exits = adventure.scene_exits(
-                session.state.scene_id, resolved_ids=session.state.resolved_elements,
-            )
-            if current_exits:
-                exit_lines = "\n".join(f"{i}. {e.label}" for i, e in enumerate(current_exits, 1))
-                context_parts.append(
-                    "[场景出口]\n" + exit_lines +
-                    "\n如果调查员的行动自然会让队伍前往上述某个地点，在叙述最后另起一行附加"
-                    " <<EXIT 序号>>（如 <<EXIT 1>>）；如果队伍仍留在当前场景，不要添加这个标记。"
-                )
-        context_parts.append(f"[{speaker}] {action}")
-        # T3：队友行动并入 KP 叙述上下文（live 模式）
-        if teammate_actions:
-            team_text = "；".join(f"{name} {act}" for name, act in teammate_actions.items())
-            context_parts.append(f"[队友行动] {team_text}")
-        kp_user = "\n\n".join(context_parts) + "\n\n请叙述结果："
-
-        yield _sse("kp_stream_start", {})
-        raw_narration = await _chat_generate(kp_client, system_prompt, kp_user,
-                                             temperature=0.8, max_tokens=6000)
-        narration = _sanitize(raw_narration) if raw_narration else ""
-        if narration:
-            scene_for_check = adventure.get_scene(session.state.scene_id) if adventure else None
-            needs_retry, nudge = _check_kp_narration(
-                narration, user_msg=kp_user, prev_answer=last_narration,
-                scene=scene_for_check, world_view=_consistency_world_view(session),
-            )
-            if needs_retry:
-                log.info("KP 叙述质量守卫触发重试：%s", nudge)
-                raw_retry = await _chat_generate(kp_client, system_prompt, kp_user + "\n\n" + nudge,
-                                                 temperature=0.8, max_tokens=6000)
-                if raw_retry:
-                    narration = _sanitize(raw_retry)
-        if not narration:
-            narration = "（KP 沉思……）"
-
-        # 模块模式 + AI 玩家：解析 KP 叙述里的 <<EXIT n>>，驱动场景切换
-        # 如果 KP 没输出 <<EXIT n>>，自动推进到下一个模块场景（保持背景图持续更新）
-        if adventure is not None and mode == "ai":
-            m = _EXIT_MARKER_RE.search(narration)
-            current_exits = adventure.scene_exits(
-                session.state.scene_id, resolved_ids=session.state.resolved_elements,
-            )
-            exit_choice = None
-            if m:
-                narration = _EXIT_MARKER_RE.sub("", narration).rstrip()
-                exit_choice = int(m.group(1))
-            elif current_exits and _non_combat_turns > 0 and not _was_truncated(kp_client):
-                # KP 没给出口标记 → 自动选择（单出口直接走，多出口随机）
-                # 若叙事被 max_tokens 截断则不自动推进，避免"话没说完就被拉走"
-                import random as _random
-                exit_choice = 1 if len(current_exits) == 1 else _random.randint(1, len(current_exits))
-            if exit_choice is not None and 1 <= exit_choice <= len(current_exits):
-                moved_scene = session.move_to_scene(
-                    current_exits[exit_choice - 1].target_id, adventure,
-                )
-                if moved_scene is not None:
-                    moved_scene, trans_meta = _auto_advance_transitions(session, adventure, moved_scene)
-
-        async for chunk in _fake_stream(narration):
-            yield _sse("kp_token", {"text": chunk})
-
-        session.record_turn(action, narration, speaker=speaker)
-        last_narration = narration
-        _non_combat_turns += 1  # 战斗回合不计入总回合数
-
-        # TTS
-        audio_url = await _speak(narration[:500])
-
-        # ── 房间移动检测 ───────────────────────
-        scene_changed = False
-        bgm_changed = False
-        new_bgm = current_bgm
-        if adventure is not None and moved_scene is not None:
-            # 模块模式：场景切换已由投票结果 / <<EXIT n>> 驱动（session.move_to_scene），
-            # 这里只需把新场景同步给前端，不再依赖地牢地图的房间名检测
-            session.state.location = moved_scene.title
-            current_scene = {"image": moved_scene.image, "location": moved_scene.title, "mood": moved_scene.mood}
-            scene_changed = True
-            # 新场景带 mood → 按氛围切换 BGM
-            if moved_scene.mood:
-                track = _bgm_for_mood(moved_scene.mood)
-                if track != current_bgm:
-                    new_bgm = track
-                    current_bgm = track
-                    bgm_changed = True
-            room_change = {
-                "room_id": None,
-                "room_name": moved_scene.title,
-                "room_desc": moved_scene.description,
-                "items": [],
-                "map": dmap.to_dict(),
-                "grid": dmap.grid,
-                "image": moved_scene.image or dmap.relative_path,
-                "room": rc,
-            }
-            yield _sse("room_change", room_change)
-            await asyncio.sleep(0.5)
-        else:
-            room_change = _detect_move(dmap, action)
-            if room_change:
-                session.state.location = room_change.get("room_name", "")
-                # 新房间 → 按房间类型选场景图 + BGM
-                new_room = dmap.current_room
-                if new_room:
-                    scene_info = _scene_for_room(new_room.room_type)
-                    if scene_info and (current_scene is None or scene_info["image"] != current_scene.get("image")):
-                        current_scene = scene_info
-                        scene_changed = True
-                        # 新场景 → 检查 BGM
-                        track = _bgm_for_mood(scene_info.get("mood", ""))
-                        if track != current_bgm:
-                            new_bgm = track
-                            current_bgm = track
-                            bgm_changed = True
-                # 新房间威胁
-                new_rc = dmap.room_context()
-                for inv_data_i in (INFINITE_FLOW_TEAMMATES if is_infinite_flow else roster):
-                    inv_s = session.state.find_investigator(inv_data_i["name"])
-                    if inv_s:
-                        threat_events = _room_threat_events(new_rc, inv_s, inv_data_i["name"])
-                        for evt in threat_events:
-                            yield _sse(evt["type"], {
-                                "speaker": evt["speaker"],
-                                "text": evt["text"],
-                                "amount": evt.get("amount", 0),
-                            })
-                yield _sse("room_change", room_change)
-                await asyncio.sleep(0.5)
-
-        # 始终推送当前场景图，让前端自行去重
-        yield _sse("kp_stream_end", {
-            "state": _state_snapshot(session),
-            "scene": current_scene,
-            "audio_url": audio_url,
-            "bgm_track": new_bgm if bgm_changed else None,
-            "room_change": room_change,
-            "room": rc,
-        })
-
-        await asyncio.sleep(0.3)
-
-    yield _sse("done", {"summary": session.state.scene_summary()})
+        yield _sse("done", {"summary": session.state.scene_summary()})
+    except Exception as e:
+        # 异常收尾：记录 + 推一条 error 事件给前端，避免客户端永久卡"运行中"。
+        # async generator 里 yield 放在 except 分支是合法的；若客户端已断开，
+        # GeneratorExit 会从这里抛出并继续走 finally 做清理。
+        log.exception("event_stream 异常收尾 (sid=%s)", sid)
+        yield _sse("error", {"text": f"游戏流程发生异常：{type(e).__name__}: {e}"})
+    finally:
+        # 确保 kp_client 被关闭（Ollama/Remote client 都有 aclose；测试 mock 可能没有）
+        _close = getattr(kp_client, "aclose", None)
+        if _close is not None:
+            await _close()
+        # 会话级清理：限流/投票/强化接口引用的状态都按 sid 隔离，流结束即释放
+        _sessions.pop(sid, None)
+        _vote_tallies.pop(sid, None)
+        _vote_queues.pop(sid, None)
+        # 删除本局生成的地图 PNG（每局一张 current_<uuid>.png，不留残片）
+        _cleanup_map_png(dmap)
 
 
 def _save_reincarnator(rein) -> None:
@@ -1675,7 +1775,7 @@ async def _ai_player_stream(player_host: str, player_model: str,
 async def _ai_pick_option(player_host: str, player_model: str,
                           vote_options: dict[str, str],
                           last_narration: str, speaker: str,
-                          api_key: str = "") -> str:
+                          api_key: str = "", rng=None) -> str:
     """AI 从投票选项中选一个，返回单字母 'a'/'b'/'c'。"""
     options_text = "\n".join(f"{k}. {v}" for k, v in vote_options.items())
     system = (
@@ -1705,7 +1805,7 @@ async def _ai_pick_option(player_host: str, player_model: str,
         log.warning("AI 投票选项挑选失败，随机回退", exc_info=True)
     # 3) 失败时随机回退，避免永远命中通道一
     letters = [k for k in vote_options if k in ("a", "b", "c")]
-    return random.choice(letters) if letters else "a"
+    return (rng or random).choice(letters) if letters else "a"
 
 
 def _was_truncated(client) -> bool:
@@ -2065,8 +2165,53 @@ class GameConfig(BaseModel):
     mode: str = "ai"  # "ai" | "human" | "live"   live=展示选项+超时AI接手
 
 
+class SessionCreateRequest(BaseModel):
+    """创建会话请求体——含全部游戏参数，API Key 走 POST body 而非 URL。"""
+    host: str = "http://localhost:11434"
+    kp: str = "gemma4:12b"
+    player: str = "ornith:9b"
+    turns: int = 12
+    seed: str = ""
+    mode: str = "ai"  # "ai" | "human" | "live"
+    compose_modules: bool = True
+    kp_api_key: str = ""
+    player_host: str = "http://localhost:11434"
+    force_pickup: bool = False
+    vote_seconds: int = 60
+    force_combat: bool = False
+    world: str = ""
+    leader: str = ""
+    load_profile: bool = False
+
+
+# 一次性会话令牌有效期：创建后超过此秒数未被消费则允许被清理
+_STREAM_TOKEN_TTL = 300.0
+
+
+@app.post("/api/session")
+async def create_session(req: SessionCreateRequest):
+    """创建一次性会话令牌。
+
+    POST body 传全部参数（含 kp_api_key），服务端生成一次性 token 存内存映射；
+    前端随后 GET /api/stream?token=xxx 换取参数，避免 API Key 出现在 URL/访问日志。
+    令牌一次性使用，且带 5 分钟 TTL 防止内存无限增长。
+    """
+    # 惰性清理过期令牌
+    _expired = [t for t, cfg in _stream_tokens.items()
+                if time.monotonic() - cfg.get("_created", 0) > _STREAM_TOKEN_TTL]
+    for t in _expired:
+        _stream_tokens.pop(t, None)
+
+    cfg = req.model_dump()
+    cfg["_created"] = time.monotonic()
+    token = uuid4().hex
+    _stream_tokens[token] = cfg
+    return {"token": token}
+
+
 @app.get("/api/stream")
 async def stream(
+    token: str = Query(default="", max_length=64),
     host: str = "http://localhost:11434",
     kp: str = "gemma4:12b",
     player: str = "ornith:9b",
@@ -2074,7 +2219,6 @@ async def stream(
     seed: str = Query(default="", max_length=32),
     mode: Literal["ai", "human", "live"] = "ai",
     compose_modules: bool = True,
-    kp_api_key: str = Query(default="", max_length=256),
     player_host: str = "http://localhost:11434",
     force_pickup: bool = False,
     vote_seconds: int = Query(default=60, ge=5, le=600),
@@ -2083,6 +2227,29 @@ async def stream(
     leader: str = Query(default="", max_length=32),
     load_profile: bool = False,
 ):
+    # 新安全流程：POST /api/session 创建 token → 这里用 token 换取参数。
+    # API Key 由 token 携带，不再出现在 URL query string 中。
+    kp_api_key = ""
+    if token:
+        cfg = _stream_tokens.pop(token, None)
+        if cfg is None:
+            return JSONResponse({"detail": "会话令牌无效或已过期，请重新创建会话"}, status_code=400)
+        host = cfg.get("host", host)
+        kp = cfg.get("kp", kp)
+        player = cfg.get("player", player)
+        turns = cfg.get("turns", turns)
+        seed = cfg.get("seed", seed)
+        mode = cfg.get("mode", mode)
+        compose_modules = cfg.get("compose_modules", compose_modules)
+        kp_api_key = cfg.get("kp_api_key", "")
+        player_host = cfg.get("player_host", player_host)
+        force_pickup = cfg.get("force_pickup", force_pickup)
+        vote_seconds = cfg.get("vote_seconds", vote_seconds)
+        force_combat = cfg.get("force_combat", force_combat)
+        world = cfg.get("world", world)
+        leader = cfg.get("leader", leader)
+        load_profile = cfg.get("load_profile", load_profile)
+
     try:
         seed_val = int(seed) if seed else None
     except ValueError:
@@ -2145,7 +2312,6 @@ async def ws_stream(
     seed: str = Query(default="", max_length=32),
     mode: Literal["ai", "human", "live"] = "ai",
     compose_modules: bool = True,
-    kp_api_key: str = Query(default="", max_length=256),
     player_host: str = "http://localhost:11434",
     force_pickup: bool = False,
     vote_seconds: int = Query(default=60, ge=5, le=600),
@@ -2157,8 +2323,22 @@ async def ws_stream(
     """WebSocket 版事件流：与 /api/stream 同一套 event_stream，事件以 JSON 逐条推送。
 
     解决 Cloudflare quick tunnel 缓冲 SSE 导致公网事件不实时的问题。
+
+    鉴权：连接建立后客户端必须先发一条 JSON auth 消息（{"type":"auth","key":"xxx"}），
+    服务端收齐后才进入游戏流——API Key 走消息体，不再出现在 URL/访问日志。
     """
     await websocket.accept()
+    # 先收一次 auth 消息（key 通过消息体传递，而非 query string）
+    kp_api_key = ""
+    try:
+        auth_msg = await asyncio.wait_for(websocket.receive_text(), timeout=15)
+        auth = json.loads(auth_msg)
+        if isinstance(auth, dict) and auth.get("type") == "auth":
+            kp_api_key = str(auth.get("key") or "")
+    except Exception:
+        # 客户端未发/发错 auth：本地 Ollama 无需 key 也能继续，远程模型会在调用时报错
+        kp_api_key = ""
+
     try:
         seed_val = int(seed) if seed else None
     except ValueError:

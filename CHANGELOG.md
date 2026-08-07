@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## v2.4 — 代码审查修复：安全加固 + 资源管理 (2026-08-07)
+
+来源：Claude Code 全量代码审查报告（6.5/10），按优先级修复 2/3/4/5/7/9/10 共 7 项。
+
+### 安全（审查严重项）
+
+- **API Key 不再进 URL**：WS `/api/ws` 删除 `kp_api_key` query 参数，改建连后 `{"type":"auth","key":...}` 消息体鉴权（15s 超时兜底）；SSE `/api/stream` 改 `POST /api/session` 换一次性 token（5 分钟 TTL、消费即删、复用 400）；访问日志本就关闭（`log_level="warning"`）
+- **SSRF 保持**：host allowlist 修复（审查 #1）未纳入本次范围，见 ROADMAP
+
+### 资源泄漏修复
+
+- **kp_client 泄漏**：`event_stream` 包 try/finally，finally 关 `kp_client`（`getattr` 防御测试 mock 无 `aclose()`）
+- **全局 RNG 污染**：mapgen 内部改 `random.Random(seed)` 独立实例，不再 `random.seed()` 污染进程级状态；web_server 游戏内散落 `random.*` 替换为 session 级 `session_rng`（保留测试依赖的 `_module_scene_effects`/`_scene_for_room` 两处全局调用）
+- **event_stream 异常收尾**：补 except 分支 `log.exception` + `yield _sse("error")` 防客户端永久卡"运行中"；finally 清理 `_sessions/_vote_tallies/_vote_queues` + 本局 map PNG
+
+### Ollama 截断检测
+
+- `client.py` `_parse_stream_line` 补取 `done_reason` 映射 `last_stats["finish_reason"]`（流式 + 非流式两个入口），`_was_truncated()` 对本地 Ollama 恢复生效
+
+### 磁盘/内存增长
+
+- `_startup_cleanup()`：启动时删残留 `current_*.png` + TTS 缓存超 7 天 mp3（`_TTS_CACHE_MAX_AGE_SECONDS`）
+- `_rate_limit_sweeper()`：后台 asyncio 任务每分钟清扫限流桶空条目（FastAPI lifespan 挂载）
+- 121 个被误提交的生成文件（`data/tts_cache/*.mp3` 84 + `static/maps/current_*.png` 37）`git rm --cached` 移出版本控制
+
+### 验证
+
+- 全量 `uv run pytest tests/ -q --ignore=tests/test_e2e_nemotron.py` → 300 passed, 30 subtests
+- 端到端冒烟：POST /api/session → token → SSE、token 复用 400、WS auth 握手全通过
+
 ## v2.3 — 无限流模块类型扩展：puzzle/social/choice/interaction + BOSS 阶段 (2026-08-05)
 
 ### 新模块类型（数据驱动，`_module_interaction_options`/`_resolve` 运行时结算）

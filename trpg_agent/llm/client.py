@@ -26,9 +26,11 @@ def _parse_stream_line(line: str) -> tuple[str, dict | None]:
     """Parse one NDJSON line of Ollama's streaming ``/api/chat`` response.
 
     Returns ``(text delta, final-stats | None)``: the delta is the line's ``message.content``;
-    only the terminal ``done: true`` object carries ``prompt_eval_count`` / ``eval_count`` (every
-    intermediate line returns ``None`` for the second item). A blank or unparseable line yields
-    ``("", None)`` so the stream loop skips it instead of crashing the turn.
+    only the terminal ``done: true`` object carries ``prompt_eval_count`` / ``eval_count`` and
+    ``done_reason`` (every intermediate line returns ``None`` for the second item). ``done_reason``
+    is mapped to ``finish_reason`` — Ollama reports ``"length"`` when generation was cut off by
+    ``num_predict``/context, which is exactly the signal ``_was_truncated`` checks for. A blank or
+    unparseable line yields ``("", None)`` so the stream loop skips it instead of crashing the turn.
     """
     line = line.strip()
     if not line:
@@ -42,6 +44,7 @@ def _parse_stream_line(line: str) -> tuple[str, dict | None]:
         return delta, {
             "prompt_eval_count": data.get("prompt_eval_count"),
             "eval_count": data.get("eval_count"),
+            "finish_reason": data.get("done_reason"),
         }
     return delta, None
 
@@ -133,9 +136,12 @@ class OllamaClient:
         data = resp.json()
         # Ollama returns prompt_eval_count (context tokens) + eval_count (generated tokens) on the
         # final response object; keep them (with the num_ctx we asked for) for the [latency] line.
+        # done_reason → finish_reason keeps this path identical to chat_stream (done_reason=="length"
+        # marks truncation, which _was_truncated() relies on).
         self.last_stats = {
             "prompt_eval_count": data.get("prompt_eval_count"),
             "eval_count": data.get("eval_count"),
+            "finish_reason": data.get("done_reason"),
             "num_ctx": payload["options"].get("num_ctx"),
         }
         return data["message"]["content"].strip()

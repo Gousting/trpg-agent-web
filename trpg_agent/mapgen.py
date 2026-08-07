@@ -188,12 +188,12 @@ class GameMap:
 # 生成器
 # ═══════════════════════════════════════════════════════
 
-def _pick(items):
-    return random.choice(items) if items else ""
+def _pick(items, rng=None):
+    return (rng or random).choice(items) if items else ""
 
 
-def _roll_chance(pct: float) -> bool:
-    return random.random() < pct
+def _roll_chance(pct: float, rng=None) -> bool:
+    return (rng or random).random() < pct
 
 
 def generate_map(seed: int | None = None, num_rooms: int = 10) -> GameMap:
@@ -202,15 +202,17 @@ def generate_map(seed: int | None = None, num_rooms: int = 10) -> GameMap:
     Args:
         seed: 随机种子（None=每次不同）
         num_rooms: 房间数量（含入口和Boss房）
+
+    内部使用独立 random.Random(seed) 实例，不再污染进程级全局 random，
+    避免一个会话的地图生成影响其他会话的所有随机判定。
     """
-    if seed is not None:
-        random.seed(seed)
+    rng = random.Random(seed)
 
     gmap = GameMap()
     room_id = 0
 
     # 1. 入口
-    entry = _make_room("entrance", str(room_id))
+    entry = _make_room("entrance", str(room_id), rng)
     gmap.rooms[str(room_id)] = entry
     gmap.start_room_id = str(room_id)
     gmap.current_room_id = str(room_id)
@@ -218,16 +220,16 @@ def generate_map(seed: int | None = None, num_rooms: int = 10) -> GameMap:
     room_id += 1
 
     # 2. Boss 房（最后生成）
-    boss = _make_room("basement", "_boss")
+    boss = _make_room("basement", "_boss", rng)
     gmap.boss_room_id = "_boss"
 
     # 3. 中间房间
     room_types_pool = ["corridor", "ward", "lab", "office", "supply", "ward", "corridor", "corridor"]
-    random.shuffle(room_types_pool)
+    rng.shuffle(room_types_pool)
 
     for i in range(num_rooms - 2):
         rtype = room_types_pool[i % len(room_types_pool)]
-        room = _make_room(rtype, str(room_id))
+        room = _make_room(rtype, str(room_id), rng)
         gmap.rooms[str(room_id)] = room
         room_id += 1
 
@@ -242,15 +244,15 @@ def generate_map(seed: int | None = None, num_rooms: int = 10) -> GameMap:
         if rid == gmap.start_room_id:
             continue
         # 随机连到一个已连接的房间
-        candidate = random.choice(list(connected))
+        candidate = rng.choice(list(connected))
         _connect(gmap.rooms[candidate], gmap.rooms[rid])
         connected.add(rid)
 
     # 额外随机连接（30% 概率增加回路）
     for rid in all_ids:
         room = gmap.rooms[rid]
-        if len(room.connections) < 3 and _roll_chance(0.3):
-            other = random.choice([r for r in all_ids if r != rid and r not in room.connections])
+        if len(room.connections) < 3 and _roll_chance(0.3, rng):
+            other = rng.choice([r for r in all_ids if r != rid and r not in room.connections])
             _connect(room, gmap.rooms[other])
 
     # Boss 房只能从特定房间进入（模拟深度探索）
@@ -266,16 +268,16 @@ def generate_map(seed: int | None = None, num_rooms: int = 10) -> GameMap:
     return gmap
 
 
-def _make_room(rtype: str, rid: str) -> Room:
+def _make_room(rtype: str, rid: str, rng=None) -> Room:
     t = ROOM_TEMPLATES[rtype]
-    name = _pick(t["name_templates"])
-    desc = _pick(t["desc_templates"])
-    items = _pick(t.get("items_pool", [[]]))
+    name = _pick(t["name_templates"], rng)
+    desc = _pick(t["desc_templates"], rng)
+    items = _pick(t.get("items_pool", [[]]), rng)
     clues = list(t.get("clues", []))
     threats = list(t.get("threats", []))
 
     # 30% 概率不放物品
-    if items and _roll_chance(0.3):
+    if items and _roll_chance(0.3, rng):
         items = []
 
     return Room(
@@ -344,9 +346,11 @@ def generate_tile_map(seed: int | None = None, num_rooms: int = 10) -> tuple[Gam
     """生成瓦片网格地图。返回 (GameMap, grid[GRID_H][GRID_W])。
 
     grid 值: 0=地板, 1=墙, 2=走廊, 3=门
+
+    内部使用独立 random.Random(seed) 实例，不再污染进程级全局 random，
+    避免一个会话的地图生成影响其他会话的所有随机判定。
     """
-    if seed is not None:
-        random.seed(seed)
+    rng = random.Random(seed)
 
     gmap = GameMap()
     grid = [[TILE_WALL for _ in range(GRID_W)] for _ in range(GRID_H)]
@@ -362,7 +366,7 @@ def generate_tile_map(seed: int | None = None, num_rooms: int = 10) -> tuple[Gam
     _carve_room(grid, entry_gx, entry_gy, ew, eh)
     placed.append((entry_gx, entry_gy, ew, eh, "0"))
 
-    entry = _make_room("entrance", "0")
+    entry = _make_room("entrance", "0", rng)
     entry.grid_x, entry.grid_y = entry_gx, entry_gy
     entry.grid_w, entry.grid_h = ew, eh
     entry.visited = True
@@ -373,7 +377,7 @@ def generate_tile_map(seed: int | None = None, num_rooms: int = 10) -> tuple[Gam
 
     # 2. 从已放置房间向外生成新房间
     room_types_pool = ["corridor", "ward", "lab", "office", "supply", "ward", "corridor"]
-    random.shuffle(room_types_pool)
+    rng.shuffle(room_types_pool)
 
     for i in range(num_rooms - 2):
         rtype = room_types_pool[i % len(room_types_pool)]
@@ -381,23 +385,23 @@ def generate_tile_map(seed: int | None = None, num_rooms: int = 10) -> tuple[Gam
 
         # 选一个已放置房间，从它的一侧生成
         for attempt in range(20):
-            parent = random.choice(placed)
+            parent = rng.choice(placed)
             px, py, pw, ph, _ = parent
-            side = random.choice(["north", "south", "east", "west"])
-            gap = random.randint(2, 4)
+            side = rng.choice(["north", "south", "east", "west"])
+            gap = rng.randint(2, 4)
 
             if side == "north":
-                gx = px + random.randint(0, max(0, pw - rw))
+                gx = px + rng.randint(0, max(0, pw - rw))
                 gy = py - rh - gap
             elif side == "south":
-                gx = px + random.randint(0, max(0, pw - rw))
+                gx = px + rng.randint(0, max(0, pw - rw))
                 gy = py + ph + gap
             elif side == "east":
                 gx = px + pw + gap
-                gy = py + random.randint(0, max(0, ph - rh))
+                gy = py + rng.randint(0, max(0, ph - rh))
             else:  # west
                 gx = px - rw - gap
-                gy = py + random.randint(0, max(0, ph - rh))
+                gy = py + rng.randint(0, max(0, ph - rh))
 
             gx = max(1, min(GRID_W - rw - 1, gx))
             gy = max(1, min(GRID_H - rh - 1, gy))
@@ -407,7 +411,7 @@ def generate_tile_map(seed: int | None = None, num_rooms: int = 10) -> tuple[Gam
                 rid_str = str(room_id)
                 placed.append((gx, gy, rw, rh, rid_str))
 
-                room = _make_room(rtype, rid_str)
+                room = _make_room(rtype, rid_str, rng)
                 room.grid_x, room.grid_y = gx, gy
                 room.grid_w, room.grid_h = rw, rh
                 gmap.rooms[rid_str] = room
@@ -439,7 +443,7 @@ def generate_tile_map(seed: int | None = None, num_rooms: int = 10) -> tuple[Gam
                 break
 
     _carve_room(grid, boss_gx, boss_gy, rw, rh)
-    boss = _make_room("basement", "_boss")
+    boss = _make_room("basement", "_boss", rng)
     boss.grid_x, boss.grid_y = boss_gx, boss_gy
     boss.grid_w, boss.grid_h = rw, rh
     gmap.rooms["_boss"] = boss

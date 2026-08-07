@@ -5,7 +5,35 @@
 
 ---
 
-## 2026-08-04 — T7 模块改造（咒怨）：分支出口图 + 6 分支模块（无限流 v2）
+## 2026-08-07 — 代码审查修复批1+批2（Claude Code 审查 6.5/10，修复 7 项）
+
+### 变更内容
+
+按审查报告优先级修复 2/3/4/5/7/9/10。全部经 Claude Code CLI（claude -p，zen 代理 + deepseek-v4-flash）修改，主代理独立复跑测试验证。
+
+- **问题2 API Key 传输改造**：WS `/api/ws` 删 `kp_api_key` query 参数 → 建连后 `{"type":"auth","key"}` 消息体鉴权（15s 超时兜底）；SSE `/api/stream` → 新增 `POST /api/session`（body 传参）换一次性 token（`_stream_tokens` 内存映射，5 分钟 TTL，消费即删，复用 400）。前端 index.html 同步（ws.onopen 发 auth）；entry.html 走 sessionStorage 无需改
+- **问题3 kp_client 泄漏**：`event_stream` 包 try/finally，finally `await kp_client.aclose()`（`getattr` 防御测试 mock 裸 object 无 aclose）
+- **问题4 全局 RNG 污染**：mapgen `random.seed()` → `rng = random.Random(seed)` 独立实例，内部 `_make_room/_pick/_roll_chance` 加可选 rng 透传；web_server 建 `session_rng = random.Random(seed)` 替换散落 `random.*`（force_combat 选模块、自动选出口、`_dice_consequence`、`_room_threat_events`、`_ai_pick_option` 回退）。刻意保留 `_module_scene_effects`/`_scene_for_room` 两处全局调用（测试 monkeypatch 依赖）
+- **问题5 Ollama 截断检测**：`client.py` `_parse_stream_line` 补 `done_reason` → `last_stats["finish_reason"]`（流式 chat_stream + 非流式 chat 两个入口），`_was_truncated()` 对本地 Ollama 恢复生效；RemoteClient 未动
+- **问题7 event_stream 异常收尾**：except 分支 `log.exception` + `yield _sse("error")`；finally 补 `_sessions/_vote_tallies/_vote_queues` pop + `_cleanup_map_png` 删本局图
+- **问题9 磁盘增长**：`_startup_cleanup()` 启动删残留 `current_*.png` + TTS 超 7 天 mp3（`_TTS_CACHE_MAX_AGE_SECONDS`）
+- **问题10 限流桶**：`_rate_limit_sweeper()` 后台任务每分钟清扫，FastAPI lifespan 挂载（避免模块导入时 create_task）
+
+### 涉及文件
+
+`trpg_agent/llm/client.py`、`trpg_agent/mapgen.py`、`trpg_agent_web/web_server.py`、`trpg_agent_web/static/index.html`、`CHANGELOG.md`、`.gitignore`（已含 tts/map 规则）
+
+### 验证
+
+- 全量 300 passed, 30 subtests（21s，主代理独立复跑 ×2）
+- 冒烟：POST /api/session → token → SSE 流、token 复用 400、WS auth 握手、WS 无 key 本地兜底
+- 121 个误提交生成文件 `git rm --cached` 移出版本控制（磁盘保留）
+
+### 状态
+
+✅ 完成，待推送
+
+---
 
 ### 变更内容
 
