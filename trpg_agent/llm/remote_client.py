@@ -30,9 +30,12 @@ class RemoteClient:
         self._base_url = base_url.rstrip("/")
         self._model = model
         self._api_key = api_key
+        headers = {}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
         self._client = httpx.AsyncClient(
             timeout=timeout,
-            headers={"Authorization": f"Bearer {api_key}"},
+            headers=headers,
         )
         self.last_stats: dict | None = None
 

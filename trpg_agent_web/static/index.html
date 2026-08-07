@@ -19,7 +19,7 @@
     --font-body: 'Crimson Text', 'Noto Serif SC', serif;
     --font-mono: 'JetBrains Mono', monospace;
     --ui-edge: 18px;
-    --left-panel-w: 212px;
+    --left-panel-w: 176px;
     --right-panel-w: 234px;
     --panel-gap: 18px;
     --log-h: 174px;
@@ -57,7 +57,8 @@
   }
 
   #mobile-roster-toggle,
-  #mobile-roster-scrim {
+  #mobile-roster-scrim,
+  #mobile-status {
     display: none;
   }
 
@@ -156,7 +157,7 @@
     padding:
       50px
       calc(var(--ui-edge) + var(--right-panel-w) + var(--panel-gap))
-      calc(var(--log-bottom) + var(--log-h) + 18px)
+      calc(var(--log-bottom) + 14px)
       calc(var(--ui-edge) + var(--left-panel-w) + var(--panel-gap));
   }
   #scene::before {
@@ -184,8 +185,8 @@
       radial-gradient(circle at 50% 0%, rgba(235,211,161,0.16) 0%, rgba(235,211,161,0.04) 28%, rgba(0,0,0,0) 62%),
       linear-gradient(180deg, rgba(255,248,228,0.06) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0.18) 100%);
     box-shadow:
-      0 22px 56px rgba(0,0,0,0.3),
-      0 0 0 1px rgba(214,186,138,0.08) inset;
+      0 14px 34px rgba(0,0,0,0.26),
+      0 0 0 1px rgba(214,186,138,0.1) inset;
     pointer-events: none;
     z-index: 0;
   }
@@ -209,6 +210,7 @@
   }
   #scene-bg {
     position: absolute; inset: 0;
+    right: calc(var(--right-panel-w) + var(--panel-gap));
     background:
       radial-gradient(ellipse at 50% 46%, rgba(97,74,56,0.28) 0%, rgba(34,26,20,0.94) 48%, rgba(19,15,12,0.98) 100%),
       linear-gradient(180deg, #231b16 0%, #17120f 100%);
@@ -254,8 +256,9 @@
     transform: scale(1);
     z-index: 2;
   }
-  /* 模糊铺底层：轻量垫底消除 contain 死黑边，不再盖住场景 */
+  /* 模糊铺底层：仅移动端 contain 死黑边时垫底；桌面端场景图 cover 无需 */
   .scene-blur {
+    display: none;
     position: absolute;
     inset: -48px;
     background-size: cover;
@@ -408,7 +411,7 @@
     max-height: calc(100vh - 72px);
     overflow-y: auto;
     pointer-events: auto;
-    border: 1px solid var(--paper-edge);
+    border: 1px solid rgba(200,170,110,0.4);
     border-radius: 3px;
     background:
       linear-gradient(180deg, rgba(255,255,255,0.07), transparent 36%),
@@ -421,7 +424,7 @@
       ),
       var(--paper);
     color: var(--paper-ink);
-    box-shadow: 0 12px 34px rgba(0,0,0,0.38);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
     padding: 10px 10px 12px;
   }
   #characters h2 {
@@ -433,6 +436,7 @@
     padding-bottom: 4px;
   }
   .char-card {
+    position: relative;
     background: rgba(255,255,255,0.33);
     border: 1px solid rgba(82,60,36,0.26);
     padding: 8px; margin-bottom: 6px;
@@ -441,7 +445,17 @@
   }
   .char-card.active {
     border-color: #7d3d2d;
-    box-shadow: inset 0 0 0 1px rgba(157,64,52,0.4);
+    box-shadow:
+      inset 0 0 0 1px rgba(157,64,52,0.4),
+      0 0 14px rgba(212,175,55,0.28),
+      0 0 30px rgba(212,175,55,0.12);
+  }
+  .char-card.active .char-name { color: #8a5a1e; }
+  .char-card.active::after {
+    content: '▶';
+    position: absolute; right: 6px; top: 6px;
+    font-size: 9px; color: rgba(170,125,45,0.75);
+    font-family: var(--font-mono);
   }
   .char-portrait {
     width: 44px; height: 44px; border-radius: 50%;
@@ -460,36 +474,37 @@
   .inv-list { font-size: 9px; color: #5e4b35; margin-top: 2px; line-height: 1.4; }
   .conditions { font-size: 9px; color: #8f2820; }
 
-  /* 行动日志 */
+  /* 行动日志（桌面端：右侧栏常驻，与投票条同位，投票时被覆盖） */
   #action-log {
     position: fixed;
-    left: calc(var(--ui-edge) + var(--left-panel-w) + var(--panel-gap));
-    right: calc(var(--ui-edge) + var(--right-panel-w) + var(--panel-gap));
+    left: auto;
+    right: var(--ui-edge);
+    top: 54px;
     bottom: var(--log-bottom);
-    height: var(--log-h);
+    width: var(--right-panel-w);
+    height: auto;
     overflow-y: auto;
     pointer-events: auto;
-    padding: 16px 18px 14px;
+    padding: 14px 16px 12px;
     display: flex; flex-direction: column; gap: 6px;
+    /* 深色羊皮卷面板：与手机端一致，融入暗黑基调 */
     background:
-      linear-gradient(180deg, rgba(255,255,255,0.3), transparent 28%),
-      radial-gradient(circle at 85% 22%, rgba(120,80,50,0.12), transparent 42%),
-      var(--paper);
-    color: #37291d;
-    border: 1px solid var(--paper-edge);
+      linear-gradient(180deg, rgba(34,24,17,0.96) 0%, rgba(30,21,15,0.92) 55%, rgba(26,18,13,0.86));
+    color: #e7d4ad;
+    border: 1px solid rgba(210,179,124,0.32);
     border-radius: 4px;
-    box-shadow: 0 16px 38px rgba(0,0,0,0.38);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.32);
     scrollbar-width: thin;
     z-index: 8;
   }
   #action-log h2 {
-    font-size: 30px; color: #513922; letter-spacing: 2px;
+    font-size: 30px; color: #f3e1c0; letter-spacing: 2px;
     margin-bottom: 4px; font-weight: 900; font-family: var(--font-display);
   }
   .log-msg { font-size: 12px; line-height: 1.7; animation: fadeIn 0.4s ease; font-family: var(--font-body); }
   @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
-  .log-msg .speaker { color: #4a2f14; font-weight: bold; margin-right: 4px; }
-  .log-msg.kp { color: #2a1c10; border-left: 2px solid rgba(95,62,31,0.3); padding-left: 10px; }
+  .log-msg .speaker { color: #f5e6c4; font-weight: bold; margin-right: 4px; }
+  .log-msg.kp { color: #f0e0c2; border-left: 2px solid rgba(210,179,124,0.45); padding-left: 10px; }
   .log-msg.kp.typing::after {
     content: '▌';
     margin-left: 4px;
@@ -508,12 +523,12 @@
     55% { transform: translateY(-1px); text-shadow: 0 0 10px rgba(88,62,36,0.2); }
     100% { transform: translateY(0); text-shadow: 0 0 0 rgba(80,56,32,0); }
   }
-  .log-msg.player { color: #33261a; padding: 2px 0; font-size: 11px; }
-  .log-msg.system { color: #6e5a42; text-align: center; font-size: 10px; }
-  .log-msg.dice { color: #e05050; text-align: center; font-size: 11px; }
-  .log-msg.dice.success { color: #50c878; }
-  .log-msg.item { color: #50c878; text-align: center; font-size: 11px; }
-  .log-msg.damage { color: #e05050; text-align: center; font-size: 11px; }
+  .log-msg.player { color: #e3cf9e; padding: 2px 0; font-size: 11px; }
+  .log-msg.system { color: #c4ac7c; text-align: center; font-size: 10px; }
+  .log-msg.dice { color: #ff6b5e; text-align: center; font-size: 11px; }
+  .log-msg.dice.success { color: #7ed492; }
+  .log-msg.item { color: #7ed492; text-align: center; font-size: 11px; }
+  .log-msg.damage { color: #ff6b5e; text-align: center; font-size: 11px; }
 
   /* 物品弹出卡 */
   #item-popup {
@@ -644,7 +659,7 @@
     background:
       linear-gradient(180deg, rgba(255,255,255,0.07), transparent 32%),
       var(--paper);
-    border: 1px solid var(--paper-edge);
+    border: 1px solid rgba(200,170,110,0.4);
     border-radius: 3px;
     padding: 10px;
     gap: 8px;
@@ -652,7 +667,7 @@
     flex-direction: column;
     font-size: 12px;
     color: var(--paper-ink);
-    box-shadow: 0 12px 34px rgba(0,0,0,0.38);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
     z-index: 11;
   }
   #vote-bar.active { display: flex; }
@@ -727,7 +742,7 @@
   }
   /* T4：主控角色卡高亮 */
   .char-card.leader { outline: 2px solid #d4af37; outline-offset: 2px; }
-  .char-card.leader .char-name::after { content: ' 👑'; }
+  .char-card.leader .char-name::after { content: ' ★'; }
   /* T5：hub 副本选择卡片样式 */
   #vote-bar.hub-select { flex-direction: column; align-items: stretch; }
   #vote-bar.hub-select .vote-options { flex-direction: column; gap: 10px; }
@@ -790,7 +805,7 @@
   @media (max-width: 1280px) {
     :root {
       --ui-edge: 12px;
-      --left-panel-w: 192px;
+      --left-panel-w: 180px;
       --right-panel-w: 212px;
       --panel-gap: 16px;
       --log-h: 166px;
@@ -1894,7 +1909,7 @@
     <h2 id="roster-title">調查員檔案</h2>
     <div class="char-card" id="card-reincarnator" style="display:none">
       <div class="char-info">
-        <div class="char-name" style="color:#d4af37">🌀 轮回者</div>
+        <div class="char-name" style="color:#d4af37">◆ 轮回者</div>
         <div class="stat-row"><span class="stat-label">HP</span><span id="rein-hp">12/12</span></div>
         <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="rein-hpbar" style="width:100%"></div></div>
         <div class="stat-row"><span class="stat-label">力量</span><span id="rein-str">10</span></div>
@@ -1903,13 +1918,13 @@
         <div class="stat-row"><span class="stat-label">AP</span><span id="rein-ap">0</span></div>
         <div class="stat-row"><span class="stat-label">强化</span><span id="rein-talents">无</span></div>
         <div class="conditions" id="rein-cond"></div>
-        <button id="btn-open-talents" onclick="openTalentPanel()" style="margin-top:8px;width:100%;padding:6px;background:linear-gradient(135deg,#d4af37,#8b6914);border:none;border-radius:6px;color:#fff;cursor:pointer;font-weight:bold">⚡ 强化面板</button>
+        <button id="btn-open-talents" onclick="openTalentPanel()" style="margin-top:8px;width:100%;padding:6px;background:linear-gradient(135deg,#d4af37,#8b6914);border:none;border-radius:6px;color:#fff;cursor:pointer;font-weight:bold">✦ 强化面板</button>
       </div>
     </div>
     <div class="char-card" id="card-陈明">
       <img class="char-portrait" id="portrait-陈明" src="" onerror="this.style.display='none'">
       <div class="char-info">
-        <div class="char-name" style="color:#4a90d9">🕵️ 陈明</div>
+        <div class="char-name" style="color:#4a90d9">◆ 陈明</div>
         <div class="stat-row"><span class="stat-label">HP</span><span id="hp-陈明">12/12</span></div>
         <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-陈明" style="width:100%"></div></div>
         <div class="stat-row"><span class="stat-label">SAN</span><span id="san-陈明">60/60</span></div>
@@ -1923,7 +1938,7 @@
     <div class="char-card" id="card-林晓">
       <img class="char-portrait" id="portrait-林晓" src="" onerror="this.style.display='none'">
       <div class="char-info">
-        <div class="char-name" style="color:#50c878">🔬 林晓</div>
+        <div class="char-name" style="color:#50c878">◆ 林晓</div>
         <div class="stat-row"><span class="stat-label">HP</span><span id="hp-林晓">10/10</span></div>
         <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-林晓" style="width:100%"></div></div>
         <div class="stat-row"><span class="stat-label">SAN</span><span id="san-林晓">70/70</span></div>
@@ -1937,7 +1952,7 @@
     <div class="char-card" id="card-王刚">
       <img class="char-portrait" id="portrait-王刚" src="" onerror="this.style.display='none'">
       <div class="char-info">
-        <div class="char-name" style="color:#e07050">💪 王刚</div>
+        <div class="char-name" style="color:#e07050">◆ 王刚</div>
         <div class="stat-row"><span class="stat-label">HP</span><span id="hp-王刚">15/15</span></div>
         <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-王刚" style="width:100%"></div></div>
         <div class="stat-row"><span class="stat-label">SAN</span><span id="san-王刚">40/40</span></div>
@@ -1951,7 +1966,7 @@
     <div class="char-card" id="card-凯尔">
       <img class="char-portrait" id="portrait-凯尔" src="" onerror="this.style.display='none'">
       <div class="char-info">
-        <div class="char-name" style="color:#7f0909">🪄 凯尔</div>
+        <div class="char-name" style="color:#7f0909">◆ 凯尔</div>
         <div class="stat-row"><span class="stat-label">HP</span><span id="hp-凯尔">12/12</span></div>
         <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-凯尔" style="width:100%"></div></div>
         <div class="stat-row"><span class="stat-label">SAN</span><span id="san-凯尔">60/60</span></div>
@@ -1965,7 +1980,7 @@
     <div class="char-card" id="card-艾米">
       <img class="char-portrait" id="portrait-艾米" src="" onerror="this.style.display='none'">
       <div class="char-info">
-        <div class="char-name" style="color:#0e6ba8">📖 艾米</div>
+        <div class="char-name" style="color:#0e6ba8">◆ 艾米</div>
         <div class="stat-row"><span class="stat-label">HP</span><span id="hp-艾米">10/10</span></div>
         <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-艾米" style="width:100%"></div></div>
         <div class="stat-row"><span class="stat-label">SAN</span><span id="san-艾米">70/70</span></div>
@@ -1979,7 +1994,7 @@
     <div class="char-card" id="card-托马斯">
       <img class="char-portrait" id="portrait-托马斯" src="" onerror="this.style.display='none'">
       <div class="char-info">
-        <div class="char-name" style="color:#f0c75e">🛡️ 托马斯</div>
+        <div class="char-name" style="color:#f0c75e">◆ 托马斯</div>
         <div class="stat-row"><span class="stat-label">HP</span><span id="hp-托马斯">15/15</span></div>
         <div class="stat-bar-bg"><div class="stat-bar-fg hp-bar" id="hpbar-托马斯" style="width:100%"></div></div>
         <div class="stat-row"><span class="stat-label">SAN</span><span id="san-托马斯">40/40</span></div>
@@ -2005,7 +2020,7 @@
 <div id="talent-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:9999;justify-content:center;align-items:center">
   <div style="background:#1a1625;border:1px solid #d4af37;border-radius:12px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto;padding:20px;color:#e8e0d0">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h3 style="margin:0;color:#d4af37">⚡ 强化面板</h3>
+      <h3 style="margin:0;color:#d4af37">✦ 强化面板</h3>
       <span id="talent-ap" style="color:#fff;font-weight:bold">AP: 0</span>
     </div>
     <div id="talent-stats" style="background:rgba(255,255,255,0.06);padding:10px;border-radius:8px;margin-bottom:14px;font-size:14px;color:#cbb97a"></div>
@@ -2948,7 +2963,7 @@ function addLog(type, speaker, text, color) {
     const speakerSpan = document.createElement('span');
     speakerSpan.className = 'speaker';
     speakerSpan.textContent = speaker;
-    div.appendChild(document.createTextNode('🎲 '));
+    div.appendChild(document.createTextNode('⚄ '));
     div.appendChild(speakerSpan);
     div.appendChild(document.createTextNode(' ' + text));
   } else {
