@@ -250,17 +250,17 @@
     height: calc(100% - 36px);
     object-fit: contain;
     opacity: 0; transition: opacity 1.2s ease-out;
-    filter: sepia(0.22) brightness(0.58) saturate(0.58) contrast(0.96);
+    filter: sepia(0.18) brightness(0.88) saturate(0.72) contrast(1.02);
     transform: scale(1);
     z-index: 2;
   }
-  /* 模糊铺底层：场景图放大模糊垫底，消除 contain 死黑边，前景完整图叠加 */
+  /* 模糊铺底层：轻量垫底消除 contain 死黑边，不再盖住场景 */
   .scene-blur {
     position: absolute;
     inset: -48px;
     background-size: cover;
     background-position: center;
-    filter: blur(22px) brightness(0.74) saturate(1.25);
+    filter: blur(8px) brightness(0.94) saturate(1.08);
     transform: scale(1.06);
     opacity: 0;
     transition: opacity 0.7s ease;
@@ -488,8 +488,8 @@
   }
   .log-msg { font-size: 12px; line-height: 1.7; animation: fadeIn 0.4s ease; font-family: var(--font-body); }
   @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
-  .log-msg .speaker { color: #5d3f21; font-weight: bold; margin-right: 4px; }
-  .log-msg.kp { color: #3e2d1d; border-left: 2px solid rgba(95,62,31,0.25); padding-left: 10px; }
+  .log-msg .speaker { color: #4a2f14; font-weight: bold; margin-right: 4px; }
+  .log-msg.kp { color: #2a1c10; border-left: 2px solid rgba(95,62,31,0.3); padding-left: 10px; }
   .log-msg.kp.typing::after {
     content: '▌';
     margin-left: 4px;
@@ -508,7 +508,7 @@
     55% { transform: translateY(-1px); text-shadow: 0 0 10px rgba(88,62,36,0.2); }
     100% { transform: translateY(0); text-shadow: 0 0 0 rgba(80,56,32,0); }
   }
-  .log-msg.player { color: #4a3928; padding: 2px 0; font-size: 11px; }
+  .log-msg.player { color: #33261a; padding: 2px 0; font-size: 11px; }
   .log-msg.system { color: #6e5a42; text-align: center; font-size: 10px; }
   .log-msg.dice { color: #e05050; text-align: center; font-size: 11px; }
   .log-msg.dice.success { color: #50c878; }
@@ -583,16 +583,45 @@
     100% { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.97); }
   }
 
-  /* 进度条（仅加载阶段显示，首轮叙事完成后隐藏） */
+  /* 加载进度提示（仅加载阶段显示，首轮叙事完成后隐藏） */
   #progress {
     display: none;
-    position: fixed; bottom: 0; left: 0; right: 0; height: 4px;
-    background: #1a1a1a; z-index: 20;
+    position: fixed;
+    top: 58px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 46;
   }
   #progress.show { display: block; }
+  .progress-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(24,17,13,0.9), rgba(31,22,16,0.82));
+    border: 1px solid rgba(210,179,124,0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  }
+  .progress-label {
+    font-family: var(--font-display, serif);
+    font-size: 13px;
+    color: #e7d4ad;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .progress-track {
+    width: 120px;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.12);
+    overflow: hidden;
+  }
   #progress-bar {
     height: 100%; width: 0%;
-    background: linear-gradient(90deg, var(--blood), #e8a33d);
+    background: linear-gradient(90deg, var(--blood, #8b1a1a), #e8a33d);
     transition: width 0.3s;
     box-shadow: 0 0 8px rgba(232,163,61,0.5);
   }
@@ -919,10 +948,17 @@
       letter-spacing: 1px;
       margin-left: 0;
     }
+    #controls #status {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f3e1c0;
+      letter-spacing: 2px;
+      font-family: var(--font-display, serif);
+    }
 
     /* 让主舞台占据手机上部，图片完整显示（不裁切），底部撑到记录框顶部消除空隙 */
     #scene {
-      height: calc(100dvh - 36px - 26dvh);
+      height: calc(100dvh - 36px - 22dvh);
       min-height: 0;
       max-height: none;
       padding: 0;
@@ -934,6 +970,90 @@
       width: 100%;
       height: 100%;
       min-height: 0;
+    }
+    /* 手机端场景图 cover 填满，无需模糊垫底 */
+    .scene-blur {
+      display: none;
+    }
+    /* 常驻角色状态栏：血量/属性一目了然 */
+    #mobile-status {
+      position: fixed;
+      top: 44px;
+      left: 10px;
+      right: 10px;
+      z-index: 45;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 8px;
+      padding: 7px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(210,179,124,0.4);
+      background: linear-gradient(180deg, rgba(24,17,13,0.86), rgba(31,22,16,0.78));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+      font-size: 12px;
+      color: #e7d4ad;
+      letter-spacing: 0.5px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    #mobile-status.hidden { transform: translateY(-120%); opacity: 0; }
+    #mobile-status .ms-name {
+      font-family: var(--font-display, serif);
+      font-size: 13px;
+      color: #f3e1c0;
+      white-space: nowrap;
+    }
+    #mobile-status .ms-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(210,179,124,0.22);
+      white-space: nowrap;
+    }
+    #mobile-status .ms-hp-bar {
+      height: 5px;
+      width: 52px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.14);
+      overflow: hidden;
+    }
+    #mobile-status .ms-hp-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #a02020, #d0482f);
+      transition: width 0.5s ease;
+    }
+    /* 多角色胶囊：主控 + AI 队友 */
+    #mobile-status .ms-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(210,179,124,0.22);
+      white-space: nowrap;
+      font-size: 11px;
+    }
+    #mobile-status .ms-chip.primary {
+      border-color: rgba(212,175,55,0.65);
+      background: linear-gradient(180deg, rgba(90,62,30,0.65), rgba(60,40,20,0.55));
+      box-shadow: 0 0 10px rgba(212,175,55,0.18);
+    }
+    #mobile-status .ms-chip-name { color: #f3e1c0; font-family: var(--font-display, serif); }
+    #mobile-status .ms-chip-hp { color: #e7d4ad; }
+    #mobile-status .ms-chip-extra { color: #c9b48a; font-size: 10px; }
+    #mobile-status .ms-hp-bar {
+      height: 5px;
+      width: 40px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.14);
+      overflow: hidden;
     }
     #scene-bg {
       inset: 0;
@@ -948,8 +1068,9 @@
       height: 100%;
       border: none;
       box-shadow: none;
-      object-fit: contain;
-      filter: sepia(0.18) brightness(0.88) saturate(0.92) contrast(1.05);
+      object-fit: cover;
+      object-position: center;
+      filter: sepia(0.15) brightness(0.92) saturate(0.9) contrast(1.04);
     }
     #scene-bg::before,
     #scene-bg::after,
@@ -1034,20 +1155,31 @@
     }
 
     #action-log {
-      height: 26dvh;
-      min-height: 150px;
-      max-height: 30dvh;
+      height: 22dvh;
+      min-height: 140px;
+      max-height: 26dvh;
       padding: 16px 12px 10px;
       z-index: 40;
-      /* 手机端毛玻璃底：顶部更实保可读，底部渐透衔接底图 */
+      /* 深色羊皮卷面板：融入暗黑场景，米金文字保证对比度 */
       background:
-        linear-gradient(180deg, rgba(250,244,232,0.88) 0%, rgba(250,244,232,0.78) 55%, rgba(246,237,218,0.58));
+        linear-gradient(180deg, rgba(34,24,17,0.94) 0%, rgba(30,21,15,0.88) 55%, rgba(26,18,13,0.78));
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(122,92,52,0.28);
+      border: 1px solid rgba(210,179,124,0.32);
       border-bottom: none;
       border-radius: 14px 14px 0 0;
       box-shadow: 0 -10px 32px rgba(0,0,0,0.42);
+    }
+    /* 深色面板下的记录文本配色 */
+    #action-log .log-msg.kp { color: #ecd9b0; border-left: 1px solid rgba(210,179,124,0.45); }
+    #action-log .log-msg .speaker { color: #f5e6c4; }
+    #action-log .log-msg.player { color: #e3cf9e; }
+    #action-log .log-msg.system { color: #c4ac7c; }
+    #action-log .log-msg.dice { color: #ff6b5e; }
+    #action-log .log-msg.dice.success { color: #7ed492; }
+    #action-log h2 {
+      color: #f3e1c0;
+      border-bottom-color: rgba(210,179,124,0.35);
     }
     /* 顶部鎏金描边：卷轴边质感 */
     #action-log::before {
@@ -1287,7 +1419,7 @@
       justify-content: center;
       position: fixed;
       right: 12px;
-      bottom: calc(26dvh + 14px);
+      bottom: calc(22dvh + 14px);
       z-index: 53;
       border: 1px solid #b69a6f;
       background: linear-gradient(180deg, #6f5333 0%, #4f3a24 100%);
@@ -1414,6 +1546,7 @@
 <div id="bgm-indicator">氛圍音軌</div>
 <div id="live-callout"></div>
 <button id="mobile-roster-toggle" onclick="toggleMobileRoster()">调查员</button><!-- 文案由 applyWorldPreset() 按世界观覆盖 -->
+<div id="mobile-status" class="hidden"></div>
 <div id="mobile-roster-scrim" onclick="closeMobileRoster()"></div>
 
 <!-- 音频元素 -->
@@ -1585,7 +1718,7 @@
 </div>
 
 <!-- 进度条 -->
-<div id="progress"><div id="progress-bar"></div></div>
+<div id="progress"><div class="progress-inner"><span class="progress-label" id="progress-label">守秘人编织中…</span><div class="progress-track"><div id="progress-bar"></div></div></div></div>
 
 <!-- 强化面板 -->
 <div id="talent-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:9999;justify-content:center;align-items:center">
@@ -1603,6 +1736,7 @@
 <script>
 let es = null, totalTurns = 10, currentTurn = 0, gmap = null, tileGrid = null;
 let voteSessionId = '';
+let mobActiveNames = null; // 本局实际队伍名单（init 事件写入），状态栏按此过滤非队友角色
 let leaderName = '';  // T4：直播主控角色名（空=后端默认陈明）
 let streamTarget = null;
 let kpCharQueue = [];
@@ -1900,6 +2034,7 @@ function startGame() {
     // 适用于任意世界观（COC/哈利波特等 3 人小队，或无限流的 2 名 AI 队友），
     // 只要角色卡 id 遵循 "card-<角色名>" 约定即可自动适配，无需按世界观特判。
     const activeNames = (d.investigators || []).map(inv => inv.name);
+    mobActiveNames = activeNames;
     document.querySelectorAll('.char-card[id^="card-"]').forEach(el => {
       if (el.id === 'card-reincarnator') return;
       const name = el.id.slice('card-'.length);
@@ -2562,7 +2697,69 @@ function updateState(state) {
       condEl.textContent = '';
     }
   }
+  // 手机端常驻状态栏：全量渲染主控 + AI 队友胶囊
+  renderMobileStatus(state);
   syncStageMeta();
+}
+
+// ── 手机端常驻状态栏：主控 + AI 队友胶囊 ──────
+
+function addChip(container, name, hp, maxHp, primary, extra) {
+  const pct = maxHp > 0 ? Math.max(0, Math.min(100, hp / maxHp * 100)) : 0;
+  const chip = document.createElement('span');
+  chip.className = 'ms-chip' + (primary ? ' primary' : '');
+  chip.dataset.name = name;
+  chip.innerHTML =
+    '<span class="ms-chip-name">' + name + '</span>' +
+    '<span class="ms-hp-bar"><span class="ms-hp-fill" style="width:' + pct + '%"></span></span>' +
+    '<span class="ms-chip-hp">' + hp + '/' + maxHp + '</span>' +
+    (extra ? '<span class="ms-chip-extra">' + extra + '</span>' : '');
+  container.appendChild(chip);
+}
+
+function renderMobileStatus(state) {
+  const mobStatus = document.getElementById('mobile-status');
+  if (!mobStatus) return;
+  mobStatus.innerHTML = '';
+  if (!state) return;
+  const inTeam = (name) => !mobActiveNames || mobActiveNames.includes(name);
+  // 无限流：轮回者主控 + AI 队友（按本局名单过滤，排除 characters.json 残留）
+  if (state.reincarnator) {
+    const rein = state.reincarnator;
+    addChip(mobStatus, rein.name || '轮回者', rein.hp, rein.max_hp, true,
+      rein.strength + '/' + rein.agility + '/' + rein.spirit + ' AP' + rein.ap);
+    for (const [name, s] of Object.entries(state)) {
+      if (name !== 'reincarnator' && inTeam(name) && s && typeof s.hp === 'number') {
+        addChip(mobStatus, name, s.hp, s.max_hp, false, '');
+      }
+    }
+  } else {
+    // COC / 其他世界观：全部队伍角色，主控（第一个）高亮
+    let first = true;
+    for (const [name, s] of Object.entries(state)) {
+      if (inTeam(name) && s && typeof s.hp === 'number' && s.max_hp) {
+        const extra = first ? (s.san != null ? s.san + '/' + s.max_san + ' SAN' : '') : '';
+        addChip(mobStatus, name, s.hp, s.max_hp, first, extra);
+        first = false;
+      }
+    }
+  }
+  if (mobStatus.children.length > 0) mobStatus.classList.remove('hidden');
+}
+
+function updateReinChip(rein) {
+  if (!rein) return;
+  const mobStatus = document.getElementById('mobile-status');
+  if (!mobStatus) return;
+  const chip = mobStatus.querySelector('.ms-chip.primary');
+  if (!chip) return; // 状态栏未渲染过（非手机端或未开局）
+  const hpText = chip.querySelector('.ms-chip-hp');
+  const fill = chip.querySelector('.ms-hp-fill');
+  const extra = chip.querySelector('.ms-chip-extra');
+  const pct = rein.max_hp > 0 ? Math.max(0, Math.min(100, rein.hp / rein.max_hp * 100)) : 0;
+  if (hpText) hpText.textContent = rein.hp + '/' + rein.max_hp;
+  if (fill) fill.style.width = pct + '%';
+  if (extra) extra.textContent = rein.strength + '/' + rein.agility + '/' + rein.spirit + ' AP' + rein.ap;
 }
 
 // ── 无限流轮回者 ────────────────────────────
@@ -2582,6 +2779,8 @@ function renderReincarnator(rein) {
   document.getElementById('rein-talents').textContent = (rein.talents && rein.talents.length) ? rein.talents.join(', ') : '无';
   const condEl = document.getElementById('rein-cond');
   if (condEl) condEl.textContent = (rein.conditions && rein.conditions.length) ? '⚠ ' + rein.conditions.join(', ') : '';
+  // 手机端常驻状态栏：刷新主控胶囊（不清空重建，保留队友胶囊）
+  updateReinChip(rein);
 }
 
 function openTalentPanel() {

@@ -5,7 +5,35 @@
 
 ---
 
-## 2026-08-07 — 代码审查修复批1+批2（Claude Code 审查 6.5/10，修复 7 项）
+## 2026-08-07 — 手机端 UI 改版：多角色胶囊状态栏 + 场景可见性 + 风格统一
+
+### 变更内容
+
+用户反馈"外部展示不行"：手机端看不到角色数值和 AI 队友血量、场景被模糊盖住、风格割裂。经 VLM（qwen3.7-plus + 规则包）三轮审查迭代完成。
+
+- **常驻多角色状态栏**（新增）：手机端顶部 `#mobile-status` 动态渲染角色胶囊——主控（轮回者/COC 主控）金框高亮显示 HP+属性，AI 队友（林晓/王刚）各一个 HP 胶囊。`renderMobileStatus(state)` 全量渲染，`updateReinChip` 单刷主控（天赋购买后）。按 `mobActiveNames`（init 事件队伍名单）过滤，排除 characters.json 残留角色（陈明不显示）
+- **场景可见性**：`.scene-blur` 从 blur(22px)/brightness(0.74) 降到手机端 display:none；`#scene-img` 手机端 object-fit: cover 填满（消除 contain 死黑边/大模糊区），桌面端 brightness 0.58→0.88
+- **记录框深色化**：手机端 `#action-log` 从米色面板改深色羊皮卷（rgba(34,24,17,0.94) 渐变）+ 米金文字（kp #ecd9b0 / player #e3cf9e / system #c4ac7c），消除浅色块割裂；高度 26dvh→22dvh，场景区同步
+- **进度条升级**：底部 4px 细条 → 顶部加载卡（"守秘人编织中…" 文字 + 金色进度条），首轮叙事后隐藏逻辑不变
+- **入口页风格统一**：冷灰 (#1a1a20) → 暗黑羊皮纸 + 鎏金（径向渐变背景、金色顶线、双内描边、按钮材质化渐变+内发光）
+- **标题层级**：手机端 `#status` 放大加粗（17px 700 衬线）
+
+### 涉及文件
+
+`trpg_agent_web/static/index.html`、`trpg_agent_web/static/entry.html`
+
+### 验证
+
+- 300 passed, 30 subtests（21s）
+- node --check JS 语法通过
+- playwright 手机视口 DOM 验证：45s 时状态栏 3 胶囊（轮回者 12/12 主控 + 林晓 10/10 + 王刚 15/15），陈明已过滤
+- VLM 规则包审查：状态栏/场景/布局规则全通过，修复其提出的胶囊溢出截断、色调偏冷、标题层级三项
+
+### 状态
+
+✅ 完成，待推送
+
+---
 
 ### 变更内容
 

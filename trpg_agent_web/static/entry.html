@@ -6,36 +6,47 @@
 <title>COC TRPG 跑团 · 快捷入口</title>
 <style>
   :root {
-    --bg: #1a1a20; --panel: #26262e; --border: #3a3a46; --gold: #c9a86a;
-    --text: #e8e4d8; --muted: #9a958a; --accent: #8b6f47;
+    --bg: #17120f; --panel: #231a14; --border: rgba(210,179,124,0.28); --gold: #d4af37;
+    --text: #e8e0d0; --muted: #a0906f; --accent: #8b6f47;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    background: radial-gradient(ellipse at 50% -20%, #2e2a38 0%, var(--bg) 60%);
+    background:
+      radial-gradient(circle at 50% -6%, #3a2b22 0%, #1f1813 42%, #120f0c 100%);
     color: var(--text); font-family: "Noto Serif SC", "Microsoft YaHei", serif;
     min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding: 24px 0;
   }
   .card {
-    width: 480px; max-width: 92vw; background: var(--panel);
-    border:1px solid var(--border); border-radius:12px; padding:36px 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.5); position:relative;
+    width: 480px; max-width: 92vw;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 30%),
+      linear-gradient(180deg, #2b2017 0%, #231a14 60%, #1c1510 100%);
+    border:1px solid rgba(210,179,124,0.35); border-radius:14px; padding:36px 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.4) inset; position:relative;
   }
   .card::before {
-    content:""; position:absolute; inset:0; border-radius:12px; pointer-events:none;
-    background: linear-gradient(160deg, rgba(201,168,106,.08), transparent 40%);
+    content:""; position:absolute; top:0; left:24px; right:24px; height:2px;
+    background: linear-gradient(90deg, transparent, rgba(200,158,86,0.7) 18%, rgba(212,175,55,0.9) 50%, rgba(200,158,86,0.7) 82%, transparent);
+    border-radius:2px; pointer-events:none;
   }
-  h1 { font-size:22px; letter-spacing:2px; color:var(--gold); text-align:center; margin-bottom:4px; }
-  .sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:28px; }
+  .card::after {
+    content:""; position:absolute; inset:8px; border:1px solid rgba(210,179,124,0.12);
+    border-radius:8px; pointer-events:none;
+  }
+  h1 { font-size:24px; letter-spacing:4px; color:var(--gold); text-align:center; margin-bottom:4px; text-shadow: 0 2px 12px rgba(212,175,55,0.25); }
+  .sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:28px; letter-spacing:1px; }
   .field { margin-bottom:18px; }
-  .field label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; letter-spacing:1px; }
+  .field label { display:block; font-size:13px; color:#c9b48a; margin-bottom:6px; letter-spacing:1px; }
   .field input, .field select {
-    width:100%; padding:10px 12px; background:#1e1e25; color:var(--text);
-    border:1px solid var(--border); border-radius:6px; font-size:14px; outline:none;
+    width:100%; padding:11px 14px; background:rgba(12,9,7,0.55); color:var(--text);
+    border:1px solid rgba(210,179,124,0.25); border-radius:8px; font-size:14px; outline:none;
+    transition: border-color .2s, box-shadow .2s;
   }
-  .field input:focus, .field select:focus { border-color:var(--gold); }
+  .field input:focus, .field select:focus { border-color:var(--gold); box-shadow: 0 0 0 2px rgba(212,175,55,0.15); }
   .fixed-row {
-    display:flex; align-items:center; gap:10px; background:#1e1e25;
-    border:1px dashed var(--border); border-radius:6px; padding:10px 12px; font-size:12px;
+    display:flex; align-items:center; gap:10px; background:rgba(12,9,7,0.55);
+    border:1px dashed rgba(210,179,124,0.28); border-radius:8px; padding:10px 12px; font-size:12px;
     color:var(--muted);
   }
   .fixed-row code { color:var(--gold); font-size:12px; }
@@ -43,11 +54,16 @@
   .checks label { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); cursor:pointer; }
   .checks input { accent-color:var(--gold); width:15px; height:15px; }
   #btn-start {
-    width:100%; margin-top:8px; padding:14px; background:linear-gradient(135deg, var(--accent), #a8854f);
-    color:#14141a; font-size:17px; font-weight:700; letter-spacing:4px; border:none; border-radius:8px;
+    width:100%; margin-top:8px; padding:15px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 45%),
+      linear-gradient(180deg, #8a6a3d 0%, #6b4f2b 55%, #5a4022 100%);
+    color:#f5e6c4; font-size:17px; font-weight:700; letter-spacing:6px; border:none; border-radius:10px;
+    border:1px solid rgba(212,175,55,0.45);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.35) inset, 0 1px 0 rgba(255,255,255,0.12) inset;
     cursor:pointer; transition:filter .2s, transform .1s;
   }
-  #btn-start:hover { filter:brightness(1.15); }
+  #btn-start:hover { filter:brightness(1.18); box-shadow: 0 6px 24px rgba(212,175,55,0.2), 0 0 0 1px rgba(0,0,0,0.35) inset; }
   #btn-start:active { transform:scale(.98); }
   #btn-start:disabled { opacity:.5; cursor:not-allowed; }
   #status { margin-top:16px; text-align:center; font-size:13px; color:var(--muted); min-height:18px; }
