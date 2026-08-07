@@ -271,7 +271,11 @@
     z-index: 1;
   }
   .scene-blur.show { opacity: 1; }
-  #scene-img.active { opacity: 1; }
+  #scene-img.active { opacity: 1; animation: kenburns 14s linear forwards; }
+  @keyframes kenburns {
+    from { transform: scale(1); }
+    to   { transform: scale(1.045); }
+  }
   body.vote-focus #scene-img.active {
     animation: cameraPush 1s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
@@ -497,6 +501,22 @@
     scrollbar-width: thin;
     z-index: 8;
   }
+  #jump-bottom {
+    position: absolute; right: 14px; bottom: 14px;
+    padding: 6px 12px; border-radius: 999px;
+    background: rgba(24,16,10,0.92); border: 1px solid var(--gold);
+    color: var(--gold); font-size: 12px; cursor: pointer;
+    display: none; align-items: center; gap: 6px;
+    z-index: 20; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    font-family: var(--font-body);
+  }
+  #jump-bottom.show { display: flex; }
+  #jump-bottom .badge {
+    background: var(--gold); color: #1a120a; border-radius: 999px;
+    min-width: 18px; height: 18px; font-size: 11px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0 5px;
+    font-weight: 700;
+  }
   #action-log h2 {
     font-size: 30px; color: #f3e1c0; letter-spacing: 2px;
     margin-bottom: 4px; font-weight: 900; font-family: var(--font-display);
@@ -505,6 +525,12 @@
   @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
   .log-msg .speaker { color: #f5e6c4; font-weight: bold; margin-right: 4px; }
   .log-msg.kp { color: #f0e0c2; border-left: 2px solid rgba(210,179,124,0.45); padding-left: 10px; }
+  .log-msg.kp.typing {
+    border-left-color: var(--gold);
+    background: linear-gradient(90deg, rgba(212,175,55,0.10), transparent 70%);
+    cursor: pointer;
+  }
+  .log-msg.kp.skipped { border-left-color: var(--gold); }
   .log-msg.kp.typing::after {
     content: '▌';
     margin-left: 4px;
@@ -2010,6 +2036,7 @@
   <div id="action-log">
     <h2>行動記錄</h2>
     <div style="text-align:center;color:var(--text-faint);margin-top:60px;font-size:13px;">點擊「開始跑團」進入故事</div>
+    <button id="jump-bottom" title="回到最新消息"><span>最新</span><span class="badge" id="jump-bottom-count">0</span></button>
   </div>
 </div>
 
@@ -2324,7 +2351,7 @@ function startGame() {
   const btn = document.getElementById('btn-start');
   btn.disabled = true; btn.textContent = '⏳ 運行中...';
   document.getElementById('status').textContent = '生成地圖...';
-  document.getElementById('action-log').innerHTML = '<h2>行動記錄</h2>';
+  document.getElementById('action-log').innerHTML = '<h2>行動記錄</h2><button id="jump-bottom" title="回到最新消息"><span>最新</span><span class="badge" id="jump-bottom-count">0</span></button>';
   document.getElementById('progress-bar').style.width = '0%';
   document.getElementById('progress').classList.add('active', 'show');
   hideDice();
@@ -2408,7 +2435,7 @@ function startGame() {
     gmap = d.map;
     tileGrid = d.grid;
     const img = document.getElementById('scene-img');
-    if (d.image) { img.src = d.image; setSceneBlur(d.image); }
+    if (d.image) { setSceneImage(d.image); setSceneBlur(d.image); }
     document.getElementById('scene-label').textContent = gmap.current_room_name || '';
     document.getElementById('status').textContent = '地圖生成完成';
     syncStageMeta();
@@ -2447,6 +2474,8 @@ function startGame() {
     streamTarget = addLog('kp', 'KP', '');
     streamTarget.classList.add('typing');
     streamTarget.classList.remove('breath');
+    streamTarget.title = '点击跳过';
+    streamTarget.addEventListener('click', skipKpTyping);
     kpCharQueue = [];
     kpPendingEndPayload = null;
     if (kpTypingTimer) {
@@ -2478,14 +2507,30 @@ function startGame() {
     requestAnimationFrame(() => blurEl.classList.add('show'));
   }
 
+  /* 场景图切换：预加载 → 淡出（黑场）→ 换 src（已缓存）→ 淡入 + Ken Burns。
+     预加载失败时保留旧图，绝不闪白。 */
+  function setSceneImage(newSrc) {
+    const img = document.getElementById('scene-img');
+    if (!newSrc || !img) return;
+    if (img.getAttribute('src') === newSrc) return;
+    const pre = new Image();
+    pre.onload = () => {
+      img.classList.remove('active');
+      setTimeout(() => {
+        img.src = newSrc;
+        img.classList.add('active');
+      }, 450);
+    };
+    pre.onerror = () => { /* 预加载失败：保留旧图 */ };
+    pre.src = newSrc;
+  }
+
   function applyKpStreamEnd(d) {
     if (d.state) updateState(d.state);
     if (d.scene) {
-      const img = document.getElementById('scene-img');
       const newSrc = d.scene.image || '';
-      if (img.src !== newSrc && img.getAttribute('src') !== newSrc) {
-        img.src = newSrc;
-        img.classList.add('active');
+      if (newSrc) {
+        setSceneImage(newSrc);
         setSceneBlur(newSrc);
       }
       document.getElementById('scene-label').textContent = d.scene.location || '';
@@ -2510,6 +2555,22 @@ function startGame() {
     streamTarget = null;
   }
 
+  function skipKpTyping() {
+    if (kpTypingTimer) { clearTimeout(kpTypingTimer); kpTypingTimer = null; }
+    if (!streamTarget) return;
+    const full = kpCharQueue.join('');
+    kpCharQueue = [];
+    streamTarget.textContent += full;
+    streamTarget.classList.remove('typing');
+    streamTarget.classList.add('skipped');
+    scrollLog();
+    if (kpPendingEndPayload) {
+      const payload = kpPendingEndPayload;
+      kpPendingEndPayload = null;
+      applyKpStreamEnd(payload);
+    }
+  }
+
   function pumpKpChars() {
     if (!streamTarget) {
       kpCharQueue = [];
@@ -2520,7 +2581,7 @@ function startGame() {
     if (ch !== undefined) {
       streamTarget.textContent += ch;
       kpRenderTick++;
-      if (kpRenderTick % 3 === 0) scrollLog();
+      if (kpRenderTick % 3 === 0) scrollLog(false);
       if (/[。！？!?]/.test(ch)) {
         streamTarget.classList.remove('breath');
         void streamTarget.offsetWidth;
@@ -2547,7 +2608,7 @@ function startGame() {
 
   es.addEventListener('player_token', (e) => {
     const d = JSON.parse(e.data);
-    if (streamTarget) { streamTarget.querySelector('.text').textContent += d.text; scrollLog(); }
+    if (streamTarget) { streamTarget.querySelector('.text').textContent += d.text; scrollLog(false); }
   });
 
   es.addEventListener('player_stream_end', (e) => {
@@ -2619,7 +2680,7 @@ function startGame() {
     tileGrid = d.grid;
     if (gmap) gmap.current_room_id = d.room_id;
     const img = document.getElementById('scene-img');
-    if (d.image) { img.src = d.image; setSceneBlur(d.image); }
+    if (d.image) { setSceneImage(d.image); setSceneBlur(d.image); }
     document.getElementById('scene-label').textContent = d.room_name || '';
     addLog('system', '', '📍 進入 ' + d.room_name + ' — ' + d.room_desc);
     syncStageMeta();
@@ -2974,10 +3035,44 @@ function addLog(type, speaker, text, color) {
   return div;
 }
 
-function scrollLog() {
+let userScrolledUp = false;
+let pendingNewMsg = 0;
+function scrollLog(countNew) {
   const log = document.getElementById('action-log');
+  if (userScrolledUp) {
+    if (countNew !== false) { pendingNewMsg++; updateJumpBadge(); }
+    return;
+  }
   log.scrollTop = log.scrollHeight;
 }
+function updateJumpBadge() {
+  const b = document.getElementById('jump-bottom-count');
+  if (b) b.textContent = pendingNewMsg > 99 ? '99+' : pendingNewMsg;
+}
+function jumpToBottom() {
+  userScrolledUp = false;
+  pendingNewMsg = 0;
+  const log = document.getElementById('action-log');
+  log.scrollTop = log.scrollHeight;
+  const btn = document.getElementById('jump-bottom');
+  if (btn) btn.classList.remove('show');
+  updateJumpBadge();
+}
+(function initLogScroll() {
+  const log = document.getElementById('action-log');
+  if (!log) return;
+  log.addEventListener('scroll', () => {
+    const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+    userScrolledUp = !nearBottom;
+    if (nearBottom) { pendingNewMsg = 0; updateJumpBadge(); }
+    const btn = document.getElementById('jump-bottom');
+    if (btn) btn.classList.toggle('show', userScrolledUp);
+  });
+  // 事件委托：jump-bottom 会被 startGame 重建（innerHTML 重置），点击绑定挂在 log 上不受影响
+  log.addEventListener('click', (ev) => {
+    if (ev.target && ev.target.closest && ev.target.closest('#jump-bottom')) jumpToBottom();
+  });
+})();
 
 /* ── 骰子疊加層 ── */
 function showDiceOverlay(d) {
