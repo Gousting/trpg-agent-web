@@ -1493,9 +1493,289 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
   }
+
+  /* ═══ 桌面端入口页（全屏配置层） ═══ */
+  #entry-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    display: none; align-items: center; justify-content: center;
+    background:
+      radial-gradient(ellipse 42% 30% at 72% 18%, rgba(122,31,31,0.13) 0%, transparent 62%),
+      radial-gradient(ellipse 55% 42% at 88% 104%, rgba(64,36,20,0.5) 0%, transparent 58%),
+      radial-gradient(ellipse 45% 36% at 6% 96%, rgba(58,32,18,0.42) 0%, transparent 55%),
+      radial-gradient(ellipse 85% 60% at 50% -12%, rgba(96,64,36,0.42) 0%, transparent 62%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.045'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+      linear-gradient(180deg, #191511 0%, #100d0a 100%);
+    padding: 24px; overflow-y: auto;
+  }
+  #entry-overlay::before {
+    content:""; position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 100% 90% at 50% 50%, transparent 55%, rgba(0,0,0,0.5) 100%);
+  }
+  #entry-overlay .entry-card {
+    width: 1080px; max-width: 96vw;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0) 28%),
+      linear-gradient(180deg, #2b2017 0%, #241a13 55%, #1b1510 100%);
+    border: 1px solid rgba(210,179,124,0.32); border-radius: 14px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.45) inset;
+    padding: 40px 48px 32px; position: relative;
+  }
+  .entry-card::before {
+    content:""; position:absolute; top:0; left:28px; right:28px; height:2px;
+    background: linear-gradient(90deg, transparent, rgba(200,158,86,0.65) 16%, rgba(212,175,55,0.9) 50%, rgba(200,158,86,0.65) 84%, transparent);
+    border-radius: 2px; pointer-events: none;
+  }
+  .entry-card::after {
+    content:""; position:absolute; inset:9px; border:1px solid rgba(210,179,124,0.10);
+    border-radius: 9px; pointer-events: none;
+  }
+  .entry-title-row {
+    display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 2px;
+    position: relative; z-index: 1;
+  }
+  .entry-title-row::before, .entry-title-row::after {
+    content: ""; height: 1px; width: 110px; flex-shrink: 0;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.55));
+  }
+  .entry-title-row::after { background: linear-gradient(90deg, rgba(212,175,55,0.55), transparent); }
+  .entry-card h1 {
+    font-family: var(--font-display); font-size: 38px; letter-spacing: 12px;
+    color: var(--gold); text-align: center; margin-bottom: 6px;
+    text-shadow: 0 2px 14px rgba(212,175,55,0.28);
+    position: relative; z-index: 1;
+  }
+  .entry-sub { text-align: center; color: var(--text-dim); font-size: 15px; letter-spacing: 2px; margin-bottom: 30px; position: relative; z-index: 1; }
+  .entry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 44px; position: relative; z-index: 1; }
+  .entry-col h3 {
+    font-family: var(--font-display); font-size: 15px; color: #c9b48a; letter-spacing: 2px;
+    border-bottom: 1px solid rgba(210,179,124,0.18); padding-bottom: 8px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .entry-col h3::before { content:"◆"; font-size: 10px; color: var(--gold); }
+  .entry-field { margin-bottom: 16px; }
+  .entry-field label { display: block; font-size: 12px; color: #b8a06a; margin-bottom: 6px; letter-spacing: 1.5px; }
+  .entry-field input, .entry-field select {
+    width: 100%; padding: 12px 14px; background-color: rgba(10,8,6,0.6);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.05'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+    background-repeat: repeat;
+    color: #e8dcc8;
+    border: 1px solid rgba(200,170,110,0.32); border-radius: 8px; font-size: 14px; outline: none;
+    font-family: var(--font-body); transition: border-color .2s, box-shadow .2s;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(0,0,0,0.22), 0 1px 0 rgba(255,255,255,0.04);
+  }
+  /* select：去掉原生箭头，换鎏金小三角（叠加羊皮纸纹理） */
+  .entry-field select {
+    appearance: none; -webkit-appearance: none;
+    background-color: rgba(10,8,6,0.6);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='7'><path d='M0 0l6 7 6-7z' fill='%23c8aa6e'/></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.05'/></feComponentTransfer></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+    background-repeat: no-repeat, repeat;
+    background-position: right 14px center, center;
+    padding-right: 38px;
+  }
+  .entry-field select:hover { border-color: rgba(212,175,55,0.45); }
+  .entry-field input:focus, .entry-field select:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212,175,55,0.14); }
+  .entry-row { display: flex; gap: 16px; }
+  .entry-row > div { flex: 1; }
+  .entry-checks { display: flex; gap: 22px; margin-top: 2px; }
+  .entry-checks label { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-dim); cursor: pointer; }
+  .entry-checks input {
+    appearance: none; -webkit-appearance: none;
+    width: 17px; height: 17px; flex-shrink: 0;
+    border: 1px solid rgba(212,175,55,0.7); border-radius: 3px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 45%),
+      rgba(12,9,7,0.6);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(212,175,55,0.08);
+    cursor: pointer; position: relative;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+  }
+  .entry-checks input:hover { border-color: rgba(212,175,55,0.8); box-shadow: 0 0 0 2px rgba(212,175,55,0.14), inset 0 1px 3px rgba(0,0,0,0.5); }
+  .entry-checks input:checked {
+    background: linear-gradient(180deg, #8a6a3d 0%, #6b4f2b 100%);
+    border-color: rgba(212,175,55,0.75);
+  }
+  .entry-checks input:checked::after {
+    content: "✓"; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #f5e6c4; font-size: 11px; font-weight: 700; line-height: 1;
+  }
+  .entry-field input::placeholder { color: #a09080; opacity: 1; }
+  /* 流程步骤条（铭牌样式） */
+  .entry-steps {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    font-size: 11px; letter-spacing: 1.5px; color: var(--text-faint);
+    margin: -14px auto 22px; padding: 6px 20px;
+    border: 1px solid rgba(210,179,124,0.22); border-radius: 6px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 55%),
+      rgba(10,8,6,0.4);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.03);
+    width: fit-content; position: relative; z-index: 1;
+  }
+  .entry-steps i { font-style: normal; color: rgba(212,175,55,0.35); }
+  .entry-steps span { display: flex; align-items: center; gap: 5px; }
+  .entry-steps span::before {
+    content: ""; width: 5px; height: 5px; border-radius: 50%;
+    background: #4d4334; display: inline-block;
+  }
+  .entry-steps .done { color: #9a8d74; }
+  .entry-steps .done::before { background: rgba(212,175,55,0.7); }
+  .entry-steps .cur { color: #e5d5ae; font-weight: 700; text-shadow: 0 0 8px rgba(212,175,55,0.35); }
+  .entry-steps .cur::before { background: var(--gold); box-shadow: 0 0 8px rgba(212,175,55,0.8); }
+  /* 世界观简介 */
+  .entry-world-desc {
+    margin-top: 6px; font-size: 12px; line-height: 1.7;
+    color: #c0ae8e; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    padding-left: 10px; border-left: 2px solid rgba(212,175,55,0.35);
+  }
+  /* 主控角色预览卡 */
+  .entry-char-preview {
+    margin-top: 12px; padding: 12px 14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 40%),
+      rgba(12,9,7,0.5);
+    border: 1px solid rgba(210,179,124,0.25); border-radius: 8px;
+    display: none; position: relative; z-index: 1;
+  }
+  .entry-char-preview.show { display: block; }
+  .entry-char-preview h4 {
+    font-family: var(--font-display); font-size: 13px; color: var(--gold);
+    letter-spacing: 2px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .entry-cp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .entry-cp-hpbar {
+    flex: 1; height: 8px; background: rgba(0,0,0,0.45); border-radius: 4px; overflow: hidden;
+    border: 1px solid rgba(210,179,124,0.18);
+  }
+  .entry-cp-hpbar i {
+    display: block; height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #7a1f1f 0%, #c0392b 100%);
+  }
+  .entry-cp-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--text-dim); }
+  .entry-cp-stats b { color: #c9b48a; font-weight: 600; }
+  #entry-start {
+    width: 100%; margin-top: 22px; padding: 16px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 45%),
+      linear-gradient(180deg, #8a6a3d 0%, #6b4f2b 55%, #5a4022 100%);
+    color: #f5e6c4; font-family: var(--font-display); font-size: 18px; font-weight: 700;
+    letter-spacing: 8px; border: 1px solid rgba(212,175,55,0.45); border-radius: 10px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.35) inset, 0 1px 0 rgba(255,255,255,0.12) inset;
+    cursor: pointer; transition: filter .2s, transform .1s; position: relative; z-index: 1;
+  }
+  #entry-start:hover { filter: brightness(1.18); box-shadow: 0 6px 24px rgba(212,175,55,0.22), 0 0 0 1px rgba(0,0,0,0.35) inset; }
+  #entry-start:active { transform: scale(.985); }
+  #entry-status { margin-top: 14px; text-align: center; font-size: 13px; color: var(--text-dim); min-height: 18px; position: relative; z-index: 1; }
+  .entry-err { color: #e07a6a !important; }
+  .entry-hint { margin-top: 10px; font-size: 11px; color: var(--text-faint); text-align: center; line-height: 1.7; position: relative; z-index: 1; }
+  @media (max-width: 760px) {
+    .entry-grid { grid-template-columns: 1fr; gap: 6px; }
+    #entry-overlay { align-items: flex-start; }
+    .entry-card { padding: 26px 22px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- 桌面端入口页（全屏配置层）：直接访问 index.html 时先填配置再进入游戏 -->
+<div id="entry-overlay">
+  <div class="entry-card">
+    <div class="entry-title-row"><h1>✦ 开始游戏 ✦</h1></div>
+    <div class="entry-sub">COC TRPG 跑团 · 配置你的冒险</div>
+    <div class="entry-steps">
+      <span class="done">连接配置</span><i>→</i>
+      <span class="cur">剧本与角色</span><i>→</i>
+      <span>开始跑团</span>
+    </div>
+    <div class="entry-grid">
+      <div class="entry-col">
+        <h3>连接配置</h3>
+        <div class="entry-field">
+          <label>KP / 主模型 Host</label>
+          <input id="entry-host" value="https://openrouter.ai/api/v1" placeholder="https://..." autocomplete="off">
+        </div>
+        <div class="entry-field">
+          <label>KP API Key（远程 API 必填，仅本次使用不落盘）</label>
+          <input id="entry-kp-key" type="password" placeholder="sk-..." autocomplete="off">
+        </div>
+        <div class="entry-field">
+          <label>KP / 主模型</label>
+          <input id="entry-kp-model" list="kp-models" value="nvidia/nemotron-3-ultra-550b-a55b:free">
+        </div>
+        <div class="entry-field">
+          <label>玩家 Host（本地 Ollama 或远程）</label>
+          <input id="entry-player-host" value="http://localhost:11434" autocomplete="off">
+        </div>
+        <div class="entry-field">
+          <label>玩家模型（AI 队友 / 调查员）</label>
+          <select id="entry-player-model">
+            <option>ornith:9b</option>
+            <option>gemma4:12b</option>
+            <option>deepseek-v4-flash</option>
+          </select>
+        </div>
+      </div>
+      <div class="entry-col">
+        <h3>游戏配置</h3>
+        <div class="entry-field">
+          <label>世界观</label>
+          <select id="entry-world">
+            <option value="coc">克苏鲁 COC</option>
+            <option value="harry_potter">哈利波特</option>
+            <option value="infinite_flow">无限流</option>
+          </select>
+          <div class="entry-world-desc" id="entry-world-desc">1920 年代的阿卡姆，古老存在在阴影中苏醒。调查员将直面不可名状的恐惧。</div>
+        </div>
+        <div class="entry-field">
+          <label>模式</label>
+          <select id="entry-mode">
+            <option value="ai">AI 自动（全员 AI 操作）</option>
+            <option value="human">人类玩家（你扮演调查员）</option>
+            <option value="live">直播互动（观众投票推动）</option>
+          </select>
+        </div>
+        <div class="entry-field entry-row">
+          <div>
+            <label>回合数</label>
+            <input id="entry-turns" type="number" value="10" min="3" max="30">
+          </div>
+          <div>
+            <label>随机种子（可选）</label>
+            <input id="entry-seed" placeholder="随机">
+          </div>
+        </div>
+        <div class="entry-field">
+          <label>主控角色（直播模式主导者）</label>
+          <select id="entry-leader">
+            <option value="">默认(陈明)</option>
+            <option value="陈明">陈明</option>
+            <option value="林晓">林晓</option>
+            <option value="王刚">王刚</option>
+          </select>
+          <div class="entry-char-preview" id="entry-char-preview">
+            <h4><span>◆ 主控预览</span><span id="entry-cp-name"></span></h4>
+            <div class="entry-cp-row">
+              <span style="font-size:12px;color:var(--text-dim)">HP</span>
+              <div class="entry-cp-hpbar"><i id="entry-cp-hpfill"></i></div>
+              <span id="entry-cp-hp" style="font-size:12px;color:var(--text-dim)"></span>
+              <span style="font-size:12px;color:var(--text-dim)">SAN</span>
+              <b id="entry-cp-san" style="color:#c9b48a;font-size:13px"></b>
+            </div>
+            <div class="entry-cp-stats" id="entry-cp-skills"></div>
+          </div>
+        </div>
+        <div class="entry-checks">
+          <label><input type="checkbox" id="entry-compose" checked> 剧情模块</label>
+          <label><input type="checkbox" id="entry-load-profile" title="无限流：继承上一局轮回者"> 继承轮回者</label>
+        </div>
+      </div>
+    </div>
+    <button id="entry-start" onclick="startEntryGame()">开始游戏</button>
+    <div id="entry-status"></div>
+    <div class="entry-hint">配置仅本次会话使用，不落盘。手机端请访问 8767 端口的快捷入口。</div>
+  </div>
+</div>
 
 <!-- 顶部控制 -->
 <div id="controls">
@@ -1914,7 +2194,104 @@ function applyEntryCfg(ecfg) {
   } catch (e) { /* 配置缺失则走手动填写 */ }
 })();
 
+// ═══ 桌面端入口页（全屏配置层） ═══
+function entryField(id) { return document.getElementById(id); }
+
+function startEntryGame() {
+  const status = entryField('entry-status');
+  const key = entryField('entry-kp-key').value.trim();
+  const host = entryField('entry-host').value.trim();
+  const isLocal = /localhost|127\.0\.0\.1/.test(host);
+  if (!key && !isLocal) {
+    status.textContent = '远程 API 需要填入 KP API Key（本地 Ollama 可留空）';
+    status.classList.add('entry-err');
+    return;
+  }
+  status.classList.remove('entry-err');
+  hideEntryOverlay();
+  startGame();
+}
+
+function hideEntryOverlay() {
+  const o = entryField('entry-overlay');
+  if (!o || o.style.display === 'none') return;
+  entryField('ollama-host').value = entryField('entry-host').value;
+  entryField('kp-api-key').value = entryField('entry-kp-key').value;
+  entryField('kp-model').value = entryField('entry-kp-model').value;
+  entryField('player-host').value = entryField('entry-player-host').value;
+  entryField('player-model').value = entryField('entry-player-model').value;
+  entryField('world').value = entryField('entry-world').value;
+  entryField('mode').value = entryField('entry-mode').value;
+  entryField('turns').value = entryField('entry-turns').value;
+  entryField('seed').value = entryField('entry-seed').value;
+  const ls = entryField('leader-select');
+  const el = entryField('entry-leader');
+  if (ls && el && el.value) ls.value = el.value;
+  entryField('compose-modules').checked = entryField('entry-compose').checked;
+  entryField('load-profile').checked = entryField('entry-load-profile').checked;
+  o.style.display = 'none';
+}
+
+// 桌面端入口页：非快捷入口路径（?entry=1）时显示全屏配置层
+const ENTRY_CHAR_STATS = {
+  '陈明': { hp: 12, max_hp: 12, san: 60, skills: { '侦查':60, '图书馆':50, '知识':45, '说服':40 } },
+  '林晓': { hp: 10, max_hp: 10, san: 70, skills: { '医学':65, '急救':60, '心理学':50, '神秘学':30 } },
+  '王刚': { hp: 15, max_hp: 15, san: 40, skills: { '格斗':70, '投掷':50, '攀爬':55, '恐吓':45 } },
+};
+const ENTRY_WORLD_DESC = {
+  coc: '1920 年代的阿卡姆，古老存在在阴影中苏醒。调查员将直面不可名状的恐惧。',
+  harry_potter: '霍格沃茨的走廊藏着秘密，魔法与危险交织。选择你的学生档案，踏入禁林。',
+  infinite_flow: '穿越一个又一个恐怖世界，死亡不是终点——轮回者将一次次重生，变强，或疯狂。',
+};
+
+function syncEntryPreview() {
+  const world = entryField('entry-world').value;
+  const desc = entryField('entry-world-desc');
+  if (desc) desc.textContent = ENTRY_WORLD_DESC[world] || '';
+  const pv = entryField('entry-char-preview');
+  if (!pv) return;
+  let leader = entryField('entry-leader').value;
+  if (!leader) {
+    const names = worldPreset(world).roster || [];
+    leader = names[0] || '';
+  }
+  const s = ENTRY_CHAR_STATS[leader];
+  if (!s) { pv.classList.remove('show'); return; }
+  entryField('entry-cp-name').textContent = entryField('entry-leader').value;
+  entryField('entry-cp-hp').textContent = s.hp + '/' + s.max_hp;
+  entryField('entry-cp-hpfill').style.width = Math.round(s.hp / s.max_hp * 100) + '%';
+  entryField('entry-cp-san').textContent = s.san;
+  entryField('entry-cp-skills').innerHTML = Object.entries(s.skills)
+    .slice(0, 4).map(function (kv) { return '<span><b>' + kv[0] + '</b> ' + kv[1] + '</span>'; }).join('');
+  pv.classList.add('show');
+}
+
+function rebuildEntryLeader(worldValue) {
+  const ls = entryField('entry-leader');
+  if (!ls) return;
+  const names = (worldPreset(worldValue).roster || []);
+  if (names.length) {
+    ls.innerHTML = '<option value="">默认(' + names[0] + ')</option>' +
+      names.map(n => '<option value="' + n + '">' + n + '</option>').join('');
+  } else {
+    ls.innerHTML = '<option value="">默认</option>';
+  }
+  syncEntryPreview();
+}
+
+(function initDesktopEntry() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('entry') === '1') return;
+  const o = entryField('entry-overlay');
+  if (o) o.style.display = 'flex';
+  entryField('entry-world').addEventListener('change', function () { rebuildEntryLeader(this.value); });
+  entryField('entry-leader').addEventListener('change', syncEntryPreview);
+  syncEntryPreview();
+})();
+
 function startGame() {
+  // 桌面端入口层：隐藏配置表单（entry=1 快捷路径时本来就不显示）
+  hideEntryOverlay();
   // 快捷入口注入：?entry=1 时从 sessionStorage 读取入口页配置并填充控件
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('entry') === '1') {
